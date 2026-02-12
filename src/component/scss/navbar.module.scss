@@ -1,0 +1,125 @@
+@use "sass:map";
+@import "path/to/your/breakpoints"; // Update this path
+
+.navbar-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.sidebar {
+  background-color: #f4f4f4;
+  flex-shrink: 0;
+  transition: width 0.3s ease;
+
+  @include md {
+    display: none; // Hide on mobile
+  }
+}
+
+.sidebar-collapsed {
+  width: 70px;
+}
+
+.sidebar-expanded {
+  width: 250px;
+
+  @include lg {
+    width: 200px;
+  }
+}
+
+.main-content-wrapper {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #eeeded;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-right: 40px;
+
+  @include xs {
+    margin-right: 0;
+    border-radius: 0;
+  }
+
+  @include sm {
+    margin-right: 8px;
+  }
+
+  @include md {
+    margin-right: 16px;
+  }
+}
+
+.top-bar {
+  background-color: #f4f4f4;
+  height: 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 32px;
+
+  @include xs {
+    height: 50px;
+    padding: 0 8px;
+  }
+
+  @include sm {
+    padding: 0 16px;
+  }
+}
+
+.user-info-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-name {
+  @include xs {
+    display: none;
+  }
+
+  @include sm {
+    font-size: 0.875rem;
+  }
+}
+
+.avatar {
+  cursor: pointer;
+
+  @include xs {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+.mobile-menu-button {
+  display: none;
+
+  @include md {
+    display: block;
+  }
+}
+
+.page-content {
+  flex-grow: 1;
+  padding: 24px;
+  overflow-y: auto;
+
+  @include xs {
+    padding: 8px;
+  }
+
+  @include sm {
+    padding: 16px;
+  }
+}
+
+.mobile-drawer {
+  .MuiDrawer-paper {
+    width: 250px;
+    background-color: #f4f4f4;
+  }
+}

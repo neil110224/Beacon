@@ -1,0 +1,164 @@
+// Import your mixins.scss file containing the breakpoints and mixins
+@use "../../styles/mixins" as bp; // Adjust path if your structure differs (e.g., "../styles/mixins")
+
+.login-container {
+  min-height: 100vh;
+  background-color: #f2f2f2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  @include bp.xs {
+    padding: 1rem; // Add padding on very small screens for better spacing
+  }
+}
+
+.login-card {
+  width: 100%;
+  max-width: 900px;
+  height: 520px;
+  display: flex;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(51, 47, 47, 0.15);
+  overflow: hidden;
+
+  @include bp.lm {
+    flex-direction: column; // Stack vertically on smaller screens
+    height: auto; // Allow height to adjust
+    max-width: 100%; // Full width on mobile
+  }
+}
+
+.login-left-panel {
+  margin-top: auto;
+  margin-bottom: 1.25rem;
+  flex: 1.5;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  @include bp.lm {
+    flex: none; // Remove flex on stack
+    padding: 2rem 1.5rem; // Reduce padding
+    margin-bottom: 0;
+  }
+
+  @include bp.xs {
+    padding: 1rem; // Further reduce on very small screens
+  }
+}
+
+.login-title {
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-align: center;
+  font-size: 28px;
+
+  @include bp.xs {
+    font-size: 24px; // Smaller title on mobile
+  }
+}
+
+.login-title-highlight {
+  color: #2bb0e6;
+}
+
+.login-textfield {
+  margin-bottom: 1rem;
+
+  &:last-of-type {
+    margin-bottom: 0.75rem;
+  }
+}
+
+.login-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.login-button {
+  padding: 0.8125rem 0;
+  background-color: #2bb0e6;
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+
+  &:hover {
+    background-color: #1a97c9;
+  }
+
+  @include bp.xs {
+    padding: 0.75rem 0; // Slightly smaller button on mobile
+  }
+}
+
+.login-mis-footer {
+  margin-top: auto;
+  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+
+  @include bp.xs {
+    flex-direction: column; // Stack logo and text vertically on very small screens
+    gap: 0.5rem;
+  }
+}
+
+.login-mis-logo {
+  width: 50px;
+  height: auto;
+  object-fit: contain;
+
+  @include bp.xs {
+    width: 40px; // Smaller logo on mobile
+  }
+}
+
+.login-mis-text {
+  font-size: 12px;
+  color: #777;
+  line-height: 1.4;
+}
+
+.login-right-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @include bp.lm {
+    flex: none; // Remove flex on stack
+    height: 300px; // Fixed height for image in stack
+  }
+
+  @include bp.xs {
+    height: 200px; // Smaller height on very small screens
+  }
+}
+
+.login-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+
+  @include bp.lm {
+    max-width: 80%; // Limit image width in stack
+    max-height: 100%;
+  }
+
+  @include bp.xs {
+    max-width: 60%; // Further limit on very small screens
+  }
+}
