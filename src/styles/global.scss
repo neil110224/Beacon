@@ -6,12 +6,9 @@ body {
     padding: 0;
     background-color: #f4f4f4;
     overflow: hidden;
+    
 }
 
-
 #root {
-  transform: scale(0.75);
-  transform-origin: top left;
-  width: 133.33vw;
-  height: 133.33vh;
+    font-family: 'Montserrat', sans-serif;
 }

@@ -27,12 +27,6 @@ import AddUserDialog from "../pages/dialog/adddialog/AddNewUserDialog";
 import AddTeamDialog from "../pages/dialog/adddialog/AddNewTeamDialog";
 
 const pageConfig = {
-  HOME: {
-    
-    hasArchive: true,
-    archiveTitle: "Archived Projects",
-    archiveComponent: ProjectArchive,
-  },
   USERS: {
     title: "Users",
     buttonLabel: "Create",
@@ -134,13 +128,13 @@ const TopNavContent = () => {
     <>
       <Box
         sx={{
-          
           display: "flex",
           height: { xs: "60px", sm: "70px", md: "80px" },
           justifyContent: "space-between",
           alignItems: "center",
           padding: { xs: "0 1rem", sm: "0 1.5rem", md: "0 2rem" },
-          borderRadius: { xs: "0", sm: "10px 10px 0 0" },
+          borderRadius: 2,
+          bgcolor: "#000000",
           borderBottom: "1px solid #9e9d9d",
         }}
       >

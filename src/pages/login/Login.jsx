@@ -1,4 +1,4 @@
-import { Box, TextField, Button, Snackbar, Slide } from '@mui/material';
+import { Box, TextField, Button, Slide } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import reindeer from "../../assets/reindeer.jpg";
@@ -9,6 +9,11 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '../../features/api/slice/authSlice';
 import React from 'react';
+import { Alert } from '@mui/material';
+import Snackbar from '../../component/reuseable/snackbar';
+
+
+
 
 function SlideTransition(props) {
   return <Slide {...props} direction="left" />; // Slide in from the right
@@ -32,27 +37,42 @@ const Login = () => {
     setSnackbarOpen(false);
   };
 
+
+
+const [snackbarMessage, setSnackbarMessage] = React.useState('');
+const [snackbarSeverity, setSnackbarSeverity] = React.useState('success');
+
+
+
   const onSubmit = async (data) => {
-    try {
-      const response = await userLogin(data).unwrap();
+  try {
+    const response = await userLogin(data).unwrap();
 
-      const user = response.data.user;
-      const token = response.data.access_token;
+    const user = response.data.user;
+    const token = response.data.access_token;
 
-      dispatch(setCredentials({ user, token }));
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
+    dispatch(setCredentials({ user, token }));
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
 
-      // Show success snackbar
-      setSnackbarOpen(true);
+    setSnackbarSeverity('success');
+    setSnackbarMessage('Login Successful!');
+    setSnackbarOpen(true);
 
-      // Navigate after a short delay so user sees the snackbar
-      setTimeout(() => navigate("/home"), 1200);
-    } catch (error) {
-      console.log(error);
-      // Optionally show error snackbar
-    }
-  };
+    setTimeout(() => navigate("/Dashboard"), 1); // Navigate after 1.5 seconds
+
+  } catch (error) {
+    console.log(error);
+
+    setSnackbarSeverity('error');
+    setSnackbarMessage(
+      error?.data?.message || "Invalid username or password"
+    );
+    setSnackbarOpen(true);
+  }
+};
+
+
 
   return (
     <Box
@@ -64,46 +84,47 @@ const Login = () => {
       }}
     >
       <Box
-        sx={{
-          width: '100%',
-          maxWidth: { xs: '100%', md: 900 },
-          height: { xs: 'auto', md: 520 },
-          display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          bgcolor: '#fff',
-          borderRadius: 2,
-          boxShadow: '0 10px 30px rgba(51, 47, 47, 0.15)',
-          overflow: 'hidden',
-          position: 'relative',
-        }}
-      >
+  sx={{
+    width: '75%',                // slightly smaller width
+    maxWidth: { xs: '100%', md: 750 },  // reduced from 900
+    height: { xs: 'auto', md: 450 },    // reduced from 520
+    display: 'flex',
+    flexDirection: { xs: 'column', md: 'row' },
+    bgcolor: '#ffffff',
+    borderRadius: 2,
+    boxShadow: '0 8px 25px rgba(51, 47, 47, 0.12)', // softer shadow
+    overflow: 'hidden',
+    position: 'relative',
+  }}
+>
+
         {/* LEFT PANEL - Form */}
         <Box
-          component="form"
-          onSubmit={handleSubmit(onSubmit)}
-          sx={{
-            mt: { xs: 'auto', md: 'auto' },
-            mb: { xs: 4, md: 8 },
-            flex: { xs: 1, md: 1 },
-            p: { xs: 3, md: 10 },
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-          }}
-        >
-          <Box sx={{ mb: 3 }}>
+  component="form"
+  onSubmit={handleSubmit(onSubmit)}
+  sx={{
+    flex: 1,
+    p: { xs: 3, md: 6 }, // reduced from 10
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+  }}
+>
+
+          <Box sx={{ mb: 5 }}>
             <Box
-              component="h2"
-              sx={{
-                m: 4,
-                fontFamily: 'Montserrat, sans-serif',
-                fontWeight: 700,
-                letterSpacing: 1,
-                textAlign: 'center',
-                fontSize: { xs: 24, md: 28 }
-              }}
-            >
-              SIGN <Box component="span" sx={{ color: '#2bb0e6' }}>IN</Box>
+  component="h2"
+  sx={{
+    m: 2, // reduced from 4
+    fontFamily: 'Montserrat, sans-serif',
+    fontWeight: 500,
+    letterSpacing: 1,
+    textAlign: 'center',
+    fontSize: { xs: 18, md: 22 } // slightly smaller
+  }}
+>
+
+              Welcome to  <Box component="span" sx={{ color: '#005a7e', fontWeight: 900, fontSize: { xs: 25, md: 30 } }}>Beacon!</Box>
             </Box>
           </Box>
 
@@ -114,11 +135,12 @@ const Login = () => {
             error={!!errors.username}
             helperText={errors.username?.message}
             sx={{
-              mb: 2.5,
+              mb: 1,
               '& .MuiInputBase-input': {
                 fontFamily: 'Montserrat, sans-serif',
                 fontWeight: 700,
-                fontSize: { xs: 12, md: 14 },
+                fontSize: { xs: 9, md: 11 },
+                height: 8,
               }
             }}
           />
@@ -135,28 +157,38 @@ const Login = () => {
               '& .MuiInputBase-input': {
                 fontFamily: 'Montserrat, sans-serif',
                 fontWeight: 700,
-                fontSize: { xs: 12, md: 14 },
+                fontSize: { xs: 9, md: 11 },
+                height: 8, // slightly smaller height
               }
             }}
           />
 
           <Button
-            type="submit"
-            fullWidth
-            sx={{
-              py: { xs: 1, md: 1.3 },
-              bgcolor: '#2bb0e6',
-              color: '#fff',
-              fontFamily: 'Montserrat, sans-serif',
-              fontWeight: 700,
-              fontSize: { xs: 12, md: 14 },
-              mb: 3,
-              '&:hover': { bgcolor: '#1a97c9' },
-              boxShadow: '0px 5px 5px rgba(0,0,0,0.5)',
-            }}
-          >
-            SIGN IN
-          </Button>
+  type="submit"
+  fullWidth
+  sx={{
+    py: { xs: 0.9, md: 1.1 }, // smaller height
+    bgcolor: '#2bb0e6',
+    color: '#ffffff',
+    fontFamily: 'Montserrat, sans-serif',
+    fontWeight: 700,
+    fontSize: { xs: 12, md: 13 },
+    mb: 2,
+    '&:hover': { bgcolor: '#1a97c9' },
+    boxShadow: '0px 4px 4px rgba(0,0,0,0.4)',
+  }}
+>
+  SIGN IN
+</Button>
+<Box sx={{display:'flex', flexDirection:'column', alignItems:'center', gap:0.5, mt: 3}}>
+<img src={mis} alt="MIS Logo" style={{ width: 50, height: 'auto', objectFit: 'contain' }} />
+            <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 200, fontSize: 9 }}>
+              Powered By <strong>MIS</strong>
+            </div>
+            <div style={{ fontFamily: 'Montserrat, sans-serif',fontWeight: 300, fontSize: 9 }}>
+              All rights reserved © 2026
+            </div>
+</Box>
         </Box>
 
         {/* RIGHT PANEL */}
@@ -178,7 +210,7 @@ const Login = () => {
           <Box
             sx={{
               position: 'absolute',
-              top: 16,
+              bottom: 16,
               left: '50%',
               transform: 'translateX(-50%)',
               display: 'flex',
@@ -190,27 +222,20 @@ const Login = () => {
               textShadow: '0 0 5px rgba(0,0,0,0.5)',
             }}
           >
-            <img src={mis} alt="MIS Logo" style={{ width: 50, height: 'auto', objectFit: 'contain' }} />
-            <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 600, fontSize: 12 }}>
-              Powered By <strong>MIS</strong>
-            </div>
-            <div style={{ fontFamily: 'Montserrat, sans-serif' }}>
-              All rights reserved © 2021
-            </div>
+            
           </Box>
         </Box>
       </Box>
 
       {/* Snackbar */}
       <Snackbar
-        open={snackbarOpen}
-        onClose={handleSnackbarClose}
-        autoHideDuration={1200}
-        message="Login Successful!"
-        TransitionComponent={SlideTransition}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} // Bottom-right
-        sx={{ '& .MuiSnackbarContent-root': { bgcolor: 'green' } }} // Green background
-      />
+  open={snackbarOpen}
+  message={snackbarMessage}
+  severity={snackbarSeverity}
+  onClose={() => setSnackbarOpen(false)}
+/>
+
+
     </Box>
   );
 };

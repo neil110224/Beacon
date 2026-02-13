@@ -41,7 +41,7 @@ const Dashboard = () => {
     gap:5,
     }}>
 
-      <Paper sx={{...topbox, bgcolor:'#b90000'}}>
+      {/* <Paper sx={{...topbox, bgcolor:'#b90000'}}>
         Pending 
       </Paper>
       <Paper sx={{...topbox, bgcolor:'#0502a0'}}>
@@ -55,7 +55,7 @@ const Dashboard = () => {
       </Paper>
       <Paper sx={{...topbox, bgcolor:'#9d05e4'}}>
         Total 
-      </Paper>
+      </Paper> */}
 
       </Box>
     

@@ -113,7 +113,7 @@ const Navbar = () => {
 
   // Determine sidebar behavior based on screen size
   const showMobileSidebar = isMd;
-  const sidebarWidth = isSidebarCollapsed ? "70px" : isLg ? "100px" : "250px";
+  const sidebarWidth = isSidebarCollapsed ? "70px" : isLg ? "100px" : "215px";
 
   return (
     <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
@@ -158,13 +158,13 @@ const Navbar = () => {
         />
       </Drawer>
 
-      {/* Right side */}
+      {/* Body content */}
       <Box
         sx={{
           flexGrow: 1,
           display: "flex",
           flexDirection: "column",
-          bgcolor: "#eeeded",
+          bgcolor: "#F9F8F6",
           marginRight: { xs: 0, sm: 1, md: 2, lg: 5 },
           borderRadius: { xs: 0, sm: 2 },
           overflow: "hidden",
@@ -174,7 +174,7 @@ const Navbar = () => {
         <Box
           sx={{
             bgcolor: "#f4f4f4",
-            height: { xs: 80, sm: 90 },
+            height: { xs: 50, sm: 60 },
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -210,9 +210,10 @@ const Navbar = () => {
               </Tooltip>
             )}
           </Box>
+          
 
           {/* User Info */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, }}>
             <Typography 
               sx={{ 
                 display: { xs: "none", sm: "block" },
@@ -235,6 +236,7 @@ const Navbar = () => {
             />
           </Box>
 
+
           <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
             <MenuItem onClick={handleChangeProfile}>
               <PersonIcon sx={{ mr: 1 }} />
@@ -247,10 +249,7 @@ const Navbar = () => {
           </Menu>
         </Box>
 
-        <TopNavContent 
-          activePage={activePage} 
-          onAddClick={handleAddClick}
-        />
+        
 
         <AddNewUserDialog
           open={addUserOpen}
@@ -265,16 +264,6 @@ const Navbar = () => {
           onSave={handleCreateTeam}
           isLoading={creatingTeam}
         />
-
-        <Box 
-          sx={{ 
-            flexGrow: 1, 
-            p: { xs: 1, sm: 2, md: 3 }, 
-            overflowY: "auto" 
-          }}
-        >
-          <Outlet />
-        </Box>
       </Box>
 
       <ChangeProfileDialog

@@ -264,7 +264,7 @@ export default function NestedList({
                     fontSize: isXs ? '1rem' : isSm ? '1.1rem' : '1.25rem',
                   }}
                 >
-                  BEACON
+                  Beacon
                 </h3>
               </Box>
 
