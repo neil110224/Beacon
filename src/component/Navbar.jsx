@@ -158,19 +158,16 @@ const Navbar = () => {
         />
       </Drawer>
 
-      {/* Body content */}
+      {/* Main Content Area */}
       <Box
         sx={{
           flexGrow: 1,
           display: "flex",
           flexDirection: "column",
-          bgcolor: "#F9F8F6",
-          marginRight: { xs: 0, sm: 1, md: 2, lg: 5 },
-          borderRadius: { xs: 0, sm: 2 },
           overflow: "hidden",
         }}
       >
-        {/* Top Bar */}
+        {/* Top Bar / Navbar */}
         <Box
           sx={{
             bgcolor: "#f4f4f4",
@@ -179,63 +176,58 @@ const Navbar = () => {
             justifyContent: "space-between",
             alignItems: "center",
             px: { xs: 1, sm: 2 },
+           
+            color: "#f4f4f4",
           }}
         >
           {/* Left side - Toggle buttons */}
-          <Box sx={{ display: "flex", alignItems: "center" }}>
+          <Box sx={{ display: "flex", alignItems: "center",  }}>
             {/* Mobile Menu Button */}
             {showMobileSidebar && (
               <IconButton
                 onClick={handleToggleMobileDrawer}
-                sx={{ display: { xs: "block", md: "none" } }}
+                sx={{ display: { xs: "block", md: "none" }, color: "#fff" }}
               >
                 <MenuIcon />
               </IconButton>
             )}
 
-            {/* Desktop Sidebar Toggle Button */}
-            {!showMobileSidebar && (
-              <Tooltip title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}>
+            {/* Desktop Sidebar Toggle Button - only show when expanded */}
+            {!showMobileSidebar && !isSidebarCollapsed && (
+              <Tooltip title="Collapse sidebar">
                 <IconButton
                   onClick={handleToggleSidebar}
-                  sx={{ display: { xs: "none", md: "block" } }}
+                  sx={{ display: { xs: "none", md: "block" }, color: "#070606" }}
                   size={isXs ? "small" : "medium"}
                 >
-                  {isSidebarCollapsed ? (
-                    <ArrowForwardIosIcon fontSize="small" />
-                  ) : (
-                    <ArrowBackIosIcon fontSize="small" />
-                  )}
+                  <ArrowBackIosIcon fontSize="small" />
                 </IconButton>
               </Tooltip>
             )}
           </Box>
-          
 
           {/* User Info */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Typography 
               sx={{ 
                 display: { xs: "none", sm: "block" },
                 fontSize: { sm: "0.875rem", md: "1rem" },
+                color: "#000000",
               }}
             >
               {firstName}
             </Typography>
 
             <Avatar 
-              Size="large"
               src={user?.profile_picture || "/static/images/avatar/2.jpg"}
               sx={{ 
-                width: { xs: 62, sm: 40 },
+                width: { xs: 32, sm: 40 },
                 height: { xs: 32, sm: 40 },
                 cursor: "pointer",
-                Size: 'large',
               }}
               onClick={handleAvatarClick}
             />
           </Box>
-
 
           <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
             <MenuItem onClick={handleChangeProfile}>
@@ -249,7 +241,22 @@ const Navbar = () => {
           </Menu>
         </Box>
 
-        
+        {/* Body Content */}
+<Box
+  sx={{
+    flexGrow: 1,
+    bgcolor: "#f9f9f9",
+    borderRadius: { xs: 0, sm: 1 },
+    overflow: "hidden",
+    display: "flex",
+    flexDirection: "column",
+  }}
+>
+  <TopNavContent/>
+  <Box sx={{ padding: { xs: 1, sm: 2 }, flexGrow: 1, overflow: "auto" }}>
+    <Outlet />
+  </Box>
+</Box>
 
         <AddNewUserDialog
           open={addUserOpen}

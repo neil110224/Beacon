@@ -10,6 +10,8 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import { Box, IconButton, Tooltip, useMediaQuery } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import MenuIcon from '@mui/icons-material/Menu';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import PersonIcon from '@mui/icons-material/Person';
 import PeopleIcon from '@mui/icons-material/People';
@@ -77,12 +79,24 @@ export default function NestedList({
             sx={{
               bgcolor: '#f4f4f4',
               display: 'flex',
+              flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'center',
-              padding: '1rem 0',
+              gap: 0.5,
+              padding: '0.5rem',
               minHeight: { xs: '60px', sm: '70px', md: '80px' },
             }}
           >
+            {/* Toggle button at top */}
+            <Tooltip title="Expand sidebar" placement="right">
+              <IconButton
+                onClick={onToggleSidebar}
+                size="small"
+                sx={{ color: '#070606' }}
+              >
+                <MenuIcon fontSize="medium" />
+              </IconButton>
+            </Tooltip>
             {/* Logo only in collapsed state */}
             <img 
               src={mis} 
@@ -91,13 +105,14 @@ export default function NestedList({
               style={{
                 width: isXs ? '32px' : isSm ? '36px' : '40px',
                 height: isXs ? '32px' : isSm ? '36px' : '40px',
+                
               }}
             />
           </ListSubheader>
 
-          <Tooltip title="HOME" placement="right">
+          <Tooltip title="Dashboard" placement="right">
             <NavLink
-              to="/home"
+              to="/Dashboard"
               style={{ textDecoration: 'none', color: 'inherit' }}
               className={({ isActive }) =>
                 `${styles.listItem} ${isActive ? styles.active : ''}`
@@ -117,7 +132,29 @@ export default function NestedList({
             </NavLink>
           </Tooltip>
 
-          <Tooltip title="ROLE" placement="right">
+<Tooltip title="System" placement="right">
+            <NavLink
+              to="/Systems"
+              style={{ textDecoration: 'none', color: 'inherit' }}
+              className={({ isActive }) =>
+                `${styles.listItem} ${isActive ? styles.active : ''}`
+              }
+              onClick={handleNavLinkClick}
+            >
+              <ListItemButton 
+                sx={{ 
+                  justifyContent: 'center',
+                  py: { xs: 1, sm: 1.5 },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 'auto' }}>
+                  <HomeIcon fontSize={isXs ? "small" : "medium"} />
+                </ListItemIcon>
+              </ListItemButton>
+            </NavLink>
+          </Tooltip>
+
+          <Tooltip title="Role" placement="right">
             <NavLink
               to="/role"
               style={{ textDecoration: 'none', color: 'inherit' }}
@@ -139,7 +176,7 @@ export default function NestedList({
             </NavLink>
           </Tooltip>
 
-          <Tooltip title="USERS" placement="right">
+          <Tooltip title="Users" placement="right">
             <NavLink
               to="/users"
               style={{ textDecoration: 'none', color: 'inherit' }}
@@ -161,7 +198,7 @@ export default function NestedList({
             </NavLink>
           </Tooltip>
 
-          <Tooltip title="TEAM" placement="right">
+          <Tooltip title="Team" placement="right">
             <NavLink
               to="/team"
               style={{ textDecoration: 'none', color: 'inherit' }}
@@ -183,7 +220,7 @@ export default function NestedList({
             </NavLink>
           </Tooltip>
 
-          <Tooltip title="SDLC" placement="right">
+          <Tooltip title="Sdlc" placement="right">
             <NavLink
               to="/sdlc"
               style={{ textDecoration: 'none', color: 'inherit',  }}
@@ -205,7 +242,7 @@ export default function NestedList({
             </NavLink>
           </Tooltip>
 
-          <Tooltip title="CHARGING" placement="right">
+          <Tooltip title="Charging" placement="right">
             <NavLink
               to="/charging"
               style={{ textDecoration: 'none', color: 'inherit' }}
@@ -241,14 +278,19 @@ export default function NestedList({
               sx={{
                 bgcolor: '#f4f4f4',
                 display: 'flex',
-                justifyContent: isMobileDrawer ? 'space-between' : 'center',
+                justifyContent: 'center',
                 alignItems: 'center',
                 paddingRight: isMobileDrawer ? '0.5rem' : 0,
                 paddingLeft: { xs: '0.5rem', sm: '1rem' },
                 minHeight: { xs: '60px', sm: '70px', md: '80px' },
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 }}}>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: { xs: 0.5, sm: 1 },
+                justifyContent: 'center',
+              }}>
                 <img 
                   src={mis} 
                   alt="MIS Logo" 
@@ -262,6 +304,7 @@ export default function NestedList({
                   className={styles.title}
                   style={{
                     fontSize: isXs ? '1rem' : isSm ? '1.1rem' : '1.25rem',
+                    margin: 0,
                   }}
                 >
                   Beacon
