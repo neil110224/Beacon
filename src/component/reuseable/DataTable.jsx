@@ -99,57 +99,56 @@ function DataTable({
   }
 
   return (
-    <TableContainer component={Paper}>
-      <Table sx={tableSx}>
-        <TableHead sx={headSx}>
-          <TableRow>
-            {columns.map((col) => (
-              <TableCell key={col.id} align={col.align || "left"}>
-                {col.label}
-              </TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-
-        <TableBody>
-          {paginatedRows.length === 0 ? (
+    <Paper>
+      <TableContainer>
+        <Table sx={tableSx}>
+          <TableHead sx={headSx}>
             <TableRow>
-              <TableCell colSpan={columns.length} align="center">
-                {rows.length === 0 ? "No data available" : "No data on this page"}
-              </TableCell>
+              {columns.map((col) => (
+                <TableCell key={col.id} align={col.align || "left"}>
+                  {col.label}
+                </TableCell>
+              ))}
             </TableRow>
-          ) : (
-            paginatedRows.map((row) => (
-              <TableRow key={row.id}>
-                {columns.map((col) => (
-                  <TableCell key={col.id} align={col.align || "left"}>
-                    {col.render ? col.render(row) : row[col.id]}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          )}
-        </TableBody>
+          </TableHead>
 
-        <TableFooter>
-          <TableRow>
-            <TablePagination
-              rowsPerPageOptions={[5, 10, 25]}
-              colSpan={columns.length}
-              count={totalCount}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={(e, newPage) => setPage(newPage)}
-              onRowsPerPageChange={(e) => {
-                setRowsPerPage(parseInt(e.target.value, 10));
-                setPage(0);
-              }}
-              ActionsComponent={TablePaginationActions}
-            />
-          </TableRow>
-        </TableFooter>
-      </Table>
-    </TableContainer>
+          <TableBody>
+            {paginatedRows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={columns.length} align="center">
+                  {rows.length === 0 ? "No data available" : "No data on this page"}
+                </TableCell>
+              </TableRow>
+            ) : (
+              paginatedRows.map((row) => (
+                <TableRow key={row.id}>
+                  {columns.map((col) => (
+                    <TableCell key={col.id} align={col.align || "left"}>
+                      {col.render ? col.render(row) : row[col.id]}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      {/* Pagination outside TableContainer so it stays below scrollable area */}
+      <TablePagination
+        component="div"
+        rowsPerPageOptions={[5, 10, 25]}
+        count={totalCount}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={(e, newPage) => setPage(newPage)}
+        onRowsPerPageChange={(e) => {
+          setRowsPerPage(parseInt(e.target.value, 10));
+          setPage(0);
+        }}
+        ActionsComponent={TablePaginationActions}
+      />
+    </Paper>
   );
 }
 

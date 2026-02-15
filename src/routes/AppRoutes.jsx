@@ -4,7 +4,6 @@ import Users from '../pages/contents/Users'
 import Team from '../pages/contents/Team'
 import SDLC from '../pages/contents/SDLC'
 import RolesTable from '../pages/dialog/editdialog/EditRole'
-import Navbar from '../component/navbar'
 import NestedList from '../component/sidebar'
 import Charging from '../pages/contents/Charging'
 import UserPage from '../userpage/userPage'
@@ -16,6 +15,8 @@ import UserArchive from '../pages/dialog/archivedialog/UserArchive'
 import Role from '../pages/contents/Role'
 import Dashboard from '../pages/contents/Dashboard'
 import TopNavContent from '../component/TopNavContent'
+import Systems from '../pages/contents/Systems'
+import Navbar from '../component/Navbar'
 
 
 
@@ -35,6 +36,7 @@ const AppRoutes = () => {
         <Route path="/Team" element={<Team />} />
         <Route path="/Charging" element={<Charging />} />
         <Route path="/Sdlc" element={<SDLC />} />
+        <Route path="/Systems" element={<Systems />} />
       </Route>
 
       <Route path='/nestedlist' element={<NestedList/>}/>

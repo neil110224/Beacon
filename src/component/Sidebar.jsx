@@ -21,7 +21,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import LocationCityIcon from '@mui/icons-material/LocationCity';
 import mis from '../assets/mis.png';
 import styles from './scss/sidebar.module.scss';
-
+import SettingsSystemDaydreamIcon from '@mui/icons-material/SettingsSystemDaydream';
 export default function NestedList({ 
   width = '100%', 
   onToggleSidebar, 
@@ -148,7 +148,7 @@ export default function NestedList({
                 }}
               >
                 <ListItemIcon sx={{ minWidth: 'auto' }}>
-                  <HomeIcon fontSize={isXs ? "small" : "medium"} />
+                  <SettingsSystemDaydreamIcon fontSize={isXs ? "small" : "medium"} />
                 </ListItemIcon>
               </ListItemButton>
             </NavLink>
@@ -354,7 +354,7 @@ export default function NestedList({
           >
             <ListItemButton>
               <ListItemIcon className={styles.listItemIcon}>
-                <HomeIcon fontSize={isXs ? "small" : "medium"} />
+                <SettingsSystemDaydreamIcon fontSize={isXs ? "small" : "medium"} />
               </ListItemIcon>
               <ListItemText 
                 primary="Systems" 

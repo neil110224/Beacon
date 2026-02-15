@@ -10,7 +10,7 @@ import {
   Drawer,
   Tooltip,
 } from "@mui/material";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/LogoutOutlined";
 import PersonIcon from "@mui/icons-material/Person";
@@ -33,6 +33,7 @@ import { useCreateTeamMutation } from "../features/api/team/teamApi";
 const Navbar = () => {
   const user = useSelector(selectCurrentUser);
   const firstName = user?.first_name;
+  const location = useLocation(); // Add this line
   const [addUserOpen, setAddUserOpen] = useState(false);
   const [addTeamOpen, setAddTeamOpen] = useState(false);
   const [activePage, setActivePage] = useState("HOME");
@@ -55,6 +56,9 @@ const Navbar = () => {
   const [createTeam, { isLoading: creatingTeam }] = useCreateTeamMutation();
 
   const open = Boolean(anchorEl);
+
+  // Check if current route is dashboard - Add this line
+  const isDashboard = location.pathname === '/Dashboard';
 
   const handleAvatarClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
@@ -242,21 +246,23 @@ const Navbar = () => {
         </Box>
 
         {/* Body Content */}
-<Box
-  sx={{
-    flexGrow: 1,
-    bgcolor: "#f9f9f9",
-    borderRadius: { xs: 0, sm: 1 },
-    overflow: "hidden",
-    display: "flex",
-    flexDirection: "column",
-  }}
->
-  <TopNavContent/>
-  <Box sx={{ padding: { xs: 1, sm: 2 }, flexGrow: 1, overflow: "auto" }}>
-    <Outlet />
-  </Box>
-</Box>
+        <Box
+          sx={{
+            flexGrow: 1,
+            bgcolor: "#f9f9f9",
+            borderRadius: { xs: 0, sm: 1 },
+            overflow: "hidden",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {/* Conditionally render TopNavContent - only show when NOT on Dashboard */}
+          {!isDashboard && <TopNavContent />}
+          
+          <Box sx={{ padding: { xs: 1, sm: 2 }, flexGrow: 1, overflow: "auto" }}>
+            <Outlet />
+          </Box>
+        </Box>
 
         <AddNewUserDialog
           open={addUserOpen}
