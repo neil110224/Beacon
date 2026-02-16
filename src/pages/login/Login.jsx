@@ -167,11 +167,11 @@ const [snackbarSeverity, setSnackbarSeverity] = React.useState('success');
   type="submit"
   fullWidth
   sx={{
-    py: { xs: 0.9, md: 1.1 }, // smaller height
+    py: { xs: 0.6, md: 0.8 }, // smaller height
     bgcolor: '#2bb0e6',
     color: '#ffffff',
     fontFamily: 'Montserrat, sans-serif',
-    fontWeight: 700,
+    fontWeight: 500,
     fontSize: { xs: 12, md: 13 },
     mb: 2,
     '&:hover': { bgcolor: '#1a97c9' },

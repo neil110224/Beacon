@@ -1,511 +1,553 @@
-import * as React from 'react';
+import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import ListSubheader from '@mui/material/ListSubheader';
-import List from '@mui/material/List';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import Collapse from '@mui/material/Collapse';
-import ExpandLess from '@mui/icons-material/ExpandLess';
-import ExpandMore from '@mui/icons-material/ExpandMore';
-import { Box, IconButton, Tooltip, useMediaQuery } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import MenuIcon from '@mui/icons-material/Menu';
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import { Box, List, ListItemButton, ListItemIcon, ListItemText, Collapse, IconButton, Avatar, Typography, Menu, MenuItem } from '@mui/material';
+import HomeIcon from '@mui/icons-material/Home';
+import SettingsSystemDaydreamIcon from '@mui/icons-material/SettingsSystemDaydream';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
+import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import PeopleIcon from '@mui/icons-material/People';
-import HomeIcon from '@mui/icons-material/Home';
-import WebAssetIcon from '@mui/icons-material/WebAsset';
 import GroupsIcon from '@mui/icons-material/Groups';
 import LocationCityIcon from '@mui/icons-material/LocationCity';
-import mis from '../assets/mis.png';
-import styles from './scss/sidebar.module.scss';
-import SettingsSystemDaydreamIcon from '@mui/icons-material/SettingsSystemDaydream';
-export default function NestedList({ 
-  width = '100%', 
-  onToggleSidebar, 
-  isCollapsed,
-  isMobileDrawer = false, // New prop to indicate if this is inside a mobile drawer
-  onCloseMobileDrawer, // Callback to close mobile drawer
-}) {
+import CategoryIcon from '@mui/icons-material/Category';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
+import MenuIcon from '@mui/icons-material/Menu';
+import mis from "../assets/mis.png";
+import beacon from '../assets/beacon.jpg'
+
+const Sidebar = ({ user, onChangeProfile }) => {
   const location = useLocation();
+  const [openMasterlist, setOpenMasterlist] = useState(
+    location.pathname.startsWith('/role') || 
+    location.pathname.startsWith('/users') || 
+    location.pathname.startsWith('/team') || 
+    location.pathname.startsWith('/charging') ||
+    location.pathname.startsWith('/category')
+  );
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  
+  const open = Boolean(anchorEl);
+  const firstName = user?.first_name;
 
-  // Custom breakpoints matching your SCSS
-  const isXs = useMediaQuery('(max-width:575.98px)');
-  const isSm = useMediaQuery('(max-width:768px)');
-  const isMd = useMediaQuery('(max-width:991.98px)');
-  const isLg = useMediaQuery('(max-width:1199.98px)');
-
-  const [openItems, setOpenItems] = React.useState({
-    MASTERLIST: location.pathname.startsWith('/role') || 
-                location.pathname.startsWith('/users') || 
-                location.pathname.startsWith('/team') || 
-                location.pathname.startsWith('/charging'),
-    SYSTEMS: location.pathname.startsWith('/sdlc'),
-  });
-
-  const handleToggle = (item) => {
-    setOpenItems((prev) => ({
-      ...prev,
-      [item]: !prev[item],
-    }));
+  const handleAvatarClick = (event) => {
+    setAnchorEl(event.currentTarget);
   };
 
-  const isActiveRoute = (route) => location.pathname === route;
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
-  // Handle navigation link click - close mobile drawer if applicable
-  const handleNavLinkClick = () => {
-    if (isMobileDrawer && onCloseMobileDrawer) {
-      onCloseMobileDrawer();
+  const handleChangeProfile = () => {
+    if (onChangeProfile) {
+      onChangeProfile();
     }
+    handleClose();
+  };
+
+  const handleMasterlistToggle = () => {
+    setOpenMasterlist(!openMasterlist);
+  };
+
+  const handleToggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
+    if (!isCollapsed) {
+      setOpenMasterlist(false);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    sessionStorage.clear();
+    window.location.replace("http://localhost:5173");
   };
 
   return (
     <Box 
-      sx={{ 
-        width, 
-        height: '100%', 
-        transition: 'width 0.3s ease',
+      sx={{
+        bgcolor: '#1e1e1e', 
+        height: '100vh', 
+        width: isCollapsed ? '80px' : '200px',
+        minWidth: isCollapsed ? '80px' : '200px',
+        maxWidth: isCollapsed ? '80px' : '200px',
+        color: '#f4f4f4',
+        overflow: 'hidden', // Changed from 'auto' to 'hidden'
+        transition: 'width 1s ease, min-width 1s ease, max-width 1s ease',
         display: 'flex',
         flexDirection: 'column',
       }}
     >
-      {isCollapsed && !isMobileDrawer ? (
-        // Collapsed sidebar - icons only (Desktop only)
-        <List className={styles.list}>
-          <ListSubheader
-            component="div"
-            sx={{
-              bgcolor: '#f4f4f4',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: 0.5,
-              padding: '0.5rem',
-              minHeight: { xs: '60px', sm: '70px', md: '80px' },
-            }}
-          >
-            {/* Toggle button at top */}
-            <Tooltip title="Expand sidebar" placement="right">
-              <IconButton
-                onClick={onToggleSidebar}
-                size="small"
-                sx={{ color: '#070606' }}
-              >
-                <MenuIcon fontSize="medium" />
-              </IconButton>
-            </Tooltip>
-            {/* Logo only in collapsed state */}
+      {/* Header with Logo and Title */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: isCollapsed ? 'column' : 'row',
+          alignItems: 'center',
+          justifyContent: isCollapsed ? 'center' : 'space-between',
+          padding: isCollapsed ? '1rem 0.5rem' : '1rem',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          minHeight: '80px',
+          gap: isCollapsed ? 1 : 0,
+        }}
+      >
+        {!isCollapsed && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <img 
               src={mis} 
               alt="MIS Logo" 
-              className={styles.logo}
-              style={{
-                width: isXs ? '32px' : isSm ? '36px' : '40px',
-                height: isXs ? '32px' : isSm ? '36px' : '40px',
-                
-              }}
+              style={{ 
+                width: '40px', 
+                height: '40px',
+                objectFit: 'contain' 
+              }} 
             />
-          </ListSubheader>
-
-          <Tooltip title="Dashboard" placement="right">
-            <NavLink
-              to="/Dashboard"
-              style={{ textDecoration: 'none', color: 'inherit' }}
-              className={({ isActive }) =>
-                `${styles.listItem} ${isActive ? styles.active : ''}`
-              }
-              onClick={handleNavLinkClick}
+            <Box
+              component="h3"
+              sx={{
+                margin: 0,
+                fontSize: '1.25rem',
+                fontWeight: 700,
+                letterSpacing: '0.5px',
+              }}
             >
-              <ListItemButton 
-                sx={{ 
-                  justifyContent: 'center',
-                  py: { xs: 1, sm: 1.5 },
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 'auto' }}>
-                  <HomeIcon fontSize={isXs ? "small" : "medium"} />
-                </ListItemIcon>
-              </ListItemButton>
-            </NavLink>
-          </Tooltip>
-
-<Tooltip title="System" placement="right">
-            <NavLink
-              to="/Systems"
-              style={{ textDecoration: 'none', color: 'inherit' }}
-              className={({ isActive }) =>
-                `${styles.listItem} ${isActive ? styles.active : ''}`
-              }
-              onClick={handleNavLinkClick}
+              Beacon
+            </Box>
+          </Box>
+        )}
+        
+        {isCollapsed && (
+          <>
+            <IconButton
+              onClick={handleToggleSidebar}
+              sx={{
+                color: '#f4f4f4',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 0.1)',
+                },
+              }}
             >
-              <ListItemButton 
-                sx={{ 
-                  justifyContent: 'center',
-                  py: { xs: 1, sm: 1.5 },
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 'auto' }}>
-                  <SettingsSystemDaydreamIcon fontSize={isXs ? "small" : "medium"} />
-                </ListItemIcon>
-              </ListItemButton>
-            </NavLink>
-          </Tooltip>
+              <MenuIcon />
+            </IconButton>
+            <img 
+              src={mis} 
+              alt="MIS Logo" 
+              style={{ 
+                width: '40px', 
+                height: '40px',
+                objectFit: 'contain' 
+              }} 
+            />
+          </>
+        )}
 
-          <Tooltip title="Role" placement="right">
+        {!isCollapsed && (
+          <IconButton
+            onClick={handleToggleSidebar}
+            sx={{
+              color: '#f4f4f4',
+              '&:hover': {
+                bgcolor: 'rgba(255, 255, 255, 0.1)',
+              },
+            }}
+          >
+            <ArrowBackIosNewIcon />
+          </IconButton>
+        )}
+      </Box>
+
+      <List 
+        component="nav" 
+        sx={{ 
+          flexGrow: 1,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          // Hide scrollbar for Chrome, Safari and Opera
+          '&::-webkit-scrollbar': {
+            display: 'none',
+          },
+          // Hide scrollbar for IE, Edge and Firefox
+          msOverflowStyle: 'none',
+          scrollbarWidth: 'none',
+        }}
+      >
+        {/* Dashboard */}
+        <NavLink
+          to="/Dashboard"
+          style={{ textDecoration: 'none', color: 'inherit' }}
+        >
+          {({ isActive }) => (
+            <ListItemButton
+              sx={{
+                bgcolor: isActive ? '#424242' : 'transparent',
+                color: isActive ? '#000' : '#f4f4f4',
+                justifyContent: isCollapsed ? 'center' : 'flex-start',
+                '&:hover': {
+                  bgcolor: isActive ? '#c7c7c7' : 'rgba(255, 255, 255, 0.1)',
+                },
+              }}
+            >
+              <ListItemIcon sx={{ color: isActive ? '#000' : '#f4f4f4', minWidth: isCollapsed ? 'auto' : '56px' }}>
+                <HomeIcon />
+              </ListItemIcon>
+              {!isCollapsed && <ListItemText primary="Dashboard" />}
+            </ListItemButton>
+          )}
+        </NavLink>
+
+        {/* Systems */}
+        <NavLink
+          to="/Systems"
+          style={{ textDecoration: 'none', color: 'inherit' }}
+        >
+          {({ isActive }) => (
+            <ListItemButton
+              sx={{
+                bgcolor: isActive ? '#424242' : 'transparent',
+                color: isActive ? '#000' : '#f4f4f4',
+                justifyContent: isCollapsed ? 'center' : 'flex-start',
+                '&:hover': {
+                  bgcolor: isActive ? '#c7c7c7' : 'rgba(255, 255, 255, 0.1)',
+                },
+              }}
+            >
+              <ListItemIcon sx={{ color: isActive ? '#000' : '#f4f4f4', minWidth: isCollapsed ? 'auto' : '56px' }}>
+                <SettingsSystemDaydreamIcon />
+              </ListItemIcon>
+              {!isCollapsed && <ListItemText primary="Systems" />}
+            </ListItemButton>
+          )}
+        </NavLink>
+
+        {/* Masterlist */}
+        {!isCollapsed && (
+          <>
+            <ListItemButton
+              onClick={handleMasterlistToggle}
+              sx={{
+                color: '#f4f4f4',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 0.1)',
+                },
+              }}
+            >
+              <ListItemIcon sx={{ color: '#f4f4f4' }}>
+                <LibraryBooksIcon />
+              </ListItemIcon>
+              <ListItemText primary="Masterlist" />
+              {openMasterlist ? <ExpandLess /> : <ExpandMore />}
+            </ListItemButton>
+
+            {/* Masterlist Children */}
+            
+            <Collapse in={openMasterlist} timeout={1000} unmountOnExit>
+              <List component="div" disablePadding>
+                {/* Role */}
+                <NavLink
+                  to="/role"
+                  style={{ textDecoration: 'none', color: 'inherit' }}
+                >
+                  {({ isActive }) => (
+                    <ListItemButton
+                      sx={{
+                        pl: 4,
+                        bgcolor: isActive ? '#424242' : 'transparent',
+                        color: isActive ? '#000' : '#f4f4f4',
+                        '&:hover': {
+                          bgcolor: isActive ? '#c7c7c7' : 'rgba(255, 255, 255, 0.1)',
+                        },
+                      }}
+                    >
+                      <ListItemIcon sx={{ color: isActive ? '#000' : '#f4f4f4' }}>
+                        <PersonIcon />
+                      </ListItemIcon>
+                      <ListItemText primary="Role" />
+                    </ListItemButton>
+                  )}
+                </NavLink>
+
+                {/* User */}
+                <NavLink
+                  to="/users"
+                  style={{ textDecoration: 'none', color: 'inherit' }}
+                >
+                  {({ isActive }) => (
+                    <ListItemButton
+                      sx={{
+                        pl: 4,
+                        bgcolor: isActive ? '#424242' : 'transparent',
+                        color: isActive ? '#000' : '#f4f4f4',
+                        '&:hover': {
+                          bgcolor: isActive ? '#c7c7c7' : 'rgba(255, 255, 255, 0.1)',
+                        },
+                      }}
+                    >
+                      <ListItemIcon sx={{ color: isActive ? '#000' : '#f4f4f4' }}>
+                        <PeopleIcon />
+                      </ListItemIcon>
+                      <ListItemText primary="Users" />
+                    </ListItemButton>
+                  )}
+                </NavLink>
+
+                {/* Team */}
+                <NavLink
+                  to="/team"
+                  style={{ textDecoration: 'none', color: 'inherit' }}
+                >
+                  {({ isActive }) => (
+                    <ListItemButton
+                      sx={{
+                        pl: 4,
+                        bgcolor: isActive ? '#424242' : 'transparent',
+                        color: isActive ? '#000' : '#f4f4f4',
+                        '&:hover': {
+                          bgcolor: isActive ? '#c7c7c7' : 'rgba(255, 255, 255, 0.1)',
+                        },
+                      }}
+                    >
+                      <ListItemIcon sx={{ color: isActive ? '#000' : '#f4f4f4' }}>
+                        <GroupsIcon />
+                      </ListItemIcon>
+                      <ListItemText primary="Team" />
+                    </ListItemButton>
+                  )}
+                </NavLink>
+
+                {/* Charging */}
+                <NavLink
+                  to="/charging"
+                  style={{ textDecoration: 'none', color: 'inherit' }}
+                >
+                  {({ isActive }) => (
+                    <ListItemButton
+                      sx={{
+                        pl: 4,
+                        bgcolor: isActive ? '#424242' : 'transparent',
+                        color: isActive ? '#000' : '#f4f4f4',
+                        '&:hover': {
+                          bgcolor: isActive ? '#c7c7c7' : 'rgba(255, 255, 255, 0.1)',
+                        },
+                      }}
+                    >
+                      <ListItemIcon sx={{ color: isActive ? '#000' : '#f4f4f4' }}>
+                        <LocationCityIcon />
+                      </ListItemIcon>
+                      <ListItemText primary="Charging" />
+                    </ListItemButton>
+                  )}
+                </NavLink>
+
+                {/* Category */}
+                <NavLink
+                  to="/category"
+                  style={{ textDecoration: 'none', color: 'inherit' }}
+                >
+                  {({ isActive }) => (
+                    <ListItemButton
+                      sx={{
+                        pl: 4,
+                        bgcolor: isActive ? '#424242' : 'transparent',
+                        color: isActive ? '#000' : '#f4f4f4',
+                        '&:hover': {
+                          bgcolor: isActive ? '#c7c7c7' : 'rgba(255, 255, 255, 0.1)',
+                        },
+                      }}
+                    >
+                      <ListItemIcon sx={{ color: isActive ? '#000' : '#f4f4f4' }}>
+                        <CategoryIcon />
+                      </ListItemIcon>
+                      <ListItemText primary="Category" />
+                    </ListItemButton>
+                  )}
+                </NavLink>
+              </List>
+            </Collapse>
+          </>
+        )}
+
+        {/* Collapsed Masterlist Children - Show as icons only */}
+        {isCollapsed && (
+          <>
             <NavLink
               to="/role"
               style={{ textDecoration: 'none', color: 'inherit' }}
-              className={({ isActive }) =>
-                `${styles.listItem} ${isActive ? styles.active : ''}`
-              }
-              onClick={handleNavLinkClick}
             >
-              <ListItemButton 
-                sx={{ 
-                  justifyContent: 'center',
-                  py: { xs: 1, sm: 1.5 },
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 'auto' }}>
-                  <PersonIcon fontSize={isXs ? "small" : "medium"} />
-                </ListItemIcon>
-              </ListItemButton>
+              {({ isActive }) => (
+                <ListItemButton
+                  sx={{
+                    bgcolor: isActive ? '#424242' : 'transparent',
+                    color: isActive ? '#000' : '#f4f4f4',
+                    justifyContent: 'center',
+                    '&:hover': {
+                      bgcolor: isActive ? '#c7c7c7' : 'rgba(255, 255, 255, 0.1)',
+                    },
+                  }}
+                >
+                  <ListItemIcon sx={{ color: isActive ? '#000' : '#f4f4f4', minWidth: 'auto' }}>
+                    <PersonIcon />
+                  </ListItemIcon>
+                </ListItemButton>
+              )}
             </NavLink>
-          </Tooltip>
 
-          <Tooltip title="Users" placement="right">
             <NavLink
               to="/users"
               style={{ textDecoration: 'none', color: 'inherit' }}
-              className={({ isActive }) =>
-                `${styles.listItem} ${isActive ? styles.active : ''}`
-              }
-              onClick={handleNavLinkClick}
             >
-              <ListItemButton 
-                sx={{ 
-                  justifyContent: 'center',
-                  py: { xs: 1, sm: 1.5 },
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 'auto' }}>
-                  <PeopleIcon fontSize={isXs ? "small" : "medium"} />
-                </ListItemIcon>
-              </ListItemButton>
+              {({ isActive }) => (
+                <ListItemButton
+                  sx={{
+                    bgcolor: isActive ? '#424242' : 'transparent',
+                    color: isActive ? '#000' : '#f4f4f4',
+                    justifyContent: 'center',
+                    '&:hover': {
+                      bgcolor: isActive ? '#c7c7c7' : 'rgba(255, 255, 255, 0.1)',
+                    },
+                  }}
+                >
+                  <ListItemIcon sx={{ color: isActive ? '#000' : '#f4f4f4', minWidth: 'auto' }}>
+                    <PeopleIcon />
+                  </ListItemIcon>
+                </ListItemButton>
+              )}
             </NavLink>
-          </Tooltip>
 
-          <Tooltip title="Team" placement="right">
             <NavLink
               to="/team"
               style={{ textDecoration: 'none', color: 'inherit' }}
-              className={({ isActive }) =>
-                `${styles.listItem} ${isActive ? styles.active : ''}`
-              }
-              onClick={handleNavLinkClick}
             >
-              <ListItemButton 
-                sx={{ 
-                  justifyContent: 'center',
-                  py: { xs: 1, sm: 1.5 },
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 'auto' }}>
-                  <GroupsIcon fontSize={isXs ? "small" : "medium"} />
-                </ListItemIcon>
-              </ListItemButton>
+              {({ isActive }) => (
+                <ListItemButton
+                  sx={{
+                    bgcolor: isActive ? '#424242' : 'transparent',
+                    color: isActive ? '#000' : '#f4f4f4',
+                    justifyContent: 'center',
+                    '&:hover': {
+                      bgcolor: isActive ? '#c7c7c7' : 'rgba(255, 255, 255, 0.1)',
+                    },
+                  }}
+                >
+                  <ListItemIcon sx={{ color: isActive ? '#000' : '#f4f4f4', minWidth: 'auto' }}>
+                    <GroupsIcon />
+                  </ListItemIcon>
+                </ListItemButton>
+              )}
             </NavLink>
-          </Tooltip>
 
-          <Tooltip title="Sdlc" placement="right">
-            <NavLink
-              to="/sdlc"
-              style={{ textDecoration: 'none', color: 'inherit',  }}
-              className={({ isActive }) =>
-                `${styles.listItem} ${isActive ? styles.active : ''}`
-              }
-              onClick={handleNavLinkClick}
-            >
-              <ListItemButton 
-                sx={{ 
-                  justifyContent: 'center',
-                  py: { xs: 1, sm: 1.5 },
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 'auto' }}>
-                  <LibraryBooksIcon fontSize={isXs ? "small" : "medium"} />
-                </ListItemIcon>
-              </ListItemButton>
-            </NavLink>
-          </Tooltip>
-
-          <Tooltip title="Charging" placement="right">
             <NavLink
               to="/charging"
               style={{ textDecoration: 'none', color: 'inherit' }}
-              className={({ isActive }) =>
-                `${styles.listItem} ${isActive ? styles.active : ''}`
-              }
-              onClick={handleNavLinkClick}
             >
-              <ListItemButton 
-                sx={{ 
-                  justifyContent: 'center',
-                  py: { xs: 1, sm: 1.5 },
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 'auto' }}>
-                  <LocationCityIcon fontSize={isXs ? "small" : "medium"} />
-                </ListItemIcon>
-              </ListItemButton>
+              {({ isActive }) => (
+                <ListItemButton
+                  sx={{
+                    bgcolor: isActive ? '#424242' : 'transparent',
+                    color: isActive ? '#000' : '#f4f4f4',
+                    justifyContent: 'center',
+                    '&:hover': {
+                      bgcolor: isActive ? '#c7c7c7' : 'rgba(255, 255, 255, 0.1)',
+                    },
+                  }}
+                >
+                  <ListItemIcon sx={{ color: isActive ? '#000' : '#f4f4f4', minWidth: 'auto' }}>
+                    <LocationCityIcon />
+                  </ListItemIcon>
+                </ListItemButton>
+              )}
             </NavLink>
-          </Tooltip>
-        </List>
-      ) : (
-        // Expanded sidebar - full content
-        <List
-          className={styles.list}
-          component="nav"
-          aria-labelledby="nested-list-subheader"
-          subheader={
-            <ListSubheader
-              component="div"
-              id="nested-list-subheader"
-              className={styles.header}
-              sx={{
-                bgcolor: '#f4f4f4',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                paddingRight: isMobileDrawer ? '0.5rem' : 0,
-                paddingLeft: { xs: '0.5rem', sm: '1rem' },
-                minHeight: { xs: '60px', sm: '70px', md: '80px' },
-              }}
+
+            <NavLink
+              to="/category"
+              style={{ textDecoration: 'none', color: 'inherit' }}
             >
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: { xs: 0.5, sm: 1 },
-                justifyContent: 'center',
-              }}>
-                <img 
-                  src={mis} 
-                  alt="MIS Logo" 
-                  className={styles.logo}
-                  style={{
-                    width: isXs ? '32px' : isSm ? '36px' : '40px',
-                    height: isXs ? '32px' : isSm ? '36px' : '40px',
-                  }}
-                />
-                <h3 
-                  className={styles.title}
-                  style={{
-                    fontSize: isXs ? '1rem' : isSm ? '1.1rem' : '1.25rem',
-                    margin: 0,
+              {({ isActive }) => (
+                <ListItemButton
+                  sx={{
+                    bgcolor: isActive ? '#424242' : 'transparent',
+                    color: isActive ? '#000' : '#f4f4f4',
+                    justifyContent: 'center',
+                    '&:hover': {
+                      bgcolor: isActive ? '#c7c7c7' : 'rgba(255, 255, 255, 0.1)',
+                    },
                   }}
                 >
-                  Beacon
-                </h3>
-              </Box>
+                  <ListItemIcon sx={{ color: isActive ? '#000' : '#f4f4f4', minWidth: 'auto' }}>
+                    <CategoryIcon />
+                  </ListItemIcon>
+                </ListItemButton>
+              )}
+            </NavLink>
+          </>
+        )}
 
-              {/* Close button for mobile drawer only */}
-             
-            </ListSubheader>
-          }
+        {/* Log out */}
+        <ListItemButton
+          onClick={handleLogout}
+          sx={{
+            color: '#f4f4f4',
+            justifyContent: isCollapsed ? 'center' : 'flex-start',
+            '&:hover': {
+              bgcolor: 'rgba(255, 255, 255, 0.1)',
+            },
+          }}
         >
-          {/* HOME */}
-          <NavLink
-            to="/Dashboard"
-            style={{ textDecoration: 'none', color: 'inherit' }}
-            className={({ isActive }) =>
-              `${styles.listItem} ${isActive ? styles.active : ''}`
-            }
-            onClick={handleNavLinkClick}
+          <ListItemIcon sx={{ color: '#f4f4f4', minWidth: isCollapsed ? 'auto' : '56px' }}>
+            <LogoutIcon />
+          </ListItemIcon>
+          {!isCollapsed && <ListItemText primary="Log out" />}
+        </ListItemButton>
+      </List>
+
+      {/* MIS Info at Bottom */}
+      <Box 
+        sx={{ 
+          display: "flex", 
+          flexDirection: "column",
+          alignItems: "center", 
+          gap: 0.5,
+          padding: '1rem',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+        }}
+      >
+        <img 
+          src={beacon} 
+          alt="MIS Logo" 
+          style={{ 
+            width: '50px', 
+            height: '50px',
+            objectFit: 'contain',
+            borderRadius: 45
+          }} 
+        />
+        
+        {!isCollapsed && (
+          <Typography 
+            sx={{ 
+              fontSize: "0.75rem",
+              color: "#f4f4f4",
+              textAlign: "center",
+            }}
           >
-            <ListItemButton 
-              sx={{ 
-                mt: { xs: 2, sm: 4, md: 7 },
-                py: { xs: 1, sm: 1.5 },
-              }}
-            >
-              <ListItemIcon className={styles.listItemIcon}>
-                <HomeIcon fontSize={isXs ? "small" : "medium"} />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Dashboard" 
-                className={styles.listItemText}
-                primaryTypographyProps={{
-                  fontSize: isXs ? '0.875rem' : isSm ? '0.9rem' : '1rem',
-                }}
-              />
-            </ListItemButton>
-          </NavLink>
+            Run by MIS
+          </Typography>
+        )}
+      </Box>
 
-          <NavLink
-            to="/Systems"
-            style={{ textDecoration: 'none', color: 'inherit' }}
-            className={({ isActive }) =>
-              `${styles.listItem} ${isActive ? styles.active : ''}`
-            }
-            onClick={handleNavLinkClick}
-          >
-            <ListItemButton>
-              <ListItemIcon className={styles.listItemIcon}>
-                <SettingsSystemDaydreamIcon fontSize={isXs ? "small" : "medium"} />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Systems" 
-                className={styles.listItemText}
-                primaryTypographyProps={{
-                  fontSize: isXs ? '0.875rem' : isSm ? '0.9rem' : '1rem',
-                }}
-              />
-            </ListItemButton>
-          </NavLink>
-
-          {/* MASTERLIST */}
-          <ListItemButton 
-            onClick={() => handleToggle('MASTERLIST')} 
-            className={styles.listItem}
-            sx={{ py: { xs: 1, sm: 1.5 } }}
-          >
-            <ListItemIcon className={styles.listItemIcon}>
-              <LibraryBooksIcon fontSize={isXs ? "small" : "medium"} />
-            </ListItemIcon>
-            <ListItemText 
-              primary="MasterList" 
-              className={styles.listItemText}
-              primaryTypographyProps={{
-                fontSize: isXs ? '0.875rem' : isSm ? '0.9rem' : '1rem',
-              }}
-            />
-            {openItems['MASTERLIST'] ? (
-              <ExpandLess fontSize={isXs ? "small" : "medium"} />
-            ) : (
-              <ExpandMore fontSize={isXs ? "small" : "medium"} />
-            )}
-          </ListItemButton>
-          <Collapse in={openItems['MASTERLIST']} timeout="auto" unmountOnExit>
-            <List component="div" disablePadding>
-              <NavLink
-                to="/role"
-                style={{ textDecoration: 'none', color: 'inherit' }}
-                className={({ isActive }) =>
-                  `${styles.listItem} ${isActive ? styles.active : ''}`
-                }
-                onClick={handleNavLinkClick}
-              >
-                <ListItemButton 
-                  className={styles.nestedItem}
-                  sx={{ 
-                    pl: { xs: 3, sm: 4 },
-                    py: { xs: 0.75, sm: 1 },
-                  }}
-                >
-                  <ListItemIcon className={styles.listItemIcon}>
-                    <PersonIcon fontSize={isXs ? "small" : "medium"} />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary="Role" 
-                    className={styles.listItemText}
-                    primaryTypographyProps={{
-                      fontSize: isXs ? '0.8rem' : isSm ? '0.85rem' : '0.9rem',
-                    }}
-                  />
-                </ListItemButton>
-              </NavLink>
-
-              <NavLink
-                to="/users"
-                style={{ textDecoration: 'none', color: 'inherit' }}
-                className={({ isActive }) =>
-                  `${styles.listItem} ${isActive ? styles.active : ''}`
-                }
-                onClick={handleNavLinkClick}
-              >
-                <ListItemButton 
-                  className={styles.nestedItem}
-                  sx={{ 
-                    pl: { xs: 3, sm: 4 },
-                    py: { xs: 0.75, sm: 1 },
-                  }}
-                >
-                  <ListItemIcon className={styles.listItemIcon}>
-                    <PeopleIcon fontSize={isXs ? "small" : "medium"} />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary="Users" 
-                    className={styles.listItemText}
-                    primaryTypographyProps={{
-                      fontSize: isXs ? '0.8rem' : isSm ? '0.85rem' : '0.9rem',
-                    }}
-                  />
-                </ListItemButton>
-              </NavLink>
-
-              <NavLink
-                to="/team"
-                style={{ textDecoration: 'none', color: 'inherit' }}
-                className={({ isActive }) =>
-                  `${styles.listItem} ${isActive ? styles.active : ''}`
-                }
-                onClick={handleNavLinkClick}
-              >
-                <ListItemButton 
-                  className={styles.nestedItem}
-                  sx={{ 
-                    pl: { xs: 3, sm: 4 },
-                    py: { xs: 0.75, sm: 1 },
-                  }}
-                >
-                  <ListItemIcon className={styles.listItemIcon}>
-                    <GroupsIcon fontSize={isXs ? "small" : "medium"} />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary="TEAM" 
-                    className={styles.listItemText}
-                    primaryTypographyProps={{
-                      fontSize: isXs ? '0.8rem' : isSm ? '0.85rem' : '0.9rem',
-                    }}
-                  />
-                </ListItemButton>
-              </NavLink>
-
-              <NavLink
-                to="/charging"
-                style={{ textDecoration: 'none', color: 'inherit' }}
-                className={({ isActive }) =>
-                  `${styles.listItem} ${isActive ? styles.active : ''}`
-                }
-                onClick={handleNavLinkClick}
-              >
-                <ListItemButton 
-                  className={styles.nestedItem}
-                  sx={{ 
-                    pl: { xs: 3, sm: 4 },
-                    py: { xs: 0.75, sm: 1 },
-                  }}
-                >
-                  <ListItemIcon className={styles.listItemIcon}>
-                    <LocationCityIcon fontSize={isXs ? "small" : "medium"} />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary="Charging" 
-                    className={styles.listItemText}
-                    primaryTypographyProps={{
-                      fontSize: isXs ? '0.8rem' : isSm ? '0.85rem' : '0.9rem',
-                    }}
-                  />
-                </ListItemButton>
-              </NavLink>
-              
-            </List>
-          </Collapse>
-        </List>
-      )}
+      <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
+        <MenuItem onClick={handleChangeProfile}>
+          <PersonIcon sx={{ mr: 1 }} />
+          Change Profile
+        </MenuItem>
+        <MenuItem onClick={handleLogout}>
+          <LogoutIcon sx={{ mr: 1 }} />
+          Logout
+        </MenuItem>
+      </Menu>
     </Box>
   );
-}
+};
+
+export default Sidebar;

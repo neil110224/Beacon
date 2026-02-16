@@ -68,19 +68,25 @@ TablePaginationActions.propTypes = {
 };
 
 function DataTable({
-  columns,
-  rows = [],  // Default to empty array to prevent undefined.slice error
-  totalCount,
-  isLoading,
-  isError,
-  error,
+  columns = [],          // ✅ default safe
+  rows = [],             // ✅ default safe
+  totalCount = 0,        // ✅ default safe
+  isLoading = false,
+  isError = false,
+  error = null,
   tableSx = { minWidth: 1400 },
   headSx = { bgcolor: "#dadada" },
 }) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
-  const paginatedRows = rows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  // Prevent slice crash if rows is undefined
+  const safeRows = Array.isArray(rows) ? rows : [];
+
+  const paginatedRows = safeRows.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   if (isLoading) {
     return (
@@ -104,24 +110,33 @@ function DataTable({
         <Table sx={tableSx}>
           <TableHead sx={headSx}>
             <TableRow>
-              {columns.map((col) => (
-                <TableCell key={col.id} align={col.align || "left"}>
-                  {col.label}
-                </TableCell>
-              ))}
+              {columns.length === 0 ? (
+                <TableCell align="center">No Columns Defined</TableCell>
+              ) : (
+                columns.map((col) => (
+                  <TableCell key={col.id} align={col.align || "left"}>
+                    {col.label}
+                  </TableCell>
+                ))
+              )}
             </TableRow>
           </TableHead>
 
           <TableBody>
             {paginatedRows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columns.length} align="center">
-                  {rows.length === 0 ? "No data available" : "No data on this page"}
+                <TableCell
+                  colSpan={columns.length || 1}
+                  align="center"
+                >
+                  {safeRows.length === 0
+                    ? "No data available"
+                    : "No data on this page"}
                 </TableCell>
               </TableRow>
             ) : (
               paginatedRows.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow key={row.id || Math.random()}>
                   {columns.map((col) => (
                     <TableCell key={col.id} align={col.align || "left"}>
                       {col.render ? col.render(row) : row[col.id]}
@@ -134,11 +149,10 @@ function DataTable({
         </Table>
       </TableContainer>
 
-      {/* Pagination outside TableContainer so it stays below scrollable area */}
       <TablePagination
         component="div"
         rowsPerPageOptions={[5, 10, 25]}
-        count={totalCount}
+        count={totalCount || safeRows.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={(e, newPage) => setPage(newPage)}
@@ -160,9 +174,9 @@ DataTable.propTypes = {
       align: PropTypes.string,
       render: PropTypes.func,
     })
-  ).isRequired,
-  rows: PropTypes.array.isRequired,
-  totalCount: PropTypes.number.isRequired,
+  ),
+  rows: PropTypes.array,
+  totalCount: PropTypes.number,
   isLoading: PropTypes.bool,
   isError: PropTypes.bool,
   error: PropTypes.any,

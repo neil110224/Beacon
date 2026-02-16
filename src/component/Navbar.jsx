@@ -19,7 +19,7 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../features/api/slice/authSlice";
-import NestedList from "./sidebar";
+import Sidebar from "./Sidebar";  // Updated import
 
 import ChangeProfileDialog from "../pages/dialog/ChangeProfileDialog";  
 import MainContent from "./MainContent";
@@ -33,7 +33,7 @@ import { useCreateTeamMutation } from "../features/api/team/teamApi";
 const Navbar = () => {
   const user = useSelector(selectCurrentUser);
   const firstName = user?.first_name;
-  const location = useLocation(); // Add this line
+  const location = useLocation();
   const [addUserOpen, setAddUserOpen] = useState(false);
   const [addTeamOpen, setAddTeamOpen] = useState(false);
   const [activePage, setActivePage] = useState("HOME");
@@ -57,7 +57,7 @@ const Navbar = () => {
 
   const open = Boolean(anchorEl);
 
-  // Check if current route is dashboard - Add this line
+  // Check if current route is dashboard
   const isDashboard = location.pathname === '/Dashboard';
 
   const handleAvatarClick = (event) => setAnchorEl(event.currentTarget);
@@ -117,7 +117,6 @@ const Navbar = () => {
 
   // Determine sidebar behavior based on screen size
   const showMobileSidebar = isMd;
-  const sidebarWidth = isSidebarCollapsed ? "70px" : isLg ? "100px" : "215px";
 
   return (
     <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
@@ -125,17 +124,11 @@ const Navbar = () => {
       {!showMobileSidebar && (
         <Box
           sx={{
-            width: sidebarWidth,
-            transition: "width 0.3s ease",
             flexShrink: 0,
             display: { xs: "none", md: "block" },
           }}
         >
-          <NestedList
-            onToggleSidebar={handleToggleSidebar}
-            isCollapsed={isSidebarCollapsed}
-            onSelectPage={setActivePage}
-          />
+          <Sidebar user={user} onChangeProfile={() => setProfileDialogOpen(true)} />
         </Box>
       )}
 
@@ -148,18 +141,11 @@ const Navbar = () => {
           display: { xs: "block", md: "none" },
           "& .MuiDrawer-paper": {
             width: 250,
-            bgcolor: "#f4f4f4",
+            bgcolor: "#1e1e1e",
           },
         }}
       >
-        <NestedList
-          isMobileDrawer={true}
-          onCloseMobileDrawer={handleToggleMobileDrawer}
-          onSelectPage={(page) => {
-            setActivePage(page);
-            setMobileDrawerOpen(false);
-          }}
-        />
+        <Sidebar user={user} onChangeProfile={() => setProfileDialogOpen(true)} />
       </Drawer>
 
       {/* Main Content Area */}
@@ -174,39 +160,26 @@ const Navbar = () => {
         {/* Top Bar / Navbar */}
         <Box
           sx={{
-            bgcolor: "#f4f4f4",
-            height: { xs: 50, sm: 60 },
+            bgcolor: "#1e1e1e",
+            height: { xs: 70, sm: 80 },
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
             px: { xs: 1, sm: 2 },
-           
             color: "#f4f4f4",
+            borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
           }}
         >
           {/* Left side - Toggle buttons */}
-          <Box sx={{ display: "flex", alignItems: "center",  }}>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
             {/* Mobile Menu Button */}
             {showMobileSidebar && (
               <IconButton
                 onClick={handleToggleMobileDrawer}
-                sx={{ display: { xs: "block", md: "none" }, color: "#fff" }}
+                sx={{ display: { xs: "block", md: "none" }, color: "#070606" }}
               >
                 <MenuIcon />
               </IconButton>
-            )}
-
-            {/* Desktop Sidebar Toggle Button - only show when expanded */}
-            {!showMobileSidebar && !isSidebarCollapsed && (
-              <Tooltip title="Collapse sidebar">
-                <IconButton
-                  onClick={handleToggleSidebar}
-                  sx={{ display: { xs: "none", md: "block" }, color: "#070606" }}
-                  size={isXs ? "small" : "medium"}
-                >
-                  <ArrowBackIosIcon fontSize="small" />
-                </IconButton>
-              </Tooltip>
             )}
           </Box>
 

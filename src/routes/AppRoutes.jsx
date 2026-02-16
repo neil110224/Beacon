@@ -4,7 +4,7 @@ import Users from '../pages/contents/Users'
 import Team from '../pages/contents/Team'
 import SDLC from '../pages/contents/SDLC'
 import RolesTable from '../pages/dialog/editdialog/EditRole'
-import NestedList from '../component/sidebar'
+import NestedList from '../component/Sidebar'
 import Charging from '../pages/contents/Charging'
 import UserPage from '../userpage/userPage'
 import DataTable from '../component/reuseable/DataTable'
@@ -16,7 +16,9 @@ import Role from '../pages/contents/Role'
 import Dashboard from '../pages/contents/Dashboard'
 import TopNavContent from '../component/TopNavContent'
 import Systems from '../pages/contents/Systems'
-import Navbar from '../component/Navbar'
+import Navbar from '../component/navbar'
+import Sidebarw from '../component/Sidebarw'
+
 
 
 
@@ -45,9 +47,11 @@ const AppRoutes = () => {
       <Route path='/editrole' element={<RolesTable/>}/>
       <Route path='/topnavcontent' element={<TopNavContent/>}/>
       <Route path='/editteam' element={<EditTeam/>}/>
+      <Route path='/sidebarw' element={<Sidebarw/>}/>
 
-      {/* <Route path='/datatable' element={<DataTable/>}/>
-      <Route path='/confirmation' element={<Confirmation/>}/>
+
+      <Route path='/datatable' element={<DataTable/>}/>
+      {/* <Route path='/confirmation' element={<Confirmation/>}/>
        <Route path='/snackbar' element={<Snackbar/>}/> */}
 
     </Routes>
