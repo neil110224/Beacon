@@ -160,23 +160,36 @@ const Navbar = () => {
         {/* Top Bar / Navbar */}
         <Box
           sx={{
-            bgcolor: "#1e1e1e",
-            height: { xs: 70, sm: 80 },
+            background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
+            height: { xs: '70px', sm: '80px' },
+            minHeight: { xs: '70px', sm: '80px' },
+            maxHeight: { xs: '70px', sm: '80px' },
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            px: { xs: 1, sm: 2 },
+            px: { xs: 2, sm: 3, md: 4 },
+            py: 0,
             color: "#f4f4f4",
-            borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
+            borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
           }}
         >
           {/* Left side - Toggle buttons */}
-          <Box sx={{ display: "flex", alignItems: "center" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             {/* Mobile Menu Button */}
             {showMobileSidebar && (
               <IconButton
                 onClick={handleToggleMobileDrawer}
-                sx={{ display: { xs: "block", md: "none" }, color: "#070606" }}
+                sx={{ 
+                  display: { xs: "flex", md: "none" }, 
+                  color: "#ffffff",
+                  bgcolor: 'rgba(255, 255, 255, 0.1)',
+                  '&:hover': {
+                    bgcolor: 'rgba(255, 255, 255, 0.15)',
+                  },
+                  width: 40,
+                  height: 40,
+                }}
               >
                 <MenuIcon />
               </IconButton>
@@ -184,12 +197,23 @@ const Navbar = () => {
           </Box>
 
           {/* User Info */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box 
+            sx={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: { xs: 2, sm: 2.5 },
+              cursor: 'pointer',
+            }}
+            onClick={handleAvatarClick}
+          >
             <Typography 
               sx={{ 
                 display: { xs: "none", sm: "block" },
-                fontSize: { sm: "0.875rem", md: "1rem" },
-                color: "#000000",
+                fontSize: { sm: "1rem", md: "1.05rem" },
+                fontWeight: 500,
+                color: "#ffffff",
+                letterSpacing: '0.3px',
+                fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
               }}
             >
               {firstName}
@@ -198,22 +222,68 @@ const Navbar = () => {
             <Avatar 
               src={user?.profile_picture || "/static/images/avatar/2.jpg"}
               sx={{ 
-                width: { xs: 32, sm: 40 },
-                height: { xs: 32, sm: 40 },
+                width: { xs: 38, sm: 44 },
+                height: { xs: 38, sm: 44 },
                 cursor: "pointer",
+                border: '2px solid rgba(255, 255, 255, 0.2)',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  border: '2px solid rgba(255, 255, 255, 0.4)',
+                  transform: 'scale(1.05)',
+                }
               }}
-              onClick={handleAvatarClick}
             />
           </Box>
 
-          <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-            <MenuItem onClick={handleChangeProfile}>
-              <PersonIcon sx={{ mr: 1 }} />
-              Change Profile
+          <Menu 
+            anchorEl={anchorEl} 
+            open={open} 
+            onClose={handleClose}
+            PaperProps={{
+              sx: {
+                mt: 1,
+                minWidth: 180,
+                borderRadius: 2,
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+                background: '#ffffff',
+              }
+            }}
+            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+          >
+            <MenuItem 
+              onClick={handleChangeProfile}
+              sx={{
+                py: 1.5,
+                px: 2.5,
+                gap: 2,
+                fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
+                '&:hover': {
+                  bgcolor: 'rgba(22, 33, 62, 0.06)',
+                }
+              }}
+            >
+              <PersonIcon sx={{ fontSize: '1.25rem', color: '#16213e' }} />
+              <Typography sx={{ fontSize: '0.95rem', fontWeight: 500 }}>
+                Change Profile
+              </Typography>
             </MenuItem>
-            <MenuItem onClick={handleLogout}>
-              <LogoutIcon sx={{ mr: 1 }} />
-              Logout
+            <MenuItem 
+              onClick={handleLogout}
+              sx={{
+                py: 1.5,
+                px: 2.5,
+                gap: 2,
+                fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
+                '&:hover': {
+                  bgcolor: 'rgba(220, 53, 69, 0.06)',
+                }
+              }}
+            >
+              <LogoutIcon sx={{ fontSize: '1.25rem', color: '#dc3545' }} />
+              <Typography sx={{ fontSize: '0.95rem', fontWeight: 500 }}>
+                Logout
+              </Typography>
             </MenuItem>
           </Menu>
         </Box>

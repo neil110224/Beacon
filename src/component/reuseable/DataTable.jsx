@@ -15,11 +15,13 @@ import {
   Paper,
   IconButton,
   CircularProgress,
+  Typography,
 } from "@mui/material";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
+import InboxIcon from "@mui/icons-material/Inbox";
 
 function TablePaginationActions(props) {
   const theme = useTheme();
@@ -96,16 +98,56 @@ function DataTable({
     );
   }
 
-  if (isError) {
+  // Check if error is 404 (no records found) - treat as empty state
+  const isNotFoundError = error?.status === 404 || error?.data?.errors?.[0]?.status === 404;
+  
+  if (isError && !isNotFoundError) {
     return (
       <Box sx={{ p: 3, color: "error.main" }}>
-        Error: {error?.data?.message || error || "Failed to load data"}
+        Error: {error?.data?.message || error?.error || JSON.stringify(error) || "Failed to load data"}
       </Box>
     );
   }
 
+  // If 404 or no rows, show empty state
+  if (isNotFoundError || safeRows.length === 0) {
+    return (
+      <Paper 
+        elevation={0}
+        sx={{
+          borderRadius: '12px',
+          overflow: 'hidden',
+          border: '1px solid rgba(0, 0, 0, 0.08)',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+          minHeight: 400,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Box sx={{ textAlign: 'center', py: 8 }}>
+          <InboxIcon sx={{ fontSize: 64, color: '#bdbdbd', mb: 2 }} />
+          <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+            No records found
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            There are no records to display
+          </Typography>
+        </Box>
+      </Paper>
+    );
+  }
+
   return (
-    <Paper>
+    <Paper 
+      elevation={0}
+      sx={{
+        borderRadius: '12px',
+        overflow: 'hidden',
+        border: '1px solid rgba(0, 0, 0, 0.08)',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+      }}
+    >
       <TableContainer>
         <Table sx={tableSx}>
           <TableHead sx={headSx}>
@@ -128,15 +170,33 @@ function DataTable({
                 <TableCell
                   colSpan={columns.length || 1}
                   align="center"
+                  sx={{ py: 8 }}
                 >
-                  {safeRows.length === 0
-                    ? "No data available"
-                    : "No data on this page"}
+                  <Box sx={{ textAlign: 'center' }}>
+                    <InboxIcon sx={{ fontSize: 48, color: '#bdbdbd', mb: 1 }} />
+                    <Typography variant="body1" color="text.secondary">
+                      {safeRows.length === 0
+                        ? "No data available"
+                        : "No data on this page"}
+                    </Typography>
+                  </Box>
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedRows.map((row) => (
-                <TableRow key={row.id || Math.random()}>
+              paginatedRows.map((row, index) => (
+                <TableRow 
+                  key={row.id || Math.random()}
+                  sx={{
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                      transition: 'background-color 0.2s ease',
+                    },
+                    '&:last-child td': {
+                      borderBottom: 0,
+                    },
+                    borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
+                  }}
+                >
                   {columns.map((col) => (
                     <TableCell key={col.id} align={col.align || "left"}>
                       {col.render ? col.render(row) : row[col.id]}
