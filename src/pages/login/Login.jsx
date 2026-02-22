@@ -90,11 +90,12 @@ const [snackbarSeverity, setSnackbarSeverity] = React.useState('success');
     height: { xs: 'auto', md: 450 },    // reduced from 520
     display: 'flex',
     flexDirection: { xs: 'column', md: 'row' },
-    bgcolor: '#ffffff',
+    bgcolor: '#1a1a2e ',
     borderRadius: 2,
     boxShadow: '0 8px 25px rgba(51, 47, 47, 0.12)', // softer shadow
     overflow: 'hidden',
     position: 'relative',
+    color:'#f4f4f4'
   }}
 >
 
@@ -124,7 +125,7 @@ const [snackbarSeverity, setSnackbarSeverity] = React.useState('success');
   }}
 >
 
-              Welcome to  <Box component="span" sx={{ color: '#005a7e', fontWeight: 900, fontSize: { xs: 25, md: 30 } }}>Beacon!</Box>
+              Welcome to  <Box component="span" sx={{ color: '#0387bb', fontWeight: 900, fontSize: { xs: 25, md: 30 } }}>Beacon!</Box>
             </Box>
           </Box>
 
@@ -141,6 +142,7 @@ const [snackbarSeverity, setSnackbarSeverity] = React.useState('success');
                 fontWeight: 700,
                 fontSize: { xs: 9, md: 11 },
                 height: 8,
+                color:'#f4f4f4'
               }
             }}
           />
@@ -159,6 +161,7 @@ const [snackbarSeverity, setSnackbarSeverity] = React.useState('success');
                 fontWeight: 700,
                 fontSize: { xs: 9, md: 11 },
                 height: 8, // slightly smaller height
+                color:'#f4f4f4'
               }
             }}
           />
@@ -168,13 +171,13 @@ const [snackbarSeverity, setSnackbarSeverity] = React.useState('success');
   fullWidth
   sx={{
     py: { xs: 0.6, md: 0.8 }, // smaller height
-    bgcolor: '#2bb0e6',
+    bgcolor: '#0397d1',
     color: '#ffffff',
     fontFamily: 'Montserrat, sans-serif',
     fontWeight: 500,
     fontSize: { xs: 12, md: 13 },
     mb: 2,
-    '&:hover': { bgcolor: '#1a97c9' },
+    '&:hover': { bgcolor: '#027baa' },
     boxShadow: '0px 4px 4px rgba(0,0,0,0.4)',
   }}
 >
