@@ -6,6 +6,8 @@ import {
 } from '../../features/api/user/userApi'
 
 import DataTable from '../../component/reuseable/DataTable'
+import Confirmation from '../../component/reuseable/Confirmation'
+import Snackbar from '../../component/reuseable/Snackbar'
 import AddNewUserDialog from '../dialog/adddialog/AddNewUserDialog' // ✅ MAKE SURE PATH IS CORRECT
 import EditUserDialog from '../dialog/editdialog/UserDialog'
 
@@ -32,16 +34,23 @@ const Users = () => {
   const [anchorEl, setAnchorEl] = useState(null)
   const [selectedUser, setSelectedUser] = useState(null)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [addDialogOpen, setAddDialogOpen] = useState(false) // ✅ ADD STATE
+  const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [showArchived, setShowArchived] = useState(false)
-
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+  const [snackbarOpen, setSnackbarOpen] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success')
+console.log(
+"seearch", searchTerm
+)
   const open = Boolean(anchorEl)
 
   // ✅ FETCH USERS
   const { data, isLoading, isError, error } = useGetUsersQuery({
     status: showArchived ? 'inactive' : 'active',
-    term: searchTerm,
-    paginate: 10
+    // paginate: 10,
+    // pagination: "none"
+    search: searchTerm,
   })
 
   // ✅ DELETE
@@ -77,22 +86,63 @@ const Users = () => {
     handleMenuClose()
   }
 
-  const handleArchive = async () => {
+  const handleArchive = () => {
+    // Show confirmation dialog (don't close menu yet, we need selectedUser)
+    setConfirmDialogOpen(true)
+  }
+
+  const handleConfirmArchive = async () => {
     if (!selectedUser) return
 
     try {
       await deleteUser(selectedUser.id).unwrap()
+      setConfirmDialogOpen(false)
       handleMenuClose()
+      setSnackbarMessage(selectedUser.deleted_at ? 'User restored successfully!' : 'User archived successfully!')
+      setSnackbarSeverity('success')
+      setSnackbarOpen(true)
     } catch (err) {
       console.error('Failed to archive/unarchive user:', err)
+      setSnackbarMessage('Failed to archive/unarchive user. Please try again.')
+      setSnackbarSeverity('error')
+      setSnackbarOpen(true)
     }
+  }
+
+  const handleCancelConfirm = () => {
+    setConfirmDialogOpen(false)
+    handleMenuClose()
   }
 
   const handleTabChange = (event, newValue) => {
     setShowArchived(newValue === 1)
   }
 
-  const users = data?.data || []
+  // Client-side filtering based on search term
+  // const filteredUsers = React.useMemo(() => {
+  //   const allUsers = data?.data || []
+  //   if (!searchTerm.trim()) return allUsers
+    
+  //   return allUsers.filter(user => {
+  //     const fullName = `${user.first_name} ${user.middle_name || ''} ${user.last_name}`.toLowerCase()
+  //     const username = user.username?.toLowerCase() || ''
+  //     const role = user.role?.name?.toLowerCase() || ''
+  //     const team = user.team?.name?.toLowerCase() || ''
+  //     const department = user.charging?.name?.toLowerCase() || ''
+  //     const searchLower = searchTerm.toLowerCase()
+      
+  //     return (
+  //       fullName.includes(searchLower) ||
+  //       username.includes(searchLower) ||
+  //       role.includes(searchLower) ||
+  //       team.includes(searchLower) ||
+  //       department.includes(searchLower)
+  //     )
+  //   })
+  // }, [data, searchTerm])
+
+  // const users = filteredUsers
+  const users = data?.data?.data || []  // Adjust based on your API response structure
 
   const columns = [
     { id: 'id', label: 'ID', align: 'center' },
@@ -274,7 +324,7 @@ const Users = () => {
       <DataTable
         columns={columns}
         rows={users}
-        totalCount={users.length}
+        totalCount={data?.data?.total}
         isLoading={isLoading}
         isError={isError}
         error={error}
@@ -318,6 +368,21 @@ const Users = () => {
           isLoading={false}
         />
       )}
+
+      <Confirmation
+        open={confirmDialogOpen}
+        onClose={handleCancelConfirm}
+        onConfirm={handleConfirmArchive}
+        title={selectedUser?.deleted_at ? "Confirm Restore" : "Confirm Archive"}
+        message={selectedUser?.deleted_at ? "Are you sure you want to restore this user?" : "Are you sure you want to archive this user?"}
+      />
+
+      <Snackbar
+        open={snackbarOpen}
+        message={snackbarMessage}
+        severity={snackbarSeverity}
+        onClose={() => setSnackbarOpen(false)}
+      />
     </Box>
   )
 }

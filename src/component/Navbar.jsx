@@ -19,7 +19,7 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../features/api/slice/authSlice";
-import Sidebar from "./Sidebar";  // Updated import
+
 
 import ChangeProfileDialog from "../pages/dialog/ChangeProfileDialog";  
 import MainContent from "./MainContent";
@@ -29,6 +29,7 @@ import TopNavContent from "./TopNavContent";
 import AddNewUserDialog from "../pages/dialog/adddialog/AddNewUserDialog";
 import AddNewTeamDialog from "../pages/dialog/adddialog/AddNewTeamDialog";
 import { useCreateTeamMutation } from "../features/api/team/teamApi";
+import Sidebar from "./sidebar";
 
 const Navbar = () => {
   const user = useSelector(selectCurrentUser);
@@ -161,9 +162,9 @@ const Navbar = () => {
         <Box
           sx={{
             background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
-            height: { xs: '70px', sm: '80px' },
-            minHeight: { xs: '70px', sm: '80px' },
-            maxHeight: { xs: '70px', sm: '80px' },
+            height: { xs: '60px', sm: '70px' },
+            minHeight: { xs: '60px', sm: '70px' },
+            maxHeight: { xs: '60px', sm: '70px  ' },
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -208,8 +209,8 @@ const Navbar = () => {
           >
             <Typography 
               sx={{ 
-                display: { xs: "none", sm: "block" },
-                fontSize: { sm: "1rem", md: "1.05rem" },
+                display: "block",
+                fontSize: { xs: "0.9rem", sm: "1rem", md: "1.05rem" },
                 fontWeight: 500,
                 color: "#ffffff",
                 letterSpacing: '0.3px',

@@ -15,7 +15,7 @@ import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import MenuIcon from '@mui/icons-material/Menu';
 import mis from "../assets/mis.png";
 
-const Sidebarw = () => {
+const Sidebar = () => {
   const [openMasterlist, setOpenMasterlist] = useState(false);
   const [activeItem, setActiveItem] = useState('Dashboard');
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -384,4 +384,4 @@ const Sidebarw = () => {
   );
 };
 
-export default Sidebarw;
+export default Sidebar;

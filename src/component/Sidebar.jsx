@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Confirmation from './reuseable/Confirmation';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Box, List, ListItemButton, ListItemIcon, ListItemText, Collapse, IconButton, Avatar, Typography, Menu, MenuItem } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
@@ -58,12 +59,8 @@ const Sidebar = ({ user, onChangeProfile }) => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    sessionStorage.clear();
-    window.location.replace("http://localhost:5173");
-  };
+
+
 
   return (
     <Box 
@@ -656,60 +653,10 @@ const Sidebar = ({ user, onChangeProfile }) => {
       {/* Spacer to push footer to bottom */}
       <Box sx={{ flexGrow: 1 }} />
 
-      {/* Footer with Logout */}
-      <Box
-        sx={{
-          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-          px: isCollapsed ? 0.5 : 1,
-          py: 1,
-        }}
-      >
-        {/* Log out */}
-        <ListItemButton
-          onClick={handleLogout}
-          sx={{
-            color: '#ffffff',
-            justifyContent: isCollapsed ? 'center' : 'flex-start',
-            borderRadius: isCollapsed ? '8px' : '12px',
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              bgcolor: 'rgba(220, 53, 69, 0.15)',
-              transform: 'translateX(4px)',
-              border: '1px solid rgba(220, 53, 69, 0.3)',
-            },
-          }}
-        >
-          <ListItemIcon 
-            sx={{ 
-              color: '#ff6b6b', 
-              minWidth: isCollapsed ? 'auto' : '48px',
-              display: 'flex',
-              justifyContent: 'center',
-            }}
-          >
-            <LogoutIcon sx={{ fontSize: isCollapsed ? '1.5rem' : '1.3rem' }} />
-          </ListItemIcon>
-          {!isCollapsed && (
-            <ListItemText 
-              primary="Log out" 
-              primaryTypographyProps={{
-                fontSize: '0.95rem',
-                fontWeight: 500,
-                fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
-              }}
-            />
-          )}
-        </ListItemButton>
-      </Box>
-
       <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
         <MenuItem onClick={handleChangeProfile}>
           <PersonIcon sx={{ mr: 1 }} />
           Change Profile
-        </MenuItem>
-        <MenuItem onClick={handleLogout}>
-          <LogoutIcon sx={{ mr: 1 }} />
-          Logout
         </MenuItem>
       </Menu>
     </Box>

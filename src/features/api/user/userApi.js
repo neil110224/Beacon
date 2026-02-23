@@ -14,45 +14,54 @@ const userApi = todoListApi
         }),
       }),
 
+      // getUsers: build.query({
+      //   query: (params = {}) => {
+      //     const {
+      //       status = "active",
+      //       paginate,
+      //       pagination = "none",
+      //       term,
+      //       ...otherParams
+      //     } = params;
+
+      //     const queryParams = new URLSearchParams();
+
+      //     if (status) {
+      //       queryParams.append("status", status);
+      //     }
+      //     if (paginate !== undefined) {
+      //       queryParams.append("paginate", paginate.toString());
+      //     }
+      //     if (pagination) {
+      //       queryParams.append("pagination", pagination);
+      //     }
+      //     if (term && term.trim() !== "") {
+      //       queryParams.append("term", term.trim());
+      //     }
+
+      //     Object.entries(otherParams).forEach(([key, value]) => {
+      //       if (value !== undefined && value !== null && value !== "") {
+      //         queryParams.append(key, value.toString());
+      //       }
+      //     });
+
+      //     const queryString = queryParams.toString();
+      //     const url = queryString ? `user?${queryString}` : "user";
+
+      //     return {
+      //       url,
+      //       method: "GET",
+      //     };
+      //   },
+      //   providesTags: ["users"],
+      // }),
+
       getUsers: build.query({
-        query: (params = {}) => {
-          const {
-            status = "active",
-            paginate,
-            pagination = "none",
-            term,
-            ...otherParams
-          } = params;
-
-          const queryParams = new URLSearchParams();
-
-          if (status) {
-            queryParams.append("status", status);
-          }
-          if (paginate !== undefined) {
-            queryParams.append("paginate", paginate.toString());
-          }
-          if (pagination) {
-            queryParams.append("pagination", pagination);
-          }
-          if (term && term.trim() !== "") {
-            queryParams.append("term", term.trim());
-          }
-
-          Object.entries(otherParams).forEach(([key, value]) => {
-            if (value !== undefined && value !== null && value !== "") {
-              queryParams.append(key, value.toString());
-            }
-          });
-
-          const queryString = queryParams.toString();
-          const url = queryString ? `user?${queryString}` : "user";
-
-          return {
-            url,
-            method: "GET",
-          };
-        },
+        query: (params) => ({
+          url: "user",
+          method: "GET",
+          params,
+        }),
         providesTags: ["users"],
       }),
 

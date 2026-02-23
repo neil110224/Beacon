@@ -3,7 +3,7 @@ import React from 'react'
 const category = () => {
   return (
     <div>
-      sadasdsaada
+      This is the category
     </div>
   )
 }

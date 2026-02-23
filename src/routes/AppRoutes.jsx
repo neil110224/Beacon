@@ -4,20 +4,21 @@ import Users from '../pages/contents/Users'
 import Team from '../pages/contents/Team'
 import SDLC from '../pages/contents/SDLC'
 import RolesTable from '../pages/dialog/editdialog/EditRole'
-import NestedList from '../component/Sidebar'
 import Charging from '../pages/contents/Charging'
 import UserPage from '../userpage/userPage'
 import DataTable from '../component/reuseable/DataTable'
 import Confirmation from '../component/reuseable/Confirmation'
-import Snackbar from '../component/reuseable/snackbar'
 import EditTeam from '../pages/dialog/editdialog/EditTeam'
 import UserArchive from '../pages/dialog/archivedialog/UserArchive'
 import Role from '../pages/contents/Role'
 import Dashboard from '../pages/contents/Dashboard'
 import TopNavContent from '../component/TopNavContent'
 import Systems from '../pages/contents/Systems'
+import SystemCategory from '../pages/contents/SystemCategory'
 import Navbar from '../component/navbar'
 import Sidebarw from '../component/Sidebarw'
+import Category from '../pages/contents/category'
+import Sidebar from '../component/sidebar'
 
 
 
@@ -37,11 +38,12 @@ const AppRoutes = () => {
         <Route path="/Role" element={<Role />} />
         <Route path="/Team" element={<Team />} />
         <Route path="/Charging" element={<Charging />} />
-        <Route path="/Sdlc" element={<SDLC />} />
         <Route path="/Systems" element={<Systems />} />
+        <Route path="/SystemCategory/:systemName" element={<SystemCategory />} />
+        <Route path="/category" element={<Category />} />
       </Route>
 
-      <Route path='/nestedlist' element={<NestedList/>}/>
+      <Route path='/sidebar' element={<Sidebar/>}/>
       <Route path='/Navbar' element={<Navbar/>}/>
       <Route path='/sdlc' element={<SDLC/>}/>
       <Route path='/editrole' element={<RolesTable/>}/>

@@ -7,9 +7,6 @@ import {
   Button,
   TextField,
   Box,
-  FormControl,
-  InputLabel,
-  Select,
   MenuItem,
   CircularProgress,
   Snackbar,
@@ -61,6 +58,23 @@ const AddNewUserDialog = ({ open, onClose, onSave }) => {
 
   const handleSnackbarClose = () => setSnackbar({ ...snackbar, open: false });
 
+  const handleCancel = () => {
+    // Reset form data
+    setFormData({
+      first_name: "",
+      middle_name: "",
+      last_name: "",
+      suffix: "",
+      username: "",
+      password: "",
+      role_id: "",
+      charging_id: "",
+      team_id: "",
+    });
+    // Close the dialog
+    onClose();
+  };
+
   const handleSubmit = async () => {
     const payload = {
       ...formData,
@@ -110,7 +124,7 @@ const AddNewUserDialog = ({ open, onClose, onSave }) => {
 
   return (
     <>
-      <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <Dialog open={open} onClose={handleCancel} maxWidth="sm" fullWidth>
         <DialogTitle>Add New User</DialogTitle>
 
         <DialogContent>
@@ -160,78 +174,78 @@ const AddNewUserDialog = ({ open, onClose, onSave }) => {
             />
 
             {/* Role Select */}
-            <FormControl fullWidth>
-              <InputLabel>Role</InputLabel>
-              <Select
-                name="role_id"
-                value={rolesLoading ? "" : formData.role_id}
-                onChange={handleChange}
-                disabled={rolesLoading}
-              >
-                {rolesLoading ? (
-                  <MenuItem value="">
-                    <CircularProgress size={20} />
+            <TextField
+              label="Role"
+              name="role_id"
+              value={formData.role_id}
+              onChange={handleChange}
+              select
+              fullWidth
+              disabled={rolesLoading}
+            >
+              {rolesLoading ? (
+                <MenuItem value="">
+                  <CircularProgress size={20} />
+                </MenuItem>
+              ) : (
+                roles.map((role) => (
+                  <MenuItem key={role.id} value={String(role.id)}>
+                    {role.name}
                   </MenuItem>
-                ) : (
-                  roles.map((role) => (
-                    <MenuItem key={role.id} value={String(role.id)}>
-                      {role.name}
-                    </MenuItem>
-                  ))
-                )}
-              </Select>
-            </FormControl>
+                ))
+              )}
+            </TextField>
 
             {/* Charging Select */}
-            <FormControl fullWidth>
-              <InputLabel>Charging</InputLabel>
-              <Select
-                name="charging_id"
-                value={chargingLoading ? "" : formData.charging_id}
-                onChange={handleChange}
-                disabled={chargingLoading}
-              >
-                {chargingLoading ? (
-                  <MenuItem value="">
-                    <CircularProgress size={20} />
+            <TextField
+              label="Charging"
+              name="charging_id"
+              value={formData.charging_id}
+              onChange={handleChange}
+              select
+              fullWidth
+              disabled={chargingLoading}
+            >
+              {chargingLoading ? (
+                <MenuItem value="">
+                  <CircularProgress size={20} />
+                </MenuItem>
+              ) : (
+                chargingOptions.map((charge) => (
+                  <MenuItem key={charge.id} value={String(charge.id)}>
+                    {charge.name} ({charge.code})
                   </MenuItem>
-                ) : (
-                  chargingOptions.map((charge) => (
-                    <MenuItem key={charge.id} value={String(charge.id)}>
-                      {charge.name} ({charge.code})
-                    </MenuItem>
-                  ))
-                )}
-              </Select>
-            </FormControl>
+                ))
+              )}
+            </TextField>
 
             {/* Team Select */}
-            <FormControl fullWidth>
-              <InputLabel>Team</InputLabel>
-              <Select
-                name="team_id"
-                value={teamsLoading ? "" : formData.team_id}
-                onChange={handleChange}
-                disabled={teamsLoading}
-              >
-                {teamsLoading ? (
-                  <MenuItem value="">
-                    <CircularProgress size={20} />
+            <TextField
+              label="Team"
+              name="team_id"
+              value={formData.team_id}
+              onChange={handleChange}
+              select
+              fullWidth
+              disabled={teamsLoading}
+            >
+              {teamsLoading ? (
+                <MenuItem value="">
+                  <CircularProgress size={20} />
+                </MenuItem>
+              ) : (
+                teams.map((team) => (
+                  <MenuItem key={team.id} value={String(team.id)}>
+                    {team.name}
                   </MenuItem>
-                ) : (
-                  teams.map((team) => (
-                    <MenuItem key={team.id} value={String(team.id)}>
-                      {team.name}
-                    </MenuItem>
-                  ))
-                )}
-              </Select>
-            </FormControl>
+                ))
+              )}
+            </TextField>
           </Box>
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={onClose} disabled={loading}>
+          <Button onClick={handleCancel} disabled={loading}>
             Cancel
           </Button>
           <Button
