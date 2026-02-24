@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Confirmation from './reuseable/Confirmation';
-import { NavLink, useLocation } from 'react-router-dom';
-import { Box, List, ListItemButton, ListItemIcon, ListItemText, Collapse, IconButton, Avatar, Typography, Menu, MenuItem } from '@mui/material';
+import { Link, NavLink, useLocation } from 'react-router-dom';
+import { Box, List, ListItemButton, ListItemIcon, ListItemText, Collapse, IconButton, Avatar, Typography, Menu, MenuItem, Tooltip, Popover } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import SettingsSystemDaydreamIcon from '@mui/icons-material/SettingsSystemDaydream';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
@@ -14,11 +14,10 @@ import CategoryIcon from '@mui/icons-material/Category';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import MenuIcon from '@mui/icons-material/Menu';
 import mis from "../assets/mis.png";
-import beacon from '../assets/beacon.jpg'
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 
-const Sidebar = ({ user, onChangeProfile }) => {
+const Sidebar = ({ user, onChangeProfile, isSidebarLocked = false, onToggleSidebarLock = () => {}, isSidebarCollapsed = false }) => {
   const location = useLocation();
   const [openMasterlist, setOpenMasterlist] = useState(
     location.pathname.startsWith('/role') || 
@@ -27,8 +26,9 @@ const Sidebar = ({ user, onChangeProfile }) => {
     location.pathname.startsWith('/charging') ||
     location.pathname.startsWith('/category')
   );
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
+  const [masterlistMenuAnchor, setMasterlistMenuAnchor] = useState(null);
   
   const open = Boolean(anchorEl);
   const firstName = user?.first_name;
@@ -52,11 +52,23 @@ const Sidebar = ({ user, onChangeProfile }) => {
     setOpenMasterlist(!openMasterlist);
   };
 
-  const handleToggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-    if (!isCollapsed) {
-      setOpenMasterlist(false);
-    }
+  const handleMasterlistMenuClick = (event) => {
+    setMasterlistMenuAnchor(event.currentTarget);
+  };
+
+  const handleMasterlistMenuClose = () => {
+    setMasterlistMenuAnchor(null);
+  };
+
+  // Determine actual collapsed state based on lock and hover
+  const isCollapsed = isSidebarCollapsed ? isSidebarLocked : (isSidebarCollapsed && !isHovered);
+
+  const handleSidebarMouseEnter = () => {
+    setIsHovered(true);
+  };
+
+  const handleSidebarMouseLeave = () => {
+    setIsHovered(false);
   };
 
 
@@ -64,6 +76,8 @@ const Sidebar = ({ user, onChangeProfile }) => {
 
   return (
     <Box 
+      onMouseEnter={handleSidebarMouseEnter}
+      onMouseLeave={handleSidebarMouseLeave}
       sx={{
         background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)',
         height: '100vh', 
@@ -82,7 +96,7 @@ const Sidebar = ({ user, onChangeProfile }) => {
       <Box
         sx={{
           display: 'flex',
-          flexDirection: isCollapsed ? 'column' : 'row',
+          flexDirection: 'row',
           alignItems: 'center',
           justifyContent: isCollapsed ? 'center' : 'space-between',
           px: isCollapsed ? 1 : { xs: 1, sm: 2 },
@@ -91,7 +105,7 @@ const Sidebar = ({ user, onChangeProfile }) => {
           height: { xs: '70px', sm: '80px' },
           minHeight: { xs: '70px', sm: '80px' },
           maxHeight: { xs: '70px', sm: '80px' },
-          gap: isCollapsed ? 1 : 0,
+          gap: 1,
           position: 'relative',
           '&::after': {
             content: '""',
@@ -105,7 +119,7 @@ const Sidebar = ({ user, onChangeProfile }) => {
         }}
       >
         {!isCollapsed && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1, justifyContent: 'flex-start' }}>
             <Box
               sx={{
                 width: '40px',
@@ -120,6 +134,7 @@ const Sidebar = ({ user, onChangeProfile }) => {
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
               }}
             >
+              <Link to="/dashboard">
               <img 
                 src={mis} 
                 alt="MIS Logo" 
@@ -129,6 +144,7 @@ const Sidebar = ({ user, onChangeProfile }) => {
                   objectFit: 'contain' 
                 }} 
               />
+              </Link>
             </Box>
             <Box
               component="h3"
@@ -146,60 +162,46 @@ const Sidebar = ({ user, onChangeProfile }) => {
           </Box>
         )}
         
-        {isCollapsed && (
-          <>
+        {/* Arrow button - show when not collapsed (close button) */}
+        {!isCollapsed && (
+          <Tooltip title={isSidebarLocked ? "Unlock sidebar" : "Lock sidebar"}> 
             <IconButton
-              onClick={handleToggleSidebar}
-              sx={{
-                color: '#f4f4f4',
-                bgcolor: 'rgba(255, 255, 255, 0.08)',
+              onClick={onToggleSidebarLock}
+              sx={{ 
+                color: '#ffffff',
+               
                 '&:hover': {
                   bgcolor: 'rgba(255, 255, 255, 0.15)',
                 },
+                width: 36,
+                height: 36,
+                flexShrink: 0,
               }}
             >
-              <MenuIcon />
+              <ArrowBackIosNewIcon sx={{ fontSize: '0.9rem', transition: 'transform 0.3s ease' }} />
             </IconButton>
-            <Box
-              sx={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'rgba(255, 255, 255, 0.1)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-              }}
-            >
-              <img 
-                src={mis} 
-                alt="MIS Logo" 
-                style={{ 
-                  width: '28px', 
-                  height: '28px',
-                  objectFit: 'contain' 
-                }} 
-              />
-            </Box>
-          </>
+          </Tooltip>
         )}
 
-        {!isCollapsed && (
-          <IconButton
-            onClick={handleToggleSidebar}
-            sx={{
-              color: '#f4f4f4',
-              bgcolor: 'rgba(255, 255, 255, 0.08)',
-              width: 32,
-              height: 32,
-              '&:hover': {
-                bgcolor: 'rgba(255, 255, 255, 0.15)',
-              },
-            }}
-          >
-            <ArrowBackIosNewIcon sx={{ fontSize: '1rem' }} />
-          </IconButton>
+        {/* Arrow button - show when collapsed (open button) */}
+        {isCollapsed && (
+          <Tooltip title="Expand sidebar">
+            <IconButton
+              onClick={onToggleSidebarLock}
+              sx={{ 
+                color: '#ffffff',
+                
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 0.15)',
+                },
+                width: 36,
+                height: 36,
+                flexShrink: 0,
+              }}
+            >
+              <ArrowForwardIosIcon sx={{ fontSize: '0.9rem', transition: 'transform 1s ease' }} />
+            </IconButton>
+          </Tooltip>
         )}
       </Box>
 
@@ -226,141 +228,102 @@ const Sidebar = ({ user, onChangeProfile }) => {
           style={{ textDecoration: 'none', color: 'inherit' }}
         >
           {({ isActive }) => (
-            <ListItemButton
-              sx={{
-                background: isActive 
-                  ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)'
-                  : 'transparent',
-                color: '#ffffff',
-                justifyContent: isCollapsed ? 'center' : 'flex-start',
-                borderRadius: isCollapsed ? '8px' : '12px',
-                mb: 0.5,
-                border: isActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
-                backdropFilter: isActive ? 'blur(10px)' : 'none',
-                transition: 'all 0.3s ease',
-                '&:hover': {
+            <Tooltip title={isCollapsed ? "Dashboard" : ""} placement="right">
+              <ListItemButton
+                sx={{
                   background: isActive 
-                    ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.12) 100%)'
-                    : 'rgba(255, 255, 255, 0.08)',
-                  transform: 'translateX(4px)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                },
-              }}
-            >
-              <ListItemIcon 
-                sx={{ 
-                  color: '#ffffff', 
-                  minWidth: isCollapsed ? 'auto' : '48px',
-                  display: 'flex',
-                  justifyContent: 'center',
+                    ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)'
+                    : 'transparent',
+                  color: '#ffffff',
+                  justifyContent: isCollapsed ? 'center' : 'flex-start',
+                  borderRadius: isCollapsed ? '8px' : '12px',
+                  mb: 0.5,
+                  border: isActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
+                  backdropFilter: isActive ? 'blur(10px)' : 'none',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    background: isActive 
+                      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.12) 100%)'
+                      : 'rgba(255, 255, 255, 0.08)',
+                    transform: 'translateX(4px)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                  },
                 }}
               >
-                <HomeIcon sx={{ fontSize: isCollapsed ? '1.5rem' : '1.3rem' }} />
-              </ListItemIcon>
-              {!isCollapsed && (
-                <ListItemText 
-                  primary="Dashboard" 
-                  primaryTypographyProps={{
-                    fontSize: '0.95rem',
-                    fontWeight: isActive ? 600 : 500,
-                    fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
+                <ListItemIcon 
+                  sx={{ 
+                    color: '#ffffff', 
+                    minWidth: isCollapsed ? 'auto' : '48px',
+                    display: 'flex',
+                    justifyContent: 'center',
                   }}
-                />
-              )}
-            </ListItemButton>
-          )}
-        </NavLink>
-
-        {/* Systems */}
-        <NavLink
-          to="/Systems"
-          style={{ textDecoration: 'none', color: 'inherit' }}
-        >
-          {({ isActive }) => (
-            <ListItemButton
-              sx={{
-                background: isActive 
-                  ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)'
-                  : 'transparent',
-                color: '#ffffff',
-                justifyContent: isCollapsed ? 'center' : 'flex-start',
-                borderRadius: isCollapsed ? '8px' : '12px',
-                mb: 0.5,
-                border: isActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
-                backdropFilter: isActive ? 'blur(10px)' : 'none',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  background: isActive 
-                    ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.12) 100%)'
-                    : 'rgba(255, 255, 255, 0.08)',
-                  transform: 'translateX(4px)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                },
-              }}
-            >
-              <ListItemIcon 
-                sx={{ 
-                  color: '#ffffff', 
-                  minWidth: isCollapsed ? 'auto' : '48px',
-                  display: 'flex',
-                  justifyContent: 'center',
-                }}
-              >
-                <SettingsSystemDaydreamIcon sx={{ fontSize: isCollapsed ? '1.5rem' : '1.3rem' }} />
-              </ListItemIcon>
-              {!isCollapsed && (
-                <ListItemText 
-                  primary="Systems" 
-                  primaryTypographyProps={{
-                    fontSize: '0.95rem',
-                    fontWeight: isActive ? 600 : 500,
-                    fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
-                  }}
-                />
-              )}
-            </ListItemButton>
+                >
+                  <HomeIcon sx={{ fontSize: isCollapsed ? '1.5rem' : '1.3rem' }} />
+                </ListItemIcon>
+                {!isCollapsed && (
+                  <ListItemText 
+                    primary="Dashboard" 
+                    primaryTypographyProps={{
+                      fontSize: '0.95rem',
+                      fontWeight: isActive ? 600 : 500,
+                      fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
+                    }}
+                  />
+                )}
+              </ListItemButton>
+            </Tooltip>
           )}
         </NavLink>
 
         {/* Masterlist */}
-        {!isCollapsed && (
-          <>
-            <ListItemButton
-              onClick={handleMasterlistToggle}
-              sx={{
+        <Tooltip title={isCollapsed ? "Masterlist" : ""} placement="right">
+          <ListItemButton
+            onClick={isCollapsed ? handleMasterlistMenuClick : handleMasterlistToggle}
+            sx={{
+              background: openMasterlist && !isCollapsed
+                ? 'rgba(255, 255, 255, 0.08)'
+                : 'transparent',
+              color: '#ffffff',
+              justifyContent: isCollapsed ? 'center' : 'flex-start',
+              borderRadius: isCollapsed ? '8px' : '12px',
+              mb: 0.5,
+              border: '1px solid transparent',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                bgcolor: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                transform: isCollapsed ? 'none' : 'translateX(4px)',
+              },
+            }}
+          >
+            <ListItemIcon 
+              sx={{ 
                 color: '#ffffff',
-                borderRadius: '12px',
-                mb: 0.5,
-                border: '1px solid transparent',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  bgcolor: 'rgba(255, 255, 255, 0.08)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  transform: 'translateX(4px)',
-                },
+                minWidth: isCollapsed ? 'auto' : '48px',
+                display: 'flex',
+                justifyContent: 'center',
               }}
             >
-              <ListItemIcon 
-                sx={{ 
-                  color: '#ffffff',
-                  minWidth: '48px',
-                  display: 'flex',
-                  justifyContent: 'center',
-                }}
-              >
-                <LibraryBooksIcon sx={{ fontSize: '1.3rem' }} />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Masterlist" 
-                primaryTypographyProps={{
-                  fontSize: '0.95rem',
-                  fontWeight: 500,
-                  fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
-                }}
-              />
-              {openMasterlist ? <ExpandLess /> : <ExpandMore />}
-            </ListItemButton>
+              <LibraryBooksIcon sx={{ fontSize: isCollapsed ? '1.5rem' : '1.3rem' }} />
+            </ListItemIcon>
+            {!isCollapsed && (
+              <>
+                <ListItemText 
+                  primary="Masterlist" 
+                  primaryTypographyProps={{
+                    fontSize: '0.95rem',
+                    fontWeight: 500,
+                    fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
+                  }}
+                />
+                {openMasterlist ? <ExpandLess /> : <ExpandMore />}
+              </>
+            )}
+          </ListItemButton>
+        </Tooltip>
 
+        {!isCollapsed && (
+          <>
             {/* Masterlist Children */}
             
             <Collapse in={openMasterlist} timeout={1000} unmountOnExit>
@@ -374,14 +337,14 @@ const Sidebar = ({ user, onChangeProfile }) => {
                     <ListItemButton
                       sx={{
                         pl: 4,
-                        bgcolor: isActive ? '#424242' : 'transparent',
-                        color: isActive ? '#000' : '#f4f4f4',
+                        bgcolor: isActive ? '#2e244b' : 'transparent',
+                        color: isActive ? '#fff' : '#f4f4f4',
                         '&:hover': {
-                          bgcolor: isActive ? '#c7c7c7' : 'rgba(255, 255, 255, 0.1)',
+                          bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
                         },
                       }}
                     >
-                      <ListItemIcon sx={{ color: isActive ? '#000' : '#f4f4f4' }}>
+                      <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4' }}>
                         <PersonIcon />
                       </ListItemIcon>
                       <ListItemText primary="Role" />
@@ -398,14 +361,14 @@ const Sidebar = ({ user, onChangeProfile }) => {
                     <ListItemButton
                       sx={{
                         pl: 4,
-                        bgcolor: isActive ? '#424242' : 'transparent',
-                        color: isActive ? '#000' : '#f4f4f4',
+                        bgcolor: isActive ? '#2e244b' : 'transparent',
+                        color: isActive ? '#fff' : '#f4f4f4',
                         '&:hover': {
-                          bgcolor: isActive ? '#c7c7c7' : 'rgba(255, 255, 255, 0.1)',
+                          bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
                         },
                       }}
                     >
-                      <ListItemIcon sx={{ color: isActive ? '#000' : '#f4f4f4' }}>
+                      <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4' }}>
                         <PeopleIcon />
                       </ListItemIcon>
                       <ListItemText primary="Users" />
@@ -422,14 +385,14 @@ const Sidebar = ({ user, onChangeProfile }) => {
                     <ListItemButton
                       sx={{
                         pl: 4,
-                        bgcolor: isActive ? '#424242' : 'transparent',
-                        color: isActive ? '#000' : '#f4f4f4',
+                        bgcolor: isActive ? '#2e244b' : 'transparent',
+                        color: isActive ? '#fff' : '#f4f4f4',
                         '&:hover': {
-                          bgcolor: isActive ? '#c7c7c7' : 'rgba(255, 255, 255, 0.1)',
+                          bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
                         },
                       }}
                     >
-                      <ListItemIcon sx={{ color: isActive ? '#000' : '#f4f4f4' }}>
+                      <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4' }}>
                         <GroupsIcon />
                       </ListItemIcon>
                       <ListItemText primary="Team" />
@@ -446,14 +409,14 @@ const Sidebar = ({ user, onChangeProfile }) => {
                     <ListItemButton
                       sx={{
                         pl: 4,
-                        bgcolor: isActive ? '#424242' : 'transparent',
-                        color: isActive ? '#000' : '#f4f4f4',
+                        bgcolor: isActive ? '#2e244b' : 'transparent',
+                        color: isActive ? '#fff' : '#f4f4f4',
                         '&:hover': {
-                          bgcolor: isActive ? '#c7c7c7' : 'rgba(255, 255, 255, 0.1)',
+                          bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
                         },
                       }}
                     >
-                      <ListItemIcon sx={{ color: isActive ? '#000' : '#f4f4f4' }}>
+                      <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4' }}>
                         <LocationCityIcon />
                       </ListItemIcon>
                       <ListItemText primary="Charging" />
@@ -470,14 +433,14 @@ const Sidebar = ({ user, onChangeProfile }) => {
                     <ListItemButton
                       sx={{
                         pl: 4,
-                        bgcolor: isActive ? '#424242' : 'transparent',
-                        color: isActive ? '#000' : '#f4f4f4',
+                        bgcolor: isActive ? '#2e244b' : 'transparent',
+                        color: isActive ? '#fff' : '#f4f4f4',
                         '&:hover': {
-                          bgcolor: isActive ? '#c7c7c7' : 'rgba(255, 255, 255, 0.1)',
+                          bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
                         },
                       }}
                     >
-                      <ListItemIcon sx={{ color: isActive ? '#000' : '#f4f4f4' }}>
+                      <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4' }}>
                         <CategoryIcon />
                       </ListItemIcon>
                       <ListItemText primary="Category" />
@@ -489,37 +452,44 @@ const Sidebar = ({ user, onChangeProfile }) => {
           </>
         )}
 
-        {/* Collapsed Masterlist Children - Show as icons only */}
+        {/* Collapsed Masterlist Menu */}
         {isCollapsed && (
-          <>
+          <Menu
+            anchorEl={masterlistMenuAnchor}
+            open={Boolean(masterlistMenuAnchor)}
+            onClose={handleMasterlistMenuClose}
+            PaperProps={{
+              elevation: 8,
+              sx: {
+                bgcolor: '#1a1a2e',
+                color: '#f4f4f4',
+                borderRadius: '8px',
+                mt: 1,
+                minWidth: '160px',
+                backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+              }
+            }}
+          >
             <NavLink
               to="/role"
               style={{ textDecoration: 'none', color: 'inherit' }}
             >
               {({ isActive }) => (
-                <ListItemButton
+                <MenuItem 
+                  onClick={handleMasterlistMenuClose}
                   sx={{
-                    background: isActive 
-                      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)'
-                      : 'transparent',
-                    color: '#ffffff',
-                    justifyContent: 'center',
-                    borderRadius: '8px',
-                    mb: 0.5,
-                    border: isActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
-                    transition: 'all 0.3s ease',
+                    bgcolor: isActive ? '#2e244b' : 'transparent',
+                    color: isActive ? '#fff' : '#f4f4f4',
                     '&:hover': {
-                      background: isActive 
-                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.12) 100%)'
-                        : 'rgba(255, 255, 255, 0.08)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
                     },
                   }}
                 >
-                  <ListItemIcon sx={{ color: '#ffffff', minWidth: 'auto', display: 'flex', justifyContent: 'center' }}>
-                    <PersonIcon sx={{ fontSize: '1.5rem' }} />
+                  <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4', minWidth: '36px' }}>
+                    <PersonIcon fontSize="small" />
                   </ListItemIcon>
-                </ListItemButton>
+                  Role
+                </MenuItem>
               )}
             </NavLink>
 
@@ -528,29 +498,21 @@ const Sidebar = ({ user, onChangeProfile }) => {
               style={{ textDecoration: 'none', color: 'inherit' }}
             >
               {({ isActive }) => (
-                <ListItemButton
+                <MenuItem 
+                  onClick={handleMasterlistMenuClose}
                   sx={{
-                    background: isActive 
-                      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)'
-                      : 'transparent',
-                    color: '#ffffff',
-                    justifyContent: 'center',
-                    borderRadius: '8px',
-                    mb: 0.5,
-                    border: isActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
-                    transition: 'all 0.3s ease',
+                    bgcolor: isActive ? '#2e244b' : 'transparent',
+                    color: isActive ? '#fff' : '#f4f4f4',
                     '&:hover': {
-                      background: isActive 
-                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.12) 100%)'
-                        : 'rgba(255, 255, 255, 0.08)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
                     },
                   }}
                 >
-                  <ListItemIcon sx={{ color: '#ffffff', minWidth: 'auto', display: 'flex', justifyContent: 'center' }}>
-                    <PeopleIcon sx={{ fontSize: '1.5rem' }} />
+                  <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4', minWidth: '36px' }}>
+                    <PeopleIcon fontSize="small" />
                   </ListItemIcon>
-                </ListItemButton>
+                  Users
+                </MenuItem>
               )}
             </NavLink>
 
@@ -559,29 +521,21 @@ const Sidebar = ({ user, onChangeProfile }) => {
               style={{ textDecoration: 'none', color: 'inherit' }}
             >
               {({ isActive }) => (
-                <ListItemButton
+                <MenuItem 
+                  onClick={handleMasterlistMenuClose}
                   sx={{
-                    background: isActive 
-                      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)'
-                      : 'transparent',
-                    color: '#ffffff',
-                    justifyContent: 'center',
-                    borderRadius: '8px',
-                    mb: 0.5,
-                    border: isActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
-                    transition: 'all 0.3s ease',
+                    bgcolor: isActive ? '#2e244b' : 'transparent',
+                    color: isActive ? '#fff' : '#f4f4f4',
                     '&:hover': {
-                      background: isActive 
-                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.12) 100%)'
-                        : 'rgba(255, 255, 255, 0.08)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
                     },
                   }}
                 >
-                  <ListItemIcon sx={{ color: '#ffffff', minWidth: 'auto', display: 'flex', justifyContent: 'center' }}>
-                    <GroupsIcon sx={{ fontSize: '1.5rem' }} />
+                  <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4', minWidth: '36px' }}>
+                    <GroupsIcon fontSize="small" />
                   </ListItemIcon>
-                </ListItemButton>
+                  Team
+                </MenuItem>
               )}
             </NavLink>
 
@@ -590,29 +544,21 @@ const Sidebar = ({ user, onChangeProfile }) => {
               style={{ textDecoration: 'none', color: 'inherit' }}
             >
               {({ isActive }) => (
-                <ListItemButton
+                <MenuItem 
+                  onClick={handleMasterlistMenuClose}
                   sx={{
-                    background: isActive 
-                      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)'
-                      : 'transparent',
-                    color: '#ffffff',
-                    justifyContent: 'center',
-                    borderRadius: '8px',
-                    mb: 0.5,
-                    border: isActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
-                    transition: 'all 0.3s ease',
+                    bgcolor: isActive ? '#2e244b' : 'transparent',
+                    color: isActive ? '#fff' : '#f4f4f4',
                     '&:hover': {
-                      background: isActive 
-                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.12) 100%)'
-                        : 'rgba(255, 255, 255, 0.08)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
                     },
                   }}
                 >
-                  <ListItemIcon sx={{ color: '#ffffff', minWidth: 'auto', display: 'flex', justifyContent: 'center' }}>
-                    <LocationCityIcon sx={{ fontSize: '1.5rem' }} />
+                  <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4', minWidth: '36px' }}>
+                    <LocationCityIcon fontSize="small" />
                   </ListItemIcon>
-                </ListItemButton>
+                  Charging
+                </MenuItem>
               )}
             </NavLink>
 
@@ -621,33 +567,78 @@ const Sidebar = ({ user, onChangeProfile }) => {
               style={{ textDecoration: 'none', color: 'inherit' }}
             >
               {({ isActive }) => (
-                <ListItemButton
+                <MenuItem 
+                  onClick={handleMasterlistMenuClose}
                   sx={{
-                    background: isActive 
-                      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)'
-                      : 'transparent',
-                    color: '#ffffff',
-                    justifyContent: 'center',
-                    borderRadius: '8px',
-                    mb: 0.5,
-                    border: isActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
-                    transition: 'all 0.3s ease',
+                    bgcolor: isActive ? '#2e244b' : 'transparent',
+                    color: isActive ? '#fff' : '#f4f4f4',
                     '&:hover': {
-                      background: isActive 
-                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.12) 100%)'
-                        : 'rgba(255, 255, 255, 0.08)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
                     },
                   }}
                 >
-                  <ListItemIcon sx={{ color: '#ffffff', minWidth: 'auto', display: 'flex', justifyContent: 'center' }}>
-                    <CategoryIcon sx={{ fontSize: '1.5rem' }} />
+                  <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4', minWidth: '36px' }}>
+                    <CategoryIcon fontSize="small" />
                   </ListItemIcon>
-                </ListItemButton>
+                  Category
+                </MenuItem>
               )}
             </NavLink>
-          </>
+          </Menu>
         )}
+
+        {/* Systems */}
+        <NavLink
+          to="/Systems"
+          style={{ textDecoration: 'none', color: 'inherit' }}
+        >
+          {({ isActive }) => (
+            <Tooltip title={isCollapsed ? "Systems" : ""} placement="right">
+              <ListItemButton
+                sx={{
+                  background: isActive 
+                    ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)'
+                    : 'transparent',
+                  color: '#ffffff',
+                  justifyContent: isCollapsed ? 'center' : 'flex-start',
+                  borderRadius: isCollapsed ? '8px' : '12px',
+                  mb: 0.5,
+                  border: isActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
+                  backdropFilter: isActive ? 'blur(10px)' : 'none',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    background: isActive 
+                      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.12) 100%)'
+                      : 'rgba(255, 255, 255, 0.08)',
+                    transform: 'translateX(4px)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                  },
+                }}
+              >
+                <ListItemIcon 
+                  sx={{ 
+                    color: '#ffffff', 
+                    minWidth: isCollapsed ? 'auto' : '48px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <SettingsSystemDaydreamIcon sx={{ fontSize: isCollapsed ? '1.5rem' : '1.3rem' }} />
+                </ListItemIcon>
+                {!isCollapsed && (
+                  <ListItemText 
+                    primary="Systems" 
+                    primaryTypographyProps={{
+                      fontSize: '0.95rem',
+                      fontWeight: isActive ? 600 : 500,
+                      fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
+                    }}
+                  />
+                )}
+              </ListItemButton>
+            </Tooltip>
+          )}
+        </NavLink>
       </List>
 
       {/* Spacer to push footer to bottom */}

@@ -15,6 +15,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/LogoutOutlined";
 import PersonIcon from "@mui/icons-material/Person";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
@@ -23,6 +24,7 @@ import { selectCurrentUser } from "../features/api/slice/authSlice";
 
 import ChangeProfileDialog from "../pages/dialog/ChangeProfileDialog";  
 import MainContent from "./MainContent";
+import Confirmation from "./reuseable/Confirmation";
 
 import { useCreateUserMutation } from "../features/api/user/userApi";
 import TopNavContent from "./TopNavContent";
@@ -38,13 +40,20 @@ const Navbar = () => {
   const [addUserOpen, setAddUserOpen] = useState(false);
   const [addTeamOpen, setAddTeamOpen] = useState(false);
   const [activePage, setActivePage] = useState("HOME");
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
   const theme = useTheme();
   
+  // Check if current route is dashboard
+  const isDashboard = useLocation().pathname === '/Dashboard';
+
+  // Initialize sidebar collapsed state based on page
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(isDashboard);
+  const [isSidebarLocked, setIsSidebarLocked] = useState(false);
+
   // Custom breakpoints matching your SCSS
   const isXxs = useMediaQuery('(max-width:500px)');
   const isXs = useMediaQuery('(max-width:575.98px)');
@@ -58,9 +67,6 @@ const Navbar = () => {
 
   const open = Boolean(anchorEl);
 
-  // Check if current route is dashboard
-  const isDashboard = location.pathname === '/Dashboard';
-
   const handleAvatarClick = (event) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
 
@@ -73,7 +79,13 @@ const Navbar = () => {
     setProfileDialogOpen(false);
   };
 
-  const handleLogout = () => {
+  const handleLogoutClick = () => {
+    setLogoutConfirmOpen(true);
+    handleClose();
+  };
+
+  const handleConfirmLogout = () => {
+    setLogoutConfirmOpen(false);
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     sessionStorage.clear();
@@ -82,6 +94,11 @@ const Navbar = () => {
 
   const handleToggleSidebar = () => {
     setIsSidebarCollapsed((prev) => !prev);
+  };
+
+  const handleToggleSidebarLock = () => {
+    setIsSidebarCollapsed((prev) => !prev);
+    setIsSidebarLocked(true);
   };
 
   const handleToggleMobileDrawer = () => {
@@ -129,7 +146,7 @@ const Navbar = () => {
             display: { xs: "none", md: "block" },
           }}
         >
-          <Sidebar user={user} onChangeProfile={() => setProfileDialogOpen(true)} />
+          <Sidebar user={user} onChangeProfile={() => setProfileDialogOpen(true)} isSidebarLocked={isSidebarLocked} onToggleSidebarLock={handleToggleSidebarLock} isSidebarCollapsed={isSidebarCollapsed} />
         </Box>
       )}
 
@@ -146,7 +163,7 @@ const Navbar = () => {
           },
         }}
       >
-        <Sidebar user={user} onChangeProfile={() => setProfileDialogOpen(true)} />
+        <Sidebar user={user} onChangeProfile={() => setProfileDialogOpen(true)} isSidebarLocked={isSidebarLocked} onToggleSidebarLock={handleToggleSidebarLock} isSidebarCollapsed={isSidebarCollapsed} />
       </Drawer>
 
       {/* Main Content Area */}
@@ -270,7 +287,7 @@ const Navbar = () => {
               </Typography>
             </MenuItem>
             <MenuItem 
-              onClick={handleLogout}
+              onClick={handleLogoutClick}
               sx={{
                 py: 1.5,
                 px: 2.5,
@@ -327,6 +344,14 @@ const Navbar = () => {
         open={profileDialogOpen}
         onClose={handleProfileDialogClose}
         user={user}
+      />
+
+      <Confirmation
+        open={logoutConfirmOpen}
+        onClose={() => setLogoutConfirmOpen(false)}
+        onConfirm={handleConfirmLogout}
+        title="Logout Confirmation"
+        message="Are you sure you want to logout?"
       />
     </Box>
   );

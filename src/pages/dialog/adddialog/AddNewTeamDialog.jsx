@@ -17,13 +17,23 @@ const AddNewTeamDialog = ({ open, onClose, onSave, isLoading }) => {
   const handleSubmit = () => {
     if (!name.trim() || !code.trim()) return;
 
-    const payload = { teams: [{ name: name.trim(), code: code.trim() }] }; // ✅ Include code in payload
+    const payload = { teams: [{ name: name.trim(), code: code.trim() }] };
     console.log("CREATE TEAM PAYLOAD:", payload);
     onSave(payload);
+    
+    // Reset form after submission
+    setName("");
+    setCode("");
+  };
+
+  const handleClose = () => {
+    setName("");
+    setCode("");
+    onClose();
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>Add New Team</DialogTitle>
 
       <DialogContent>

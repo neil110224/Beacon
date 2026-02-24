@@ -29,7 +29,7 @@ const TeamArchive = () => {
     status: 'inactive', // fetch archived teams
     pagination: false,
   });
-  const { data: usersData, isLoading: usersLoading } = useGetUsersQuery();
+  const { data: usersData, isLoading: usersLoading } = useGetUsersQuery({ status: 'active' });
   const [restoreTeam] = useRestoreTeamMutation(); // API to restore team
 
   const isLoading = teamsLoading || usersLoading;
@@ -37,8 +37,11 @@ const TeamArchive = () => {
   useEffect(() => {
     if (!teamsData || !usersData) return;
 
-    const teamsArray = Array.isArray(teamsData?.data) ? teamsData.data : teamsData || [];
-    const usersArray = Array.isArray(usersData?.data) ? usersData.data : usersData || [];
+    const teamsArray = Array.isArray(teamsData?.data) ? teamsData.data : Array.isArray(teamsData) ? teamsData : [];
+    const usersArray = Array.isArray(usersData?.data) ? usersData.data : Array.isArray(usersData) ? usersData : [];
+
+    // Only proceed if teamsArray is actually an array
+    if (!Array.isArray(teamsArray)) return;
 
     const archived = teamsArray.map(team => {
       const members = usersArray

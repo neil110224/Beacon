@@ -2,8 +2,8 @@ import { Box } from '@mui/material'
 import React from 'react'
 import { useGetRolesQuery } from '../../features/api/role/roleApi'
 
-const { data } = useGetRolesQuery();
 const practice = () => {
+  const { data } = useGetRolesQuery({ status: 'active' });
   return (
     <Box>
         practice

@@ -30,14 +30,14 @@ export default function EditUserDialog({ open, onClose, user, onSave, isLoading 
   });
 
   // Fetch roles, teams, and charging
-  const { data: rolesData, isLoading: rolesLoading } = useGetRolesQuery();
-  const { data: teamsData, isLoading: teamsLoading } = useGetTeamsQuery();
-  const { data: chargingData, isLoading: chargingLoading } = useGetChargingQuery(); // Add this
+  const { data: rolesData, isLoading: rolesLoading } = useGetRolesQuery({ status: 'active' });
+  const { data: teamsData, isLoading: teamsLoading } = useGetTeamsQuery({ status: 'active' });
+  const { data: chargingData, isLoading: chargingLoading } = useGetChargingQuery({ status: 'active' });
 
   // Extract roles, teams, and charging from response
-  const roles = rolesData?.data || rolesData || [];
-  const teams = teamsData?.data || teamsData || [];
-  const chargingOptions = chargingData?.data || chargingData || []; // Add this
+  const roles = Array.isArray(rolesData?.data) ? rolesData.data : Array.isArray(rolesData) ? rolesData : [];
+  const teams = Array.isArray(teamsData?.data) ? teamsData.data : Array.isArray(teamsData) ? teamsData : [];
+  const chargingOptions = Array.isArray(chargingData?.data) ? chargingData.data : Array.isArray(chargingData) ? chargingData : [];
 
   // Reset form when user changes or dialog opens
   useEffect(() => {

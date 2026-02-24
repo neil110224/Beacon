@@ -40,13 +40,19 @@ export const categoryApi = todoListApi.injectEndpoints({
             ? response
             : [];
       },
+      providesTags: (result, error, arg) => [
+        { type: "categories", id: arg?.status || "LIST" },
+      ],
     }),
     deleteCategory: builder.mutation({
       query: (id) => ({
         url: `category/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["categories"],
+      invalidatesTags: [
+        { type: "categories", id: "active" },
+        { type: "categories", id: "inactive" },
+      ],
     }),
     createCategory: builder.mutation({
       query: (data) => ({
@@ -54,7 +60,7 @@ export const categoryApi = todoListApi.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["categories"],
+      invalidatesTags: [{ type: "categories", id: "active" }],
     }),
   }),
 });

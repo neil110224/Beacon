@@ -9,9 +9,9 @@ $header-text: #f4f4f4;          // Header text color
 $list-item-text: #f4f4f4;       // List item text color
 $list-item-icon: #f4f4f4;       // List item icon color
 $list-item-hover: rgba(255, 255, 255, 0.1);  // Hover background
-$list-item-active: #72726f;     // Active item background
-$list-item-active-hover: #c7c7c7;  // Active item hover background
-$list-item-active-text: #000000;   // Active item text color (when active)
+$list-item-active: #525050;     // Active item background
+$list-item-active-hover: #44365e;  // Active item hover background
+$list-item-active-text: rgb(38, 0, 255)00;   // Active item text color (when active)
 $toggle-button-color: #f4f4f4;  // Toggle button color
 // ============================================
 
@@ -146,7 +146,7 @@ $toggle-button-color: #f4f4f4;  // Toggle button color
   }
 
   &.active {
-    background-color: $list-item-active !important;
+    background-color: $list-item-active;
     color: $list-item-active-text !important;
 
     &:hover {

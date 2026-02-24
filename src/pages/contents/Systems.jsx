@@ -14,15 +14,18 @@ import AddIcon from '@mui/icons-material/Add'
 import SearchIcon from '@mui/icons-material/Search'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useGetSystemsListQuery } from '../../features/api/system/systemApi'
+import { useGetSystemsListQuery, useCreateSystemMutation } from '../../features/api/system/systemApi'
+import AddNewSystemDialog from '../dialog/adddialog/AddNewSystemDialog'
 import reindeer from "../../assets/reindeer.jpg";
 
 const Systems = () => {
   const navigate = useNavigate()
-  const { data: systemsData, isLoading, error } = useGetSystemsListQuery()
+  const { data: systemsData, isLoading, error, refetch } = useGetSystemsListQuery()
+  const [createSystem] = useCreateSystemMutation()
   const scrollContainerRefs = React.useRef({})
   const scrollAnimationRefs = React.useRef({})
   const [searchQuery, setSearchQuery] = React.useState('')
+  const [dialogOpen, setDialogOpen] = React.useState(false)
 
   // Group systems by team
   const groupedSystems = React.useMemo(() => {
@@ -50,8 +53,7 @@ const Systems = () => {
   }
 
   const handleAddSystem = () => {
-    // TODO: Implement add system dialog/modal
-    console.log('Add system clicked')
+    setDialogOpen(true)
   }
 
   const createHandleWheel = (teamName) => (e) => {
@@ -205,7 +207,7 @@ const Systems = () => {
               },
             }}
           >
-            Add System
+            Add
           </Button>
         </Box>
       </Box>
@@ -294,6 +296,14 @@ const Systems = () => {
         </Box>
       ))}
       </Box>
+
+      {/* Add System Dialog */}
+      <AddNewSystemDialog 
+        open={dialogOpen} 
+        onClose={() => setDialogOpen(false)} 
+        onSave={createSystem}
+        onSuccess={refetch}
+      />
     </Box>
   )
 }

@@ -3,15 +3,20 @@ import { todoListApi } from "../../api"; // Adjust path to your api.js
 export const teamApi = todoListApi.injectEndpoints({
   endpoints: (builder) => ({
     getTeams: builder.query({
-      query: (params = {}) => ({
-        url: "team", // Adjust if the endpoint is different (e.g., "teams" or part of users)
-        params: {
-          status: params.status || "active",
-          paginate: params.paginate || "none",
-          pagination: params.pagination || "none",
-          term: params.term || "",
-        },
-      }),
+      query: (params = {}) => {
+        const queryParams = {};
+        if (params.status) queryParams.status = params.status;
+        if (params.paginate !== undefined)
+          queryParams.paginate = params.paginate;
+        if (params.pagination) queryParams.pagination = params.pagination;
+        if (params.term) queryParams.term = params.term;
+
+        const config = { url: "team" };
+        if (Object.keys(queryParams).length > 0) {
+          config.params = queryParams;
+        }
+        return config;
+      },
       providesTags: ["Teams"],
     }),
 

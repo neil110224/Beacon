@@ -28,7 +28,7 @@ import {
 import Snackbar from '../../../component/reuseable/snackbar';
 
 const EditTeam = ({ open, onClose, team, refetchTeams }) => {
-  const { data: teamsData } = useGetTeamsQuery();
+  const { data: teamsData } = useGetTeamsQuery({ status: 'active' });
 
   const [updateTeam] = useUpdateTeamMutation();
   const [updateUser] = useUpdateUserMutation();

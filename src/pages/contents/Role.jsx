@@ -64,7 +64,7 @@ const Role = () => {
     setShowArchived(newValue === 1);
   };
 
-  const roles = data?.data || [];
+  const roles = Array.isArray(data) ? data : [];
 
   // Filter roles based on search term
   const filteredRoles = useMemo(() => {

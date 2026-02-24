@@ -7,7 +7,6 @@ import {
 
 import DataTable from '../../component/reuseable/DataTable'
 import Confirmation from '../../component/reuseable/Confirmation'
-import Snackbar from '../../component/reuseable/Snackbar'
 import AddNewUserDialog from '../dialog/adddialog/AddNewUserDialog' // ✅ MAKE SURE PATH IS CORRECT
 import EditUserDialog from '../dialog/editdialog/UserDialog'
 
@@ -28,6 +27,7 @@ import ArchiveIcon from '@mui/icons-material/Archive'
 import RestoreIcon from '@mui/icons-material/Restore'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
+import Snackbar from '../../component/reuseable/snackbar'
 
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -142,7 +142,7 @@ console.log(
   // }, [data, searchTerm])
 
   // const users = filteredUsers
-  const users = data?.data?.data || []  // Adjust based on your API response structure
+  const users = Array.isArray(data?.data?.data) ? data.data.data : Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : []
 
   const columns = [
     { id: 'id', label: 'ID', align: 'center' },

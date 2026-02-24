@@ -11,22 +11,16 @@ import {
   Snackbar,
   Slide,
 } from "@mui/material";
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import ErrorIcon from '@mui/icons-material/Error';
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ErrorIcon from "@mui/icons-material/Error";
 
-// Slide transition from right
 function SlideTransition(props) {
-  return <Slide {...props} direction="left" {...props} />;
+  return <Slide {...props} direction="left" />;
 }
 
-const AddNewCategoryDialog = ({ open, onClose, onSave }) => {
-  const [formData, setFormData] = useState({
-    name: "",
-  });
-
+const AddNewCategoryDialog = ({ open, onClose, onSave, onSuccess, onError }) => {
+  const [formData, setFormData] = useState({ name: "" });
   const [loading, setLoading] = useState(false);
-
-  // Snackbar state
   const [snackbar, setSnackbar] = useState({ open: false, success: true, message: "" });
 
   const handleChange = (e) => {
@@ -34,24 +28,19 @@ const AddNewCategoryDialog = ({ open, onClose, onSave }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSnackbarClose = () => setSnackbar({ ...snackbar, open: false });
+  const handleSnackbarClose = () => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
 
   const handleCancel = () => {
-    // Reset form data
-    setFormData({
-      name: "",
-    });
-    // Close the dialog
+    setFormData({ name: "" });
     onClose();
   };
 
   const handleSubmit = async () => {
     if (!formData.name.trim()) {
-      setSnackbar({
-        open: true,
-        success: false,
-        message: "Please fill in the category name",
-      });
+      // Show validation error in parent snackbar
+      if (onError) onError("Please fill in the category name");
       return;
     }
 
@@ -60,27 +49,16 @@ const AddNewCategoryDialog = ({ open, onClose, onSave }) => {
       const result = await onSave(formData).unwrap();
       console.log("CATEGORY CREATED:", result);
 
-      // Show success snackbar
-      setSnackbar({
-        open: true,
-        success: true,
-        message: "Category added successfully!",
-      });
+      // Notify parent of success
+      if (onSuccess) onSuccess("Category added successfully!");
 
-      // Close the dialog
       onClose();
-
-      // Reset form
-      setFormData({
-        name: "",
-      });
+      setFormData({ name: "" });
     } catch (err) {
       console.error("Failed to add category:", err);
-      setSnackbar({
-        open: true,
-        success: false,
-        message: "Failed to add category. Please try again.",
-      });
+
+      // Notify parent of error
+      if (onError) onError("Failed to add category. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -112,14 +90,19 @@ const AddNewCategoryDialog = ({ open, onClose, onSave }) => {
             variant="contained"
             onClick={handleSubmit}
             disabled={loading}
-            startIcon={loading && <CircularProgress size={20} />}
+            startIcon={loading ? <CircularProgress size={20} /> : null}
+            sx={{
+              backgroundColor: '#2c3e50',
+              textTransform: 'none',
+              '&:hover': { backgroundColor: '#34495e' },
+            }}
           >
             {loading ? "Saving..." : "Save"}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar */}
+      {/* Inline Snackbar for validation errors */}
       <Snackbar
         open={snackbar.open}
         onClose={handleSnackbarClose}

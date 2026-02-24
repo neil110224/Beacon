@@ -26,9 +26,10 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 
 import EditTeam from "../dialog/editdialog/EditTeam";
+import AddNewTeamDialog from "../dialog/adddialog/AddNewTeamDialog";
 import Confirmation from "../../component/reuseable/Confirmation";
 
-import { useGetTeamsQuery, useDeleteTeamMutation } from "../../features/api/team/teamApi";
+import { useGetTeamsQuery, useDeleteTeamMutation, useCreateTeamMutation } from "../../features/api/team/teamApi";
 import { useGetUsersQuery } from "../../features/api/user/userApi";
 
 const Team = () => {
@@ -36,6 +37,7 @@ const Team = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [showArchived, setShowArchived] = useState(false);
@@ -45,21 +47,23 @@ const Team = () => {
     status: showArchived ? 'inactive' : 'active'
   });
   const { data: usersData, isLoading: usersLoading } = useGetUsersQuery({
-    status: 'active'
+    status: 'active',
+    paginate: 'none',
+    pagination: 'none',
   });
   const [deleteTeam] = useDeleteTeamMutation();
+  const [createTeam, { isLoading: isCreating }] = useCreateTeamMutation();
 
   const isLoading = teamsLoading || usersLoading;
-  const isError = teamsError;
 
   /* ================= Listen for archive toggle ================= */
   useEffect(() => {
     const handleArchiveToggle = (event) => {
       setShowArchived(event.detail.showArchived);
     };
-    
+
     window.addEventListener('teamArchiveToggle', handleArchiveToggle);
-    
+
     return () => {
       window.removeEventListener('teamArchiveToggle', handleArchiveToggle);
     };
@@ -69,13 +73,28 @@ const Team = () => {
   useEffect(() => {
     if (!teamsData || !usersData) return;
 
-    const teamsArray = Array.isArray(teamsData?.data) ? teamsData.data : teamsData || [];
-    const usersArray = Array.isArray(usersData?.data) ? usersData.data : usersData || [];
+    const teamsArray = Array.isArray(teamsData?.data?.data)
+      ? teamsData.data.data
+      : Array.isArray(teamsData?.data)
+      ? teamsData.data
+      : Array.isArray(teamsData)
+      ? teamsData
+      : [];
 
-    // Map users into their teams - show all teams based on showArchived state
+    const rawUsers = usersData?.data?.data ?? usersData?.data ?? usersData;
+    const usersArray = Array.isArray(rawUsers) ? rawUsers : Object.values(rawUsers || {});
+
+    if (!teamsArray.length) {
+      setTeams([]);
+      return;
+    }
+
     const teamsWithMembers = teamsArray.map(team => {
       const members = usersArray
-        .filter(user => user.team && user.team.id === team.id)
+        .filter(user => {
+          const userTeamId = user.team?.id ?? user.team_id;
+          return userTeamId === team.id;
+        })
         .map(user => ({
           id: user.id,
           name: `${user.first_name} ${user.last_name}`,
@@ -120,23 +139,50 @@ const Team = () => {
     setSelectedTeam(null);
   };
 
+  const handleAddDialogOpen = () => {
+    setAddDialogOpen(true);
+  };
+
+  const handleAddDialogClose = () => {
+    setAddDialogOpen(false);
+  };
+
+  const handleAddTeamSave = async (payload) => {
+    try {
+      await createTeam(payload).unwrap();
+      setSnackbar({
+        open: true,
+        message: "Team created successfully!",
+        severity: "success",
+      });
+      setAddDialogOpen(false);
+      refetch();
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: error?.data?.message || "Failed to create team",
+        severity: "error",
+      });
+    }
+  };
+
   const handleArchiveConfirm = async () => {
     if (!selectedTeam) return;
 
     try {
       await deleteTeam(selectedTeam.id).unwrap();
-      
-      const action = selectedTeam.deleted_at ? "unarchived" : "archived";
-      setSnackbar({ 
-        open: true, 
-        message: `Team "${selectedTeam.name}" ${action}!`, 
-        severity: "success" 
+
+      const action = selectedTeam.deleted_at ? "restored" : "archived";
+      setSnackbar({
+        open: true,
+        message: `Team "${selectedTeam.name}" ${action}!`,
+        severity: "success"
       });
-      
+
       handleArchiveDialogClose();
       setTimeout(() => refetch(), 500);
     } catch (err) {
-      console.error("Failed to archive/unarchive team:", err);
+      console.error("Failed to archive/restore team:", err);
       setSnackbar({ open: true, message: "Failed to update team", severity: "error" });
     }
   };
@@ -148,30 +194,25 @@ const Team = () => {
 
   const handleTabChange = (event, newValue) => {
     setShowArchived(newValue === 1);
+    setTeams([]); // clear previous tab's teams while new data loads
   };
 
   // Filter teams based on search term
-  const filteredTeams = Array.isArray(teams) ? teams.filter(team => 
+  const filteredTeams = Array.isArray(teams) ? teams.filter(team =>
     team.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     team.description?.toLowerCase().includes(searchTerm.toLowerCase())
   ) : [];
 
-  /* ================= Loading & Error ================= */
+  // Determine if it's a real error vs just empty (404)
+  const isRealError = teamsError && teamsErrorData?.status !== 404;
+  const isEmpty = (!teamsError && filteredTeams.length === 0 && !isLoading) ||
+                  (teamsError && teamsErrorData?.status === 404);
+
+  /* ================= Loading ================= */
   if (isLoading) {
     return (
       <Box sx={{ minHeight: "60vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
         <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (isError) {
-    return (
-      <Box>
-        <Typography color="error" fontWeight={600}>Failed to load teams</Typography>
-        <Typography variant="body2" color="text.secondary">
-          {teamsErrorData?.data?.message || "Something went wrong"}
-        </Typography>
       </Box>
     );
   }
@@ -198,27 +239,22 @@ const Team = () => {
             '& .MuiOutlinedInput-root': {
               borderRadius: '8px',
               backgroundColor: '#fff',
-              '&:hover fieldset': {
-                borderColor: '#2c3e50',
-              },
-              '&.Mui-focused fieldset': {
-                borderColor: '#2c3e50',
-              },
+              '&:hover fieldset': { borderColor: '#2c3e50' },
+              '&.Mui-focused fieldset': { borderColor: '#2c3e50' },
             },
           }}
         />
         <Button
           variant="contained"
           startIcon={<AddIcon />}
+          onClick={handleAddDialogOpen}
           sx={{
             backgroundColor: '#2c3e50',
             textTransform: 'none',
             borderRadius: '8px',
             padding: '6px 20px',
             fontWeight: 500,
-            '&:hover': {
-              backgroundColor: '#34495e',
-            },
+            '&:hover': { backgroundColor: '#34495e' },
           }}
         >
           Add
@@ -227,8 +263,8 @@ const Team = () => {
 
       {/* Tabs */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 1.5 }}>
-        <Tabs 
-          value={showArchived ? 1 : 0} 
+        <Tabs
+          value={showArchived ? 1 : 0}
           onChange={handleTabChange}
           sx={{
             '& .MuiTab-root': {
@@ -238,9 +274,7 @@ const Team = () => {
               minHeight: 38,
               py: 1,
               color: '#666',
-              '&.Mui-selected': {
-                color: '#2c3e50',
-              },
+              '&.Mui-selected': { color: '#2c3e50' },
             },
             '& .MuiTabs-indicator': {
               backgroundColor: '#2c3e50',
@@ -253,89 +287,106 @@ const Team = () => {
         </Tabs>
       </Box>
 
-      <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 2 }}>
-        {filteredTeams.map(team => (
-          <Card key={team.id} sx={{ borderRadius: 2, border: "1px solid #e0e0e0", boxShadow: "none" }}>
-            <CardContent>
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
-                <Box>
-                  <Typography variant="subtitle1" fontWeight={600}>{team.name}</Typography>
-                  <Typography variant="body2" color="text.secondary">{team.members?.length || 0} members</Typography>
+      {/* Real error state */}
+      {isRealError && (
+        <Box sx={{ py: 4 }}>
+          <Typography color="error" fontWeight={600}>Failed to load teams</Typography>
+          <Typography variant="body2" color="text.secondary">
+            {teamsErrorData?.data?.message || "Something went wrong"}
+          </Typography>
+        </Box>
+      )}
+
+      {/* Empty state */}
+      {!isRealError && isEmpty && (
+        <Box sx={{ textAlign: 'center', py: 8 }}>
+          <Typography variant="body1" color="text.secondary">
+            {showArchived
+              ? 'No teams are currently archived.'
+              : 'No active teams found.'}
+          </Typography>
+        </Box>
+      )}
+
+      {/* Team Cards */}
+      {!isRealError && !isEmpty && (
+        <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 2 }}>
+          {filteredTeams.map(team => (
+            <Card key={team.id} sx={{ borderRadius: 2, border: "1px solid #e0e0e0", boxShadow: "none" }}>
+              <CardContent>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight={600}>{team.name}</Typography>
+                    <Typography variant="body2" color="text.secondary">{team.members?.length || 0} members</Typography>
+                  </Box>
+                  <IconButton onClick={(e) => handleMenuOpen(e, team)}>
+                    <MoreVertIcon />
+                  </IconButton>
                 </Box>
-                <IconButton onClick={(e) => handleMenuOpen(e, team)}>
-                  <MoreVertIcon />
-                </IconButton>
-              </Box>
 
-              {/* Avatar Group */}
-              {team.members && team.members.length > 0 && (
-                <AvatarGroup max={5} sx={{ mb: 2 }}>
-                  {team.members.map(member => (
-                    <Avatar key={member.id} src={member.avatar}>
-                      {!member.avatar && member.name.charAt(0)}
-                    </Avatar>
-                  ))}
-                </AvatarGroup>
-              )}
-
-              {/* Full Member List */}
-              {team.members && team.members.length > 0 && (
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                  {team.members.map(member => (
-                    <Box key={member.id} sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                      <Avatar sx={{ width: 36, height: 36 }} src={member.avatar}>
+                {/* Avatar Group */}
+                {team.members && team.members.length > 0 && (
+                  <AvatarGroup max={5} sx={{ mb: 2, justifyContent: 'flex-start' }}>
+                    {team.members.map(member => (
+                      <Avatar key={member.id} src={member.avatar}>
                         {!member.avatar && member.name.charAt(0)}
                       </Avatar>
-                      <Box>
-                        <Typography variant="body2" fontWeight={500}>{member.name}</Typography>
-                        <Typography variant="caption" color="text.secondary">{member.role}</Typography>
+                    ))}
+                  </AvatarGroup>
+                )}
+
+                {/* Full Member List */}
+                {team.members && team.members.length > 0 && (
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                    {team.members.map(member => (
+                      <Box key={member.id} sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                        <Avatar sx={{ width: 36, height: 36 }} src={member.avatar}>
+                          {!member.avatar && member.name.charAt(0)}
+                        </Avatar>
+                        <Box>
+                          <Typography variant="body2" fontWeight={500}>{member.name}</Typography>
+                          <Typography variant="caption" color="text.secondary">{member.role}</Typography>
+                        </Box>
                       </Box>
-                    </Box>
-                  ))}
-                </Box>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </Box>
+                    ))}
+                  </Box>
+                )}
+
+                {/* No members state */}
+                {(!team.members || team.members.length === 0) && (
+                  <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                    No members assigned.
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </Box>
+      )}
 
       {/* Menu */}
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
         {selectedTeam?.deleted_at ? (
-          // Archived team - show only Restore
-          <MenuItem 
+          <MenuItem
             onClick={handleArchiveClick}
-            sx={{
-              '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.04)',
-              }
-            }}
+            sx={{ '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' } }}
           >
             <RestoreIcon fontSize="small" sx={{ mr: 1.5, color: '#2e7d32' }} />
             Restore
           </MenuItem>
         ) : [
-          // Active team - show Edit and Archive
-          <MenuItem 
+          <MenuItem
             key="edit"
             onClick={handleEdit}
-            sx={{
-              '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.04)',
-              }
-            }}
+            sx={{ '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' } }}
           >
             <EditIcon fontSize="small" sx={{ mr: 1.5, color: '#1976d2' }} />
             Edit
           </MenuItem>,
-          <MenuItem 
+          <MenuItem
             key="archive"
             onClick={handleArchiveClick}
-            sx={{
-              '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.04)',
-              }
-            }}
+            sx={{ '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' } }}
           >
             <ArchiveIcon fontSize="small" sx={{ mr: 1.5, color: '#ed6c02' }} />
             Archive
@@ -343,19 +394,27 @@ const Team = () => {
         ]}
       </Menu>
 
-      {/* Archive Confirmation */}
+      {/* Archive / Restore Confirmation */}
       {selectedTeam && (
         <Confirmation
           open={archiveDialogOpen}
           onClose={handleArchiveDialogClose}
           onConfirm={handleArchiveConfirm}
-          title={`Confirm ${selectedTeam.deleted_at ? 'Unarchive' : 'Archive'}`}
-          message={`Are you sure you want to ${selectedTeam.deleted_at ? 'unarchive' : 'archive'} "${selectedTeam.name}"?`}
+          title={`Confirm ${selectedTeam.deleted_at ? 'Restore' : 'Archive'}`}
+          message={`Are you sure you want to ${selectedTeam.deleted_at ? 'restore' : 'archive'} "${selectedTeam.name}"?`}
         />
       )}
 
-      {/* Edit Team */}
+      {/* Edit Team Dialog */}
       <EditTeam open={editDialogOpen} onClose={handleEditDialogClose} team={selectedTeam} />
+
+      {/* Add New Team Dialog */}
+      <AddNewTeamDialog 
+        open={addDialogOpen} 
+        onClose={handleAddDialogClose} 
+        onSave={handleAddTeamSave}
+        isLoading={isCreating}
+      />
 
       {/* Snackbar */}
       <Snackbar

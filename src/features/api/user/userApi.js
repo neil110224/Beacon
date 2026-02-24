@@ -57,11 +57,18 @@ const userApi = todoListApi
       // }),
 
       getUsers: build.query({
-        query: (params) => ({
-          url: "user",
-          method: "GET",
-          params,
-        }),
+        query: (params = {}) => {
+          const queryParams = {};
+          if (params.status) queryParams.status = params.status;
+          if (params.search) queryParams.search = params.search;
+          if (params.team_id) queryParams.team_id = params.team_id;
+
+          const config = { url: "user", method: "GET" };
+          if (Object.keys(queryParams).length > 0) {
+            config.params = queryParams;
+          }
+          return config;
+        },
         providesTags: ["users"],
       }),
 

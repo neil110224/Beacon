@@ -13,8 +13,17 @@ export const systemApi = todoListApi.injectEndpoints({
       transformResponse: (response) => {
         return Array.isArray(response) ? response : response?.data || [];
       },
+      providesTags: ["systems"],
+    }),
+    createSystem: builder.mutation({
+      query: (data) => ({
+        url: "systems",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["systems"],
     }),
   }),
 });
 
-export const { useGetSystemsListQuery } = systemApi;
+export const { useGetSystemsListQuery, useCreateSystemMutation } = systemApi;

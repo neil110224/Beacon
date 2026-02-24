@@ -101,10 +101,10 @@ function DataTable({
   // Check if error is 404 (no records found) - treat as empty state
   const isNotFoundError = error?.status === 404 || error?.data?.errors?.[0]?.status === 404;
   
-  if (isError && !isNotFoundError) {
+  if (isError && !isNotFoundError && error) {
     return (
       <Box sx={{ p: 3, color: "error.main" }}>
-        Error: {error?.data?.message || error?.error || JSON.stringify(error) || "Failed to load data"}
+        Error: {error?.data?.message || error?.error || "Failed to load data"}
       </Box>
     );
   }

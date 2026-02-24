@@ -3,16 +3,32 @@ import { todoListApi } from "../../api";
 export const roleApi = todoListApi.injectEndpoints({
   endpoints: (builder) => ({
     getRoles: builder.query({
-      query: (params = {}) => ({
-        url: "role",
-        params: {
-          status: params.status || "active",
-          paginate: params.paginate || "none",
-          pagination: params.pagination || "none",
-          term: params.term || "",
-        },
-      }),
-      providesTags: ["Roles"],
+      query: (params = {}) => {
+        const queryParams = {};
+        if (params.status) queryParams.status = params.status;
+        if (params.paginate !== undefined)
+          queryParams.paginate = params.paginate;
+        if (params.pagination) queryParams.pagination = params.pagination;
+        if (params.term) queryParams.term = params.term;
+
+        const config = { url: "role" };
+        if (Object.keys(queryParams).length > 0) {
+          config.params = queryParams;
+        }
+        return config;
+      },
+      transformResponse: (response) => {
+        return Array.isArray(response?.data?.data)
+          ? response.data.data
+          : Array.isArray(response?.data)
+            ? response.data
+            : Array.isArray(response)
+              ? response
+              : [];
+      },
+      providesTags: (result, error, arg) => [
+        { type: "Roles", id: arg?.status || "LIST" },
+      ],
     }),
 
     getRoleById: builder.query({
@@ -26,7 +42,7 @@ export const roleApi = todoListApi.injectEndpoints({
         method: "POST",
         body: newRole,
       }),
-      invalidatesTags: ["Roles"],
+      invalidatesTags: [{ type: "Roles", id: "active" }],
     }),
 
     updateRole: builder.mutation({
@@ -46,7 +62,10 @@ export const roleApi = todoListApi.injectEndpoints({
         url: `role/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Roles"],
+      invalidatesTags: [
+        { type: "Roles", id: "active" },
+        { type: "Roles", id: "inactive" },
+      ],
     }),
   }),
 });
