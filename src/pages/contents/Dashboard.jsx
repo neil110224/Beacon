@@ -1,12 +1,13 @@
-import { Box, Typography, Paper, IconButton, CircularProgress, Button } from '@mui/material'
-import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Box, Typography, Paper, IconButton, CircularProgress, Button, FormControl, Select, MenuItem, Chip } from '@mui/material'
+import React, { useEffect, useState } from 'react'
+import { useNavigate, useOutletContext } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '../../features/api/slice/authSlice'
 import PendingActionsIcon from '@mui/icons-material/PendingActions'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import { useGetSystemsListQuery } from '../../features/api/system/systemApi'
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import { useGetTeamsQuery } from '../../features/api/team/teamApi'
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
 
 const SystemProgress = ({ system, onNavigate }) => {
   // Calculate stats from the system's nested data
@@ -168,7 +169,7 @@ const SystemProgress = ({ system, onNavigate }) => {
       {/* Recent Items Section */}
       {recentItems.length > 0 && (
         <Box sx={{ mt: 0.5 }}>
-          <Typography variant="caption" sx={{ fontSize: '0.6rem', color: '#6b7280', fontWeight: 600, mb: 0.3, display: 'block' }}>
+          <Typography variant="caption" sx={{ fontSize: '1rem', color: '#6b7280', fontWeight: 600, mb: 0.3, display: 'block' }}>
             Pending Tasks
           </Typography>
           <Box component="ul" sx={{ 
@@ -186,32 +187,29 @@ const SystemProgress = ({ system, onNavigate }) => {
                 key={idx}
                 component="li"
                 sx={{
-                  fontSize: '0.65rem',
+                  fontSize: '0.80rem',
                   color: '#1f2937',
                   display: 'flex',
                   gap: 0.3,
                   alignItems: 'flex-start',
                 }}
               >
-                <Typography sx={{ fontSize: '0.65rem', color: '#1f2937', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.2 }}>
+                <Typography sx={{ fontSize: '0.80rem', color: '#1f2937', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.2 }}>
                   {item.description}
                 </Typography>
-                <Box sx={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                {/* Chip for status */}
+                <Chip label={item.status} sx={{
                   bgcolor: getStatusColor(item.status),
                   color: '#fff',
-                  px: 0.3,
-                  py: 0.15,
-                  borderRadius: '2px',
-                  fontSize: '0.55rem',
+                  fontSize: '0.60rem',
                   fontWeight: 600,
-                  flexShrink: 0,
-                  minWidth: 'fit-content'
-                }}>
-                  {item.status}
-                </Box>
+                  height: 'auto',
+                  '& .MuiChip-label': {
+                    padding: '2px 6px',
+                    fontSize: '0.60rem',
+                    fontWeight: 400,
+                  }
+                }} />
               </Box>
             ))}
           </Box>
@@ -235,7 +233,7 @@ const SystemProgress = ({ system, onNavigate }) => {
             sx={{
               mt: 0.3,
               textTransform: 'none',
-              fontSize: '0.65rem',
+              fontSize: '0.70rem',
               color: '#3b82f6',
               padding: 0,
               '&:hover': { textDecoration: 'underline' }
@@ -252,7 +250,57 @@ const SystemProgress = ({ system, onNavigate }) => {
 const Dashboard = () => {
   const navigate = useNavigate()
   const user = useSelector(selectCurrentUser)
-  const { data: systemsData, isLoading: systemsLoading, error: systemsError } = useGetSystemsListQuery()
+  const { isSidebarCollapsed = false, isSidebarLocked = false } = useOutletContext() || {}
+  const [selectedTeam, setSelectedTeam] = useState('')
+
+  // Mirror the same logic used in Sidebar to compute actual collapsed state
+  const isActuallySidebarCollapsed = isSidebarCollapsed ? isSidebarLocked : false
+
+  // Fetch teams for the filter
+  const { data: teamsData } = useGetTeamsQuery({
+    status: 'active',
+    paginate: 'none',
+    pagination: 'none',
+  })
+
+  const teams = Array.isArray(teamsData?.data?.data)
+    ? teamsData.data.data
+    : Array.isArray(teamsData?.data)
+    ? teamsData.data
+    : Array.isArray(teamsData)
+    ? teamsData
+    : []
+  
+  // Build query params based on selected team or user role
+  const buildQueryParams = () => {
+    const isUserRole = user?.role?.name?.toLowerCase() === "user"
+    
+    // If a team is selected, use that team
+    if (selectedTeam) {
+      return {
+        status: "active",
+        scope: "per_team",
+        team_id: selectedTeam
+      }
+    }
+    
+    // Otherwise, use the default logic based on user role
+    if (isUserRole && user?.team?.id) {
+      return {
+        status: "active",
+        scope: "per_team",
+        team_id: user.team.id
+      }
+    } else {
+      return {
+        status: "active",
+        scope: "global"
+      }
+    }
+  }
+
+  const queryParams = buildQueryParams()
+  const { data: systemsData, isLoading: systemsLoading, error: systemsError } = useGetSystemsListQuery(queryParams)
 
   // Calculate overall stats from all systems
   const calculateOverallStats = () => {
@@ -336,14 +384,6 @@ const Dashboard = () => {
     )
   }
 
-  if (systemsError) {
-    return (
-      <Box sx={{ p: 2, color: 'error.main' }}>
-        Error loading systems: {systemsError?.data?.message || systemsError?.error || 'Unknown error'}
-      </Box>
-    )
-  }
-
   return (
     <Box sx={{ 
       p: 1, 
@@ -398,22 +438,73 @@ const Dashboard = () => {
         </Box>
       </Box>
 
+      {/* Team Filter */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1, mt: 1 }}>
+        <FormControl sx={{ minWidth: 150,  minHeight: 32 }} size="small">
+          <Select
+            value={selectedTeam}
+            onChange={(e) => setSelectedTeam(e.target.value)}
+            displayEmpty
+            sx={{
+              bgcolor: '#fff',
+              borderRadius: '8px',
+              fontSize: '0.9rem',
+              '& .MuiOutlinedInput-root': {
+                '&:hover fieldset': {
+                  borderColor: '#2c3e50',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#2c3e50',
+                },
+              },
+            }}
+          >
+            <MenuItem value="">
+              <Typography sx={{ color: '#6c757d' }}>All Teams</Typography>
+            </MenuItem>
+            {teams.map((team) => (
+              <MenuItem key={team.id} value={team.id}>
+                {team.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+
       {/* Systems Grid */}
-      <Box sx={{
-        mt: 1,
-        display: 'flex',
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 1.7,
-        justifyContent: 'flex-start'
-      }}>
-        {Array.isArray(systemsData) && systemsData.map((system, idx) => (
+      {systemsError ? (
+        <Box sx={{ p: 3, textAlign: 'center', color: '#6c757d', mt: 2 }}>
+          <Typography variant="h6" sx={{ mb: 1, fontWeight: 500 }}>
+            {user?.team?.name || 'Your Team'}
+          </Typography>
+          <Typography variant="body2">
+            Currently no system
+          </Typography>
+        </Box>
+      ) : !Array.isArray(systemsData) || systemsData.length === 0 ? (
+        <Box sx={{ p: 3, textAlign: 'center', color: '#6c757d', mt: 2 }}>
+          <Typography variant="h6" sx={{ mb: 1, fontWeight: 500 }}>
+            {user?.team?.name || 'Projects'}
+          </Typography>
+          <Typography variant="body2">
+            Currently no system
+          </Typography>
+        </Box>
+      ) : (
+        <Box sx={{
+          mt: 1,
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: 2,
+          width: '100%',
+          transition: 'all 0.3s ease',
+        }}>
+          {systemsData.map((system, idx) => (
           <Box
             key={`${system.systemName}-${idx}`}
             onClick={() => navigate(`/SystemCategory/${system.systemName}`)}
             sx={{
-              bgcolor: '#dfdfdf',
-              flex: '0 1 calc(31% - 8px)',
+              bgcolor: '#eeeeee',
               height: { xs: '280px', sm: '350px' },
               borderRadius: 2,
               position: 'relative',
@@ -461,7 +552,8 @@ const Dashboard = () => {
             </Box>
           </Box>
         ))}
-      </Box>
+        </Box>
+      )}
     </Box>
   )
 }

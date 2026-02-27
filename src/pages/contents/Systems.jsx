@@ -8,145 +8,195 @@ import {
   Button,
   TextField,
   InputAdornment,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Menu,
+  MenuItem,
 } from '@mui/material'
+import SourceIcon from '@mui/icons-material/Source'
 import ArrowCircleRightIcon from '@mui/icons-material/ArrowCircleRight'
 import AddIcon from '@mui/icons-material/Add'
+import FileUploadIcon from '@mui/icons-material/FileUpload'
 import SearchIcon from '@mui/icons-material/Search'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useGetSystemsListQuery, useCreateSystemMutation } from '../../features/api/system/systemApi'
-import AddNewSystemDialog from '../dialog/adddialog/AddNewSystemDialog'
-import reindeer from "../../assets/reindeer.jpg";
+import { useSelector } from 'react-redux'
+import { selectCurrentUser } from '../../features/api/slice/authSlice'
+import { useGetSystemsListQuery, useCreateSystemMutation, useUpdateSystemMutation } from '../../features/api/system/systemApi'
+import { useDebounce } from '../../hooks/useDebounce'
+import { useGetTeamsQuery } from '../../features/api/team/teamApi'
+import DataTable from '../../component/reuseable/DataTable'
+import SystemFormDialog from '../dialog/SystemFormDialog'
 
 const Systems = () => {
   const navigate = useNavigate()
-  const { data: systemsData, isLoading, error, refetch } = useGetSystemsListQuery()
+  const user = useSelector(selectCurrentUser)
+  const currentUser = useSelector(selectCurrentUser)
+  const userPermissions = currentUser?.role?.access_permissions || []
+  const canAddSystem = userPermissions.includes('Systems.Add')
+  const canImportSystem = userPermissions.includes('Systems.Import')
+  
+  // Fetch all teams
+  const { data: teamsData, isLoading: teamsLoading, error: teamsError } = useGetTeamsQuery({
+    status: 'active',
+    paginate: 'none',
+    pagination: 'none',
+  })
+
   const [createSystem] = useCreateSystemMutation()
-  const scrollContainerRefs = React.useRef({})
-  const scrollAnimationRefs = React.useRef({})
+  const [updateSystem] = useUpdateSystemMutation()
   const [searchQuery, setSearchQuery] = React.useState('')
-  const [dialogOpen, setDialogOpen] = React.useState(false)
+  const debouncedTeamsSearch = useDebounce(searchQuery, 500)
+  const [menuAnchor, setMenuAnchor] = React.useState(null)
+  const openMenu = Boolean(menuAnchor)
+  const [selectedAction, setSelectedAction] = React.useState('Create')
+  const [systemsSearchQuery, setSystemsSearchQuery] = React.useState('')
+  const debouncedSystemsSearch = useDebounce(systemsSearchQuery, 500)
+  const [systemDialogOpen, setSystemDialogOpen] = React.useState(false)
+  const [selectedSystem, setSelectedSystem] = React.useState(null)
+  const [selectedTeam, setSelectedTeam] = React.useState(null)
+  const [systemsDialogOpen, setSystemsDialogOpen] = React.useState(false)
 
-  // Group systems by team
-  const groupedSystems = React.useMemo(() => {
-    if (!Array.isArray(systemsData)) return {}
+  // Fetch systems for selected team with search
+  const { data: teamSystemsData, isLoading: teamSystemsLoading } = useGetSystemsListQuery(
+    selectedTeam?.id 
+      ? {
+          status: 'active',
+          scope: 'global',
+          team_id: selectedTeam.id,
+          ...(debouncedSystemsSearch && { term: debouncedSystemsSearch }),
+          paginate: 'none',
+          pagination: 'none',
+        }
+      : undefined,
+    { skip: !selectedTeam?.id }
+  )
 
-    const groups = {}
-    systemsData.forEach((system) => {
-      // Filter by search query
-      if (searchQuery && !system.systemName.toLowerCase().includes(searchQuery.toLowerCase())) {
-        return
+  // Safe teams data
+  const teams = React.useMemo(() => {
+    if (!Array.isArray(teamsData)) {
+      if (teamsData?.data?.data && Array.isArray(teamsData.data.data)) {
+        return teamsData.data.data
       }
-      
-      const teamName = system.team?.name || 'No Team'
-      if (!groups[teamName]) {
-        groups[teamName] = []
+      if (teamsData?.data && Array.isArray(teamsData.data)) {
+        return teamsData.data
       }
-      groups[teamName].push(system)
-    })
+      return []
+    }
+    return teamsData
+  }, [teamsData])
 
-    return groups
-  }, [systemsData, searchQuery])
+  // Safe systems data from team query
+  const teamSystems = React.useMemo(() => {
+    if (!Array.isArray(teamSystemsData)) {
+      if (teamSystemsData?.data?.data && Array.isArray(teamSystemsData.data.data)) {
+        return teamSystemsData.data.data
+      }
+      if (teamSystemsData?.data && Array.isArray(teamSystemsData.data)) {
+        return teamSystemsData.data
+      }
+      return []
+    }
+    return teamSystemsData
+  }, [teamSystemsData])
 
-  const handleSystemClick = (systemTitle) => {
-    navigate(`/SystemCategory/${systemTitle}`)
+  // Filter systems by debounced search term
+  const filteredTeamSystems = React.useMemo(() => {
+    if (!debouncedSystemsSearch) return teamSystems
+    return teamSystems.filter(system =>
+      system.systemName?.toLowerCase().includes(debouncedSystemsSearch.toLowerCase())
+    )
+  }, [teamSystems, debouncedSystemsSearch])
+
+  // Filter teams by debounced search query
+  const filteredTeams = React.useMemo(() => {
+    if (!debouncedTeamsSearch) return teams
+    return teams.filter(team => 
+      team.name?.toLowerCase().includes(debouncedTeamsSearch.toLowerCase())
+    )
+  }, [teams, debouncedTeamsSearch])
+
+  // DataTable columns
+  const columns = [
+    {
+      id: 'name',
+      label: 'Team Name',
+      render: (row) => row.name || 'N/A'
+    },
+    {
+      id: 'action',
+      label: 'Action',
+      render: (row) => (
+        <IconButton
+          size="small"
+          onClick={() => {
+            setSelectedTeam(row)
+            setSystemsDialogOpen(true)
+          }}
+          sx={{
+            color: '#0397d1',
+            '&:hover': {
+              bgcolor: 'rgba(3, 151, 209, 0.1)',
+            }
+          }}
+        >
+          <SourceIcon />
+        </IconButton>
+      )
+    }
+  ]
+
+  const handleMenuOpen = (event) => {
+    setMenuAnchor(event.currentTarget)
+  }
+
+  const handleMenuClose = () => {
+    setMenuAnchor(null)
   }
 
   const handleAddSystem = () => {
-    setDialogOpen(true)
+    setSelectedSystem(null)
+    setSystemDialogOpen(true)
+    setSelectedAction('Create')
+    handleMenuClose()
   }
 
-  const createHandleWheel = (teamName) => (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    const container = scrollContainerRefs.current[teamName]
+  const handleImportSystem = () => {
+    setSelectedAction('Import')
+    // TODO: Implement import functionality
+    console.log('Import system')
+    handleMenuClose()
+  }
 
-    if (container) {
-      if (scrollAnimationRefs.current[teamName]) {
-        cancelAnimationFrame(scrollAnimationRefs.current[teamName])
+  const handleExportSystem = () => {
+    setSelectedAction('Export')
+    // TODO: Implement export functionality
+    console.log('Export system')
+    handleMenuClose()
+  }
+
+  const handleSystemDialogClose = () => {
+    setSystemDialogOpen(false)
+    setSelectedSystem(null)
+  }
+
+  const handleSystemsSave = async (systemData) => {
+    try {
+      if (selectedSystem?.id) {
+        await updateSystem({
+          id: selectedSystem.id,
+          body: systemData
+        }).unwrap()
+      } else {
+        await createSystem(systemData).unwrap()
       }
-
-      const currentScroll = container.scrollLeft
-      const targetScroll = currentScroll + (e.deltaY > 0 ? 300 : -300)
-      const duration = 400
-      const startTime = performance.now()
-
-      const easeInOutQuad = (t) =>
-        t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
-
-      const scroll = (currentTime) => {
-        const elapsed = currentTime - startTime
-        const progress = Math.min(elapsed / duration, 1)
-        const easeProgress = easeInOutQuad(progress)
-
-        container.scrollLeft =
-          currentScroll + (targetScroll - currentScroll) * easeProgress
-
-        if (progress < 1) {
-          scrollAnimationRefs.current[teamName] = requestAnimationFrame(scroll)
-        } else {
-          scrollAnimationRefs.current[teamName] = null
-        }
-      }
-
-      scrollAnimationRefs.current[teamName] = requestAnimationFrame(scroll)
+      handleSystemDialogClose()
+    } catch (error) {
+      console.error('Error saving system:', error)
     }
-  }
-
-  // Store wheel handlers in a ref to access them in cleanup
-  const wheelHandlersRef = React.useRef({})
-
-  // Add native wheel event listeners with passive: false
-  React.useEffect(() => {
-    // Clean up old listeners first
-    Object.entries(wheelHandlersRef.current).forEach(([teamName, handler]) => {
-      const container = scrollContainerRefs.current[teamName]
-      if (container && handler) {
-        container.removeEventListener('wheel', handler)
-      }
-    })
-    wheelHandlersRef.current = {}
-
-    // Add new listeners for all current containers
-    Object.entries(scrollContainerRefs.current).forEach(([teamName, container]) => {
-      if (container) {
-        const handler = (e) => {
-          e.preventDefault()
-          e.stopPropagation()
-          createHandleWheel(teamName)(e)
-        }
-        wheelHandlersRef.current[teamName] = handler
-        container.addEventListener('wheel', handler, { passive: false })
-      }
-    })
-
-    return () => {
-      // Cleanup
-      Object.entries(wheelHandlersRef.current).forEach(([teamName, handler]) => {
-        const container = scrollContainerRefs.current[teamName]
-        if (container && handler) {
-          container.removeEventListener('wheel', handler)
-        }
-      })
-    }
-  }, [groupedSystems])
-
-  if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
-      </Box>
-    )
-  }
-
-  if (error) {
-    return (
-      <Box sx={{ p: 2, color: 'error.main' }}>
-        Error loading systems:{' '}
-        {error?.data?.message || error?.error || String(error?.status) || 'Unknown error'}
-      </Box>
-    )
   }
 
   return (
@@ -158,15 +208,16 @@ const Systems = () => {
         alignItems: 'center',
         p: 2,
         gap: 2,
-        borderBottom: '1px solid #1a1a2e'
+        borderBottom: '1px solid #1a1a2e',
+        mb: 2,  
       }}>
         <Typography variant="h5" sx={{ fontWeight: 600, color: '#2c3e50' }}>
-          Systems
+          Systems Management
         </Typography>
         
         <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
           <TextField
-            placeholder="Search systems..."
+            placeholder="Search teams..."
             variant="outlined"
             size="small"
             value={searchQuery}
@@ -174,135 +225,211 @@ const Systems = () => {
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon sx={{ color: '#6c757d' }} />
+                  <SearchIcon sx={{ color: '#9e9e9e' }} />
                 </InputAdornment>
               ),
             }}
             sx={{
-              width: '250px',
+              maxWidth: 400,
               '& .MuiOutlinedInput-root': {
-                backgroundColor: '#f5f5f5',
+                borderRadius: '8px',
+                backgroundColor: '#fff',
                 '&:hover fieldset': {
-                  borderColor: '#3b82f6',
+                  borderColor: '#2c3e50',
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: '#3b82f6',
+                  borderColor: '#2c3e50',
                 },
               },
             }}
           />
           
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleAddSystem}
-            sx={{
-              bgcolor: '#3b82f6',
-              color: '#fff',
-              textTransform: 'none',
-              fontWeight: 600,
-              px: 2,
-              '&:hover': {
-                bgcolor: '#2563eb',
-              },
-            }}
-          >
-            Add
-          </Button>
-        </Box>
-      </Box>
-
-      {/* Systems Container */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'auto' }}>
-      {Object.entries(groupedSystems).map(([teamName, systems]) => (
-        <Box
-          key={teamName}
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            borderBottom: '1px solid #1a1a2e',
-            gap: 2,
-          }}
-        >
-          <Typography variant="h5" sx={{ ml: 2, mt: 2, textDecoration: 'underline' }}>
-            {teamName}
-          </Typography>
-          <Box
-            ref={(el) => { scrollContainerRefs.current[teamName] = el }}
-            sx={{
-              display: 'flex',
-              gap: 2,
-              justifyContent: 'flex-start',
-              margin: '0 20px 20px 15px',
-              overflowX: 'auto',
-              maxWidth: 'calc(100% - 40px)',
-              flexWrap: 'nowrap',
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              '&::-webkit-scrollbar': { display: 'none' },
-            }}
-          >
-            {systems.map((system, index) => (
-              <Paper
-                key={`${system.systemName}-${index}`}
-                onClick={() => handleSystemClick(system.systemName)}
+          {canAddSystem && (
+            <>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleMenuOpen}
                 sx={{
-                  bgcolor: '#272741',
-                  width: '130px',
-                  height: '60px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  p: 1,
-                  flexShrink: 0,
-                  cursor: 'pointer',
-                  '&:hover': { opacity: 0.8 },
-                  position: 'relative',
-                  overflow: 'hidden',
+                  backgroundColor: '#2c3e50',
+                  textTransform: 'none',
+                  borderRadius: '8px',
+                  padding: '6px 20px',
+                  fontWeight: 500,
+                  '&:hover': {
+                    backgroundColor: '#34495e',
+                  },
                 }}
               >
-                <Typography
-                  variant="h9"
-                  sx={{
-                    color: '#f4f4f4',
-                    fontWeight: 100,
-                    lineHeight: 1.3,
-                    fontSize: '0.9rem',
-                    flex: 1,
-                    minWidth: 0,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    paddingRight: '28px',
-                  }}
-                >
-                  {system.systemName}
-                </Typography>
-                <Box sx={{ position: 'absolute', bottom: 4, left: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Avatar
-                    alt="System Avatar"
-                    src={reindeer}
-                    sx={{ width: 24, height: 24 }}
-                  />
-                </Box>
-                <Box sx={{ position: 'absolute', bottom: 4, right: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <ArrowCircleRightIcon sx={{ color: '#e2e2e2', width: 20, height: 20 }} />
-                </Box>
-              </Paper>
-            ))}
-          </Box>
+                {selectedAction}
+              </Button>
+              <Menu
+                anchorEl={menuAnchor}
+                open={openMenu}
+                onClose={handleMenuClose}
+              >
+                <MenuItem onClick={handleAddSystem}>
+                  <AddIcon sx={{ mr: 1 }} /> Create
+                </MenuItem>
+                <MenuItem onClick={handleImportSystem}>
+                  <FileUploadIcon sx={{ mr: 1 }} /> Import
+                </MenuItem>
+                <MenuItem onClick={handleExportSystem}>
+                  Export
+                </MenuItem>
+              </Menu>
+            </>
+          )}
         </Box>
-      ))}
       </Box>
 
-      {/* Add System Dialog */}
-      <AddNewSystemDialog 
-        open={dialogOpen} 
-        onClose={() => setDialogOpen(false)} 
-        onSave={createSystem}
-        onSuccess={refetch}
+      {/* Teams DataTable */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', }}>
+        <DataTable
+          columns={columns}
+          rows={filteredTeams}
+          isLoading={teamsLoading || searchQuery !== debouncedTeamsSearch}
+          emptyMessage="No teams found"
+          tableSx={{ 
+            minWidth: 700,
+           
+            '& .MuiTableCell-root': {
+              padding: '14px 16px',
+              fontSize: '1rem',
+              color: '#2c3e50',
+            },
+            '& .MuiTableBody-root .MuiTableRow-root': {
+              cursor: 'default',
+              fontSize: '1rem',  // 👈 only body cells (team name content)
+            }
+          }}
+          headSx={{ 
+            background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
+            '& th': { 
+              fontWeight: 600,
+              color: '#ffffff !important',
+              fontSize: '0.875rem',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              padding: '16px',
+            }
+          }}
+        />
+      </Box>
+
+      {/* Systems Dialog - Shows systems for selected team */}
+      <Dialog
+        open={systemsDialogOpen}
+        onClose={() => {
+          setSystemsDialogOpen(false)
+          setSystemsSearchQuery('')
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          Systems for {selectedTeam?.name}
+        </DialogTitle>
+        <DialogContent>
+          {/* Search Bar */}
+          <TextField
+            placeholder="Search systems..."
+            variant="outlined"
+            size="small"
+            value={systemsSearchQuery}
+            onChange={(e) => setSystemsSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: '#9e9e9e' }} />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              width: '100%',
+              mb: 2,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '8px',
+                backgroundColor: '#f5f5f5',
+                '&:hover fieldset': {
+                  borderColor: '#2c3e50',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#2c3e50',
+                },
+              },
+            }}
+          />
+          {selectedTeam ? (
+            <Box sx={{ pt: 2 }}>
+              {teamSystemsLoading || systemsSearchQuery !== debouncedSystemsSearch ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 300, flexDirection: 'column', gap: 2 }}>
+                  <CircularProgress size={40} />
+                  <Typography variant="body2" color="text.secondary">
+                    Searching systems...
+                  </Typography>
+                </Box>
+              ) : (
+                <>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    Total Systems: {filteredTeamSystems?.length || 0}
+                  </Typography>
+                  {filteredTeamSystems && filteredTeamSystems.length > 0 ? (
+                    <Box sx={{ 
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(2, 1fr)',
+                      gap: 2,
+                    }}>
+                      {filteredTeamSystems.map((system) => (
+                        <Box
+                          key={system.id}
+                          onClick={() => {
+                            navigate(`/SystemCategory/${system.systemName}`)
+                            setSystemsDialogOpen(false)
+                          }}
+                          sx={{
+                            p: 2,
+                            bgcolor: '#1a1a2e',
+                            borderRadius: 1,
+                            cursor: 'pointer',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            transition: 'all 0.2s ease',
+                            '&:hover': {
+                              bgcolor: '#252d3d',
+                              border: '1px solid rgba(3, 151, 209, 0.5)',
+                              boxShadow: '0 0 8px rgba(3, 151, 209, 0.2)',
+                            }
+                          }}
+                        >
+                          <Typography variant="body2" sx={{ fontWeight: 500, color: '#fff' }}>
+                            {system.systemName}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary" align="center">
+                      No systems found for this team
+                    </Typography>
+                  )}
+                </>
+              )}
+            </Box>
+          ) : null}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSystemsDialogOpen(false)} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* System Form Dialog (Add/Edit) */}
+      <SystemFormDialog
+        open={systemDialogOpen}
+        onClose={handleSystemDialogClose}
+        system={selectedSystem}
+        onSave={handleSystemsSave}
       />
     </Box>
   )

@@ -1,19 +1,41 @@
 // Confirmation.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
+import { CircularProgress } from '@mui/material';
 
-const Confirmation = ({ open, onClose, onConfirm, title = "Confirm Action", message = "Are you sure?" }) => {
+const Confirmation = ({ open, onClose, onConfirm, title = "Confirm Action", message = "Are you sure?", isLoading = false }) => {
+  const [localLoading, setLocalLoading] = useState(false);
+
+  const handleConfirm = async () => {
+    setLocalLoading(true);
+    try {
+      await onConfirm();
+    } finally {
+      setLocalLoading(false);
+    }
+  };
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={() => {
+        setLocalLoading(false);
+        onClose();
+      }}
       aria-labelledby="confirmation-dialog-title"
       aria-describedby="confirmation-dialog-description"
+      sx={{
+    '& .MuiDialog-paper': {
+      width: '400px',      // 👈 custom width
+      maxWidth: '60vw',    // 👈 responsive fallback for small screens
+      minHeight: '100px',  // 👈 optional: control height too
+      p: 2,
+    }
+  }}
     >
       <DialogTitle id="confirmation-dialog-title">{title}</DialogTitle>
       <DialogContent>
@@ -21,14 +43,27 @@ const Confirmation = ({ open, onClose, onConfirm, title = "Confirm Action", mess
           {message}
         </DialogContentText>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} color="primary">
-          Cancel
-        </Button>
-        <Button onClick={onConfirm} color="primary" autoFocus>
-          Confirm
-        </Button>
-      </DialogActions>
+      <DialogActions sx={{ justifyContent: 'flex-start',paddingLeft:2}}>
+  <Button onClick={() => {
+        setLocalLoading(false);
+        onClose();
+      }} color="primary" disabled={isLoading || localLoading} sx={{
+      '&:hover': {
+        backgroundColor: '#bde3fd',  // 👈 change hover background
+        color: '#1565c0',            // 👈 change hover text color
+      }
+    }} >
+    Cancel
+  </Button>
+  <Button onClick={handleConfirm} color="primary" autoFocus disabled={isLoading || localLoading} startIcon={(isLoading || localLoading) && <CircularProgress size={20} />} sx={{
+      '&:hover': {
+        backgroundColor: '#bde3fd',  // 👈 change hover background
+        color: '#1565c0',            // 👈 change hover text color
+      }
+    }}>
+    {isLoading || localLoading ? 'Confirming...' : 'Confirm'}
+  </Button>
+</DialogActions>
     </Dialog>
   );
 };

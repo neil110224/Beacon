@@ -156,7 +156,7 @@ function DataTable({
                 <TableCell align="center">No Columns Defined</TableCell>
               ) : (
                 columns.map((col) => (
-                  <TableCell key={col.id} align={col.align || "left"}>
+                  <TableCell key={col.id} align={col.align || "left"} sx={{ width: col.width }}>
                     {col.label}
                   </TableCell>
                 ))
@@ -198,7 +198,7 @@ function DataTable({
                   }}
                 >
                   {columns.map((col) => (
-                    <TableCell key={col.id} align={col.align || "left"}>
+                    <TableCell key={col.id} align={col.align || "left"} sx={{ width: col.width }}>
                       {col.render ? col.render(row) : row[col.id]}
                     </TableCell>
                   ))}

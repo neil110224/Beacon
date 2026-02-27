@@ -19,12 +19,30 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 
 const Sidebar = ({ user, onChangeProfile, isSidebarLocked = false, onToggleSidebarLock = () => {}, isSidebarCollapsed = false }) => {
   const location = useLocation();
+  
+  // Get user permissions
+  const userPermissions = user?.role?.access_permissions || [];
+  
+  // Permission checks for each section/item
+  const hasDashboard = userPermissions.includes('Dashboard');
+  const hasRole = userPermissions.includes('Role');
+  const hasUsers = userPermissions.includes('Users');
+  const hasTeam = userPermissions.includes('Team');
+  const hasCharging = userPermissions.includes('Charging');
+  const hasCategory = userPermissions.includes('Category');
+  const hasSystems = userPermissions.includes('Systems');
+  
+  // Check if user has any masterlist permissions
+  const hasMasterlistAccess = hasRole || hasUsers || hasTeam || hasCharging || hasCategory;
+
   const [openMasterlist, setOpenMasterlist] = useState(
-    location.pathname.startsWith('/role') || 
-    location.pathname.startsWith('/users') || 
-    location.pathname.startsWith('/team') || 
-    location.pathname.startsWith('/charging') ||
-    location.pathname.startsWith('/category')
+    hasMasterlistAccess && (
+      location.pathname.startsWith('/role') || 
+      location.pathname.startsWith('/users') || 
+      location.pathname.startsWith('/team') || 
+      location.pathname.startsWith('/charging') ||
+      location.pathname.startsWith('/category')
+    )
   );
   const [isHovered, setIsHovered] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -60,8 +78,8 @@ const Sidebar = ({ user, onChangeProfile, isSidebarLocked = false, onToggleSideb
     setMasterlistMenuAnchor(null);
   };
 
-  // Determine actual collapsed state based on lock and hover
-  const isCollapsed = isSidebarCollapsed ? isSidebarLocked : (isSidebarCollapsed && !isHovered);
+  // Determine actual collapsed state - true means collapsed (narrower)
+  const isCollapsed = isSidebarCollapsed;
 
   const handleSidebarMouseEnter = () => {
     setIsHovered(true);
@@ -118,7 +136,35 @@ const Sidebar = ({ user, onChangeProfile, isSidebarLocked = false, onToggleSideb
           }
         }}
       >
-        {!isCollapsed && (
+        {/* Logo and Title - show full when expanded, logo only when collapsed */}
+        {isCollapsed ? (
+          <Box
+            sx={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+            }}
+          >
+            <Link to="/dashboard">
+            <img 
+              src={mis} 
+              alt="MIS Logo" 
+              style={{ 
+                width: '28px', 
+                height: '28px',
+                objectFit: 'contain' 
+              }} 
+            />
+            </Link>
+          </Box>
+        ) : (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1, justifyContent: 'flex-start' }}>
             <Box
               sx={{
@@ -161,48 +207,6 @@ const Sidebar = ({ user, onChangeProfile, isSidebarLocked = false, onToggleSideb
             </Box>
           </Box>
         )}
-        
-        {/* Arrow button - show when not collapsed (close button) */}
-        {!isCollapsed && (
-          <Tooltip title={isSidebarLocked ? "Unlock sidebar" : "Lock sidebar"}> 
-            <IconButton
-              onClick={onToggleSidebarLock}
-              sx={{ 
-                color: '#ffffff',
-               
-                '&:hover': {
-                  bgcolor: 'rgba(255, 255, 255, 0.15)',
-                },
-                width: 36,
-                height: 36,
-                flexShrink: 0,
-              }}
-            >
-              <ArrowBackIosNewIcon sx={{ fontSize: '0.9rem', transition: 'transform 0.3s ease' }} />
-            </IconButton>
-          </Tooltip>
-        )}
-
-        {/* Arrow button - show when collapsed (open button) */}
-        {isCollapsed && (
-          <Tooltip title="Expand sidebar">
-            <IconButton
-              onClick={onToggleSidebarLock}
-              sx={{ 
-                color: '#ffffff',
-                
-                '&:hover': {
-                  bgcolor: 'rgba(255, 255, 255, 0.15)',
-                },
-                width: 36,
-                height: 36,
-                flexShrink: 0,
-              }}
-            >
-              <ArrowForwardIosIcon sx={{ fontSize: '0.9rem', transition: 'transform 1s ease' }} />
-            </IconButton>
-          </Tooltip>
-        )}
       </Box>
 
       <List 
@@ -223,59 +227,62 @@ const Sidebar = ({ user, onChangeProfile, isSidebarLocked = false, onToggleSideb
         }}
       >
         {/* Dashboard */}
-        <NavLink
-          to="/Dashboard"
-          style={{ textDecoration: 'none', color: 'inherit' }}
-        >
-          {({ isActive }) => (
-            <Tooltip title={isCollapsed ? "Dashboard" : ""} placement="right">
-              <ListItemButton
-                sx={{
-                  background: isActive 
-                    ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)'
-                    : 'transparent',
-                  color: '#ffffff',
-                  justifyContent: isCollapsed ? 'center' : 'flex-start',
-                  borderRadius: isCollapsed ? '8px' : '12px',
-                  mb: 0.5,
-                  border: isActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
-                  backdropFilter: isActive ? 'blur(10px)' : 'none',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
+        {hasDashboard && (
+          <NavLink
+            to="/Dashboard"
+            style={{ textDecoration: 'none', color: 'inherit' }}
+          >
+            {({ isActive }) => (
+              <Tooltip title={isCollapsed ? "Dashboard" : ""} placement="right">
+                <ListItemButton
+                  sx={{
                     background: isActive 
-                      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.12) 100%)'
-                      : 'rgba(255, 255, 255, 0.08)',
-                    transform: 'translateX(4px)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                  },
-                }}
-              >
-                <ListItemIcon 
-                  sx={{ 
-                    color: '#ffffff', 
-                    minWidth: isCollapsed ? 'auto' : '48px',
-                    display: 'flex',
-                    justifyContent: 'center',
+                      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)'
+                      : 'transparent',
+                    color: '#ffffff',
+                    justifyContent: isCollapsed ? 'center' : 'flex-start',
+                    borderRadius: isCollapsed ? '8px' : '12px',
+                    mb: 0.5,
+                    border: isActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
+                    backdropFilter: isActive ? 'blur(10px)' : 'none',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      background: isActive 
+                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.12) 100%)'
+                        : 'rgba(255, 255, 255, 0.08)',
+                      transform: 'translateX(4px)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                    },
                   }}
                 >
-                  <HomeIcon sx={{ fontSize: isCollapsed ? '1.5rem' : '1.3rem' }} />
-                </ListItemIcon>
-                {!isCollapsed && (
-                  <ListItemText 
-                    primary="Dashboard" 
-                    primaryTypographyProps={{
-                      fontSize: '0.95rem',
-                      fontWeight: isActive ? 600 : 500,
-                      fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
+                  <ListItemIcon 
+                    sx={{ 
+                      color: '#ffffff', 
+                      minWidth: isCollapsed ? 'auto' : '48px',
+                      display: 'flex',
+                      justifyContent: 'center',
                     }}
-                  />
-                )}
-              </ListItemButton>
-            </Tooltip>
-          )}
-        </NavLink>
+                  >
+                    <HomeIcon sx={{ fontSize: isCollapsed ? '1.5rem' : '1.3rem' }} />
+                  </ListItemIcon>
+                  {!isCollapsed && (
+                    <ListItemText 
+                      primary="Dashboard" 
+                      primaryTypographyProps={{
+                        fontSize: '0.95rem',
+                        fontWeight: isActive ? 600 : 500,
+                        fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
+                      }}
+                    />
+                  )}
+                </ListItemButton>
+              </Tooltip>
+            )}
+          </NavLink>
+        )}
 
         {/* Masterlist */}
+        {hasMasterlistAccess && (
         <Tooltip title={isCollapsed ? "Masterlist" : ""} placement="right">
           <ListItemButton
             onClick={isCollapsed ? handleMasterlistMenuClick : handleMasterlistToggle}
@@ -308,8 +315,8 @@ const Sidebar = ({ user, onChangeProfile, isSidebarLocked = false, onToggleSideb
             </ListItemIcon>
             {!isCollapsed && (
               <>
-                <ListItemText 
-                  primary="Masterlist" 
+                <ListItemText
+                  primary="Masterlist"
                   primaryTypographyProps={{
                     fontSize: '0.95rem',
                     fontWeight: 500,
@@ -321,7 +328,7 @@ const Sidebar = ({ user, onChangeProfile, isSidebarLocked = false, onToggleSideb
             )}
           </ListItemButton>
         </Tooltip>
-
+        )}
         {!isCollapsed && (
           <>
             {/* Masterlist Children */}
@@ -329,131 +336,141 @@ const Sidebar = ({ user, onChangeProfile, isSidebarLocked = false, onToggleSideb
             <Collapse in={openMasterlist} timeout={1000} unmountOnExit>
               <List component="div" disablePadding>
                 {/* Role */}
-                <NavLink
-                  to="/role"
-                  style={{ textDecoration: 'none', color: 'inherit' }}
-                >
-                  {({ isActive }) => (
-                    <ListItemButton
-                      sx={{
-                        pl: 4,
-                        bgcolor: isActive ? '#2e244b' : 'transparent',
-                        color: isActive ? '#fff' : '#f4f4f4',
-                        '&:hover': {
-                          bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
-                        },
-                      }}
-                    >
-                      <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4' }}>
-                        <PersonIcon />
-                      </ListItemIcon>
-                      <ListItemText primary="Role" />
-                    </ListItemButton>
-                  )}
-                </NavLink>
+                {hasRole && (
+                  <NavLink
+                    to="/role"
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                  >
+                    {({ isActive }) => (
+                      <ListItemButton
+                        sx={{
+                          pl: 4,
+                          bgcolor: isActive ? '#2e244b' : 'transparent',
+                          color: isActive ? '#fff' : '#f4f4f4',
+                          '&:hover': {
+                            bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
+                          },
+                        }}
+                      >
+                        <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4' }}>
+                          <PersonIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Role" />
+                      </ListItemButton>
+                    )}
+                  </NavLink>
+                )}
 
                 {/* User */}
-                <NavLink
-                  to="/users"
-                  style={{ textDecoration: 'none', color: 'inherit' }}
-                >
-                  {({ isActive }) => (
-                    <ListItemButton
-                      sx={{
-                        pl: 4,
-                        bgcolor: isActive ? '#2e244b' : 'transparent',
-                        color: isActive ? '#fff' : '#f4f4f4',
-                        '&:hover': {
-                          bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
-                        },
-                      }}
-                    >
-                      <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4' }}>
-                        <PeopleIcon />
-                      </ListItemIcon>
-                      <ListItemText primary="Users" />
-                    </ListItemButton>
-                  )}
-                </NavLink>
+                {hasUsers && (
+                  <NavLink
+                    to="/users"
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                  >
+                    {({ isActive }) => (
+                      <ListItemButton
+                        sx={{
+                          pl: 4,
+                          bgcolor: isActive ? '#2e244b' : 'transparent',
+                          color: isActive ? '#fff' : '#f4f4f4',
+                          '&:hover': {
+                            bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
+                          },
+                        }}
+                      >
+                        <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4' }}>
+                          <PeopleIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Users" />
+                      </ListItemButton>
+                    )}
+                  </NavLink>
+                )}
 
                 {/* Team */}
-                <NavLink
-                  to="/team"
-                  style={{ textDecoration: 'none', color: 'inherit' }}
-                >
-                  {({ isActive }) => (
-                    <ListItemButton
-                      sx={{
-                        pl: 4,
-                        bgcolor: isActive ? '#2e244b' : 'transparent',
-                        color: isActive ? '#fff' : '#f4f4f4',
-                        '&:hover': {
-                          bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
-                        },
-                      }}
-                    >
-                      <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4' }}>
-                        <GroupsIcon />
-                      </ListItemIcon>
-                      <ListItemText primary="Team" />
-                    </ListItemButton>
-                  )}
-                </NavLink>
+                {hasTeam && (
+                  <NavLink
+                    to="/team"
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                  >
+                    {({ isActive }) => (
+                      <ListItemButton
+                        sx={{
+                          pl: 4,
+                          bgcolor: isActive ? '#2e244b' : 'transparent',
+                          color: isActive ? '#fff' : '#f4f4f4',
+                          '&:hover': {
+                            bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
+                          },
+                        }}
+                      >
+                        <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4' }}>
+                          <GroupsIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Team" />
+                      </ListItemButton>
+                    )}
+                  </NavLink>
+                )}
 
                 {/* Charging */}
-                <NavLink
-                  to="/charging"
-                  style={{ textDecoration: 'none', color: 'inherit' }}
-                >
-                  {({ isActive }) => (
-                    <ListItemButton
-                      sx={{
-                        pl: 4,
-                        bgcolor: isActive ? '#2e244b' : 'transparent',
-                        color: isActive ? '#fff' : '#f4f4f4',
-                        '&:hover': {
-                          bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
-                        },
-                      }}
-                    >
-                      <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4' }}>
-                        <LocationCityIcon />
-                      </ListItemIcon>
-                      <ListItemText primary="Charging" />
-                    </ListItemButton>
-                  )}
-                </NavLink>
+                {hasCharging && (
+                  <NavLink
+                    to="/charging"
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                  >
+                    {({ isActive }) => (
+                      <ListItemButton
+                        sx={{
+                          pl: 4,
+                          bgcolor: isActive ? '#2e244b' : 'transparent',
+                          color: isActive ? '#fff' : '#f4f4f4',
+                          '&:hover': {
+                            bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
+                          },
+                        }}
+                      >
+                        <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4' }}>
+                          <LocationCityIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Charging" />
+                      </ListItemButton>
+                    )}
+                  </NavLink>
+                )}
 
                 {/* Category */}
-                <NavLink
-                  to="/category"
-                  style={{ textDecoration: 'none', color: 'inherit' }}
-                >
-                  {({ isActive }) => (
-                    <ListItemButton
-                      sx={{
-                        pl: 4,
-                        bgcolor: isActive ? '#2e244b' : 'transparent',
-                        color: isActive ? '#fff' : '#f4f4f4',
-                        '&:hover': {
-                          bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
-                        },
-                      }}
-                    >
-                      <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4' }}>
-                        <CategoryIcon />
-                      </ListItemIcon>
-                      <ListItemText primary="Category" />
-                    </ListItemButton>
-                  )}
-                </NavLink>
-              </List>
+                {hasCategory && (
+                  <NavLink
+                    to="/category"
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                  >
+                    {({ isActive }) => (
+                      <ListItemButton
+                        sx={{
+                          pl: 4,
+                          bgcolor: isActive ? '#2e244b' : 'transparent',
+                          color: isActive ? '#fff' : '#f4f4f4',
+                          '&:hover': {
+                            bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
+                          },
+                        }}
+                      >
+                        <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4' }}>
+                          <CategoryIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Category" />
+                      </ListItemButton>
+                    )}
+                  </NavLink>
+                )}
+            </List>
             </Collapse>
           </>
         )}
 
         {/* Collapsed Masterlist Menu */}
-        {isCollapsed && (
+        {isCollapsed && hasMasterlistAccess && (
           <Menu
             anchorEl={masterlistMenuAnchor}
             open={Boolean(masterlistMenuAnchor)}
@@ -470,175 +487,189 @@ const Sidebar = ({ user, onChangeProfile, isSidebarLocked = false, onToggleSideb
               }
             }}
           >
-            <NavLink
-              to="/role"
-              style={{ textDecoration: 'none', color: 'inherit' }}
-            >
-              {({ isActive }) => (
-                <MenuItem 
-                  onClick={handleMasterlistMenuClose}
-                  sx={{
-                    bgcolor: isActive ? '#2e244b' : 'transparent',
-                    color: isActive ? '#fff' : '#f4f4f4',
-                    '&:hover': {
-                      bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
-                    },
-                  }}
-                >
-                  <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4', minWidth: '36px' }}>
-                    <PersonIcon fontSize="small" />
-                  </ListItemIcon>
-                  Role
-                </MenuItem>
-              )}
-            </NavLink>
+            {hasRole && (
+              <NavLink
+                to="/role"
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                {({ isActive }) => (
+                  <MenuItem 
+                    onClick={handleMasterlistMenuClose}
+                    sx={{
+                      bgcolor: isActive ? '#2e244b' : 'transparent',
+                      color: isActive ? '#fff' : '#f4f4f4',
+                      '&:hover': {
+                        bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
+                      },
+                    }}
+                  >
+                    <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4', minWidth: '36px' }}>
+                      <PersonIcon fontSize="small" />
+                    </ListItemIcon>
+                    Role
+                  </MenuItem>
+                )}
+              </NavLink>
+            )}
 
-            <NavLink
-              to="/users"
-              style={{ textDecoration: 'none', color: 'inherit' }}
-            >
-              {({ isActive }) => (
-                <MenuItem 
-                  onClick={handleMasterlistMenuClose}
-                  sx={{
-                    bgcolor: isActive ? '#2e244b' : 'transparent',
-                    color: isActive ? '#fff' : '#f4f4f4',
-                    '&:hover': {
-                      bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
-                    },
-                  }}
-                >
-                  <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4', minWidth: '36px' }}>
-                    <PeopleIcon fontSize="small" />
-                  </ListItemIcon>
-                  Users
-                </MenuItem>
-              )}
-            </NavLink>
+            {hasUsers && (
+              <NavLink
+                to="/users"
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                {({ isActive }) => (
+                  <MenuItem 
+                    onClick={handleMasterlistMenuClose}
+                    sx={{
+                      bgcolor: isActive ? '#2e244b' : 'transparent',
+                      color: isActive ? '#fff' : '#f4f4f4',
+                      '&:hover': {
+                        bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
+                      },
+                    }}
+                  >
+                    <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4', minWidth: '36px' }}>
+                      <PeopleIcon fontSize="small" />
+                    </ListItemIcon>
+                    Users
+                  </MenuItem>
+                )}
+              </NavLink>
+            )}
 
-            <NavLink
-              to="/team"
-              style={{ textDecoration: 'none', color: 'inherit' }}
-            >
-              {({ isActive }) => (
-                <MenuItem 
-                  onClick={handleMasterlistMenuClose}
-                  sx={{
-                    bgcolor: isActive ? '#2e244b' : 'transparent',
-                    color: isActive ? '#fff' : '#f4f4f4',
-                    '&:hover': {
-                      bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
-                    },
-                  }}
-                >
-                  <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4', minWidth: '36px' }}>
-                    <GroupsIcon fontSize="small" />
-                  </ListItemIcon>
-                  Team
-                </MenuItem>
-              )}
-            </NavLink>
+            {hasTeam && (
+              <NavLink
+                to="/team"
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                {({ isActive }) => (
+                  <MenuItem 
+                    onClick={handleMasterlistMenuClose}
+                    sx={{
+                      bgcolor: isActive ? '#2e244b' : 'transparent',
+                      color: isActive ? '#fff' : '#f4f4f4',
+                      '&:hover': {
+                        bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
+                      },
+                    }}
+                  >
+                    <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4', minWidth: '36px' }}>
+                      <GroupsIcon fontSize="small" />
+                    </ListItemIcon>
+                    Team
+                  </MenuItem>
+                )}
+              </NavLink>
+            )}
 
-            <NavLink
-              to="/charging"
-              style={{ textDecoration: 'none', color: 'inherit' }}
-            >
-              {({ isActive }) => (
-                <MenuItem 
-                  onClick={handleMasterlistMenuClose}
-                  sx={{
-                    bgcolor: isActive ? '#2e244b' : 'transparent',
-                    color: isActive ? '#fff' : '#f4f4f4',
-                    '&:hover': {
-                      bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
-                    },
-                  }}
-                >
-                  <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4', minWidth: '36px' }}>
-                    <LocationCityIcon fontSize="small" />
-                  </ListItemIcon>
-                  Charging
-                </MenuItem>
-              )}
-            </NavLink>
+            {hasCharging && (
+              <NavLink
+                to="/charging"
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                {({ isActive }) => (
+                  <MenuItem 
+                    onClick={handleMasterlistMenuClose}
+                    sx={{
+                      bgcolor: isActive ? '#2e244b' : 'transparent',
+                      color: isActive ? '#fff' : '#f4f4f4',
+                      '&:hover': {
+                        bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
+                      },
+                    }}
+                  >
+                    <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4', minWidth: '36px' }}>
+                      <LocationCityIcon fontSize="small" />
+                    </ListItemIcon>
+                    Charging
+                  </MenuItem>
+                )}
+              </NavLink>
+            )}
 
-            <NavLink
-              to="/category"
-              style={{ textDecoration: 'none', color: 'inherit' }}
-            >
-              {({ isActive }) => (
-                <MenuItem 
-                  onClick={handleMasterlistMenuClose}
-                  sx={{
-                    bgcolor: isActive ? '#2e244b' : 'transparent',
-                    color: isActive ? '#fff' : '#f4f4f4',
-                    '&:hover': {
-                      bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
-                    },
-                  }}
-                >
-                  <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4', minWidth: '36px' }}>
-                    <CategoryIcon fontSize="small" />
-                  </ListItemIcon>
-                  Category
-                </MenuItem>
-              )}
-            </NavLink>
+            {hasCategory && (
+              <NavLink
+                to="/category"
+                style={{ textDecoration: 'none', color: 'inherit' }}
+              >
+                {({ isActive }) => (
+                  <MenuItem 
+                    onClick={handleMasterlistMenuClose}
+                    sx={{
+                      bgcolor: isActive ? '#2e244b' : 'transparent',
+                      color: isActive ? '#fff' : '#f4f4f4',
+                      '&:hover': {
+                        bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
+                      },
+                    }}
+                  >
+                    <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4', minWidth: '36px' }}>
+                      <CategoryIcon fontSize="small" />
+                    </ListItemIcon>
+                    Category
+                  </MenuItem>
+                )}
+              </NavLink>
+            )}
           </Menu>
         )}
+      
+    
 
         {/* Systems */}
-        <NavLink
-          to="/Systems"
-          style={{ textDecoration: 'none', color: 'inherit' }}
-        >
-          {({ isActive }) => (
-            <Tooltip title={isCollapsed ? "Systems" : ""} placement="right">
-              <ListItemButton
-                sx={{
-                  background: isActive 
-                    ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)'
-                    : 'transparent',
-                  color: '#ffffff',
-                  justifyContent: isCollapsed ? 'center' : 'flex-start',
-                  borderRadius: isCollapsed ? '8px' : '12px',
-                  mb: 0.5,
-                  border: isActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
-                  backdropFilter: isActive ? 'blur(10px)' : 'none',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
+        {hasSystems && (
+          <NavLink
+            to="/systems"
+            style={{ textDecoration: 'none', color: 'inherit' }}
+          >
+            {({ isActive }) => (
+              <Tooltip title={isCollapsed ? "systems" : ""} placement="right">
+                <ListItemButton
+                  sx={{
                     background: isActive 
-                      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.12) 100%)'
-                      : 'rgba(255, 255, 255, 0.08)',
-                    transform: 'translateX(4px)',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                  },
-                }}
-              >
-                <ListItemIcon 
-                  sx={{ 
-                    color: '#ffffff', 
-                    minWidth: isCollapsed ? 'auto' : '48px',
-                    display: 'flex',
-                    justifyContent: 'center',
+                      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)'
+                      : 'transparent',
+                    color: '#ffffff',
+                    justifyContent: isCollapsed ? 'center' : 'flex-start',
+                    borderRadius: isCollapsed ? '8px' : '12px',
+                    mb: 0.5,
+                    border: isActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
+                    backdropFilter: isActive ? 'blur(10px)' : 'none',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      background: isActive 
+                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.12) 100%)'
+                        : 'rgba(255, 255, 255, 0.08)',
+                      transform: 'translateX(4px)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                    },
                   }}
                 >
-                  <SettingsSystemDaydreamIcon sx={{ fontSize: isCollapsed ? '1.5rem' : '1.3rem' }} />
-                </ListItemIcon>
-                {!isCollapsed && (
-                  <ListItemText 
-                    primary="Systems" 
-                    primaryTypographyProps={{
-                      fontSize: '0.95rem',
-                      fontWeight: isActive ? 600 : 500,
-                      fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
+                  <ListItemIcon 
+                    sx={{ 
+                      color: '#ffffff', 
+                      minWidth: isCollapsed ? 'auto' : '48px',
+                      display: 'flex',
+                      justifyContent: 'center',
                     }}
-                  />
-                )}
-              </ListItemButton>
-            </Tooltip>
-          )}
-        </NavLink>
+                  >
+                    <SettingsSystemDaydreamIcon sx={{ fontSize: isCollapsed ? '1.5rem' : '1.3rem' }} />
+                  </ListItemIcon>
+                  {!isCollapsed && (
+                    <ListItemText 
+                      primary="Systems" 
+                      primaryTypographyProps={{
+                        fontSize: '0.95rem',
+                        fontWeight: isActive ? 600 : 500,
+                        fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
+                      }}
+                    />
+                  )}
+                </ListItemButton>
+              </Tooltip>
+            )}
+          </NavLink>
+        )}
       </List>
 
       {/* Spacer to push footer to bottom */}

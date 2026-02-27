@@ -12,16 +12,18 @@ import {
   Tab,
   Button,
 } from "@mui/material";
+import { useSelector } from "react-redux";
+import { selectCurrentUser } from "../../features/api/slice/authSlice";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import SearchIcon from "@mui/icons-material/Search";
 import ArchiveIcon from "@mui/icons-material/Archive";
 import RestoreIcon from "@mui/icons-material/Restore";
 import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
+import { useDebounce } from "../../hooks/useDebounce";
 import DataTable from "../../component/reuseable/DataTable";
 import Confirmation from "../../component/reuseable/Confirmation";
 import Snackbar from "../../component/reuseable/Snackbar";
-import AddNewChargingDialog from "../dialog/adddialog/AddNewChargingDialog";
+import ChargingFormDialog from "../dialog/ChargingFormDialog";
 import {
   useGetChargingQuery,
   useDeleteChargingMutation,
@@ -29,12 +31,16 @@ import {
 } from "../../features/api/charging/chargingApi";
 
 const Charging = () => {
+  const currentUser = useSelector(selectCurrentUser);
+  const userPermissions = currentUser?.role?.access_permissions || [];
+  const canAddCharging = userPermissions.includes('Charging.Add');
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [showArchived, setShowArchived] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [chargingDialogOpen, setChargingDialogOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 
   const open = Boolean(anchorEl);
@@ -44,7 +50,10 @@ const Charging = () => {
     isLoading,
     isError,
     error,
-  } = useGetChargingQuery({ status: showArchived ? "inactive" : "active" });
+  } = useGetChargingQuery({ 
+    status: showArchived ? "inactive" : "active",
+    term: debouncedSearchTerm,
+  });
 
   const [deleteCharging, { isLoading: isDeleting }] = useDeleteChargingMutation();
   const [createCharging] = useCreateChargingMutation();
@@ -55,14 +64,13 @@ const Charging = () => {
     ? chargingResponse
     : [];
 
+  // Filter charging data by debounced search term
   const filteredData = useMemo(() => {
-    if (!Array.isArray(chargingData)) return [];
-    return chargingData.filter((item) =>
-      Object.values(item).some((val) =>
-        String(val).toLowerCase().includes(searchTerm.toLowerCase())
-      )
+    if (!debouncedSearchTerm) return chargingData;
+    return chargingData.filter(item =>
+      item.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     );
-  }, [searchTerm, chargingData]);
+  }, [chargingData, debouncedSearchTerm]);
 
   const handleMenuClick = (event, row) => {
     setAnchorEl(event.currentTarget);
@@ -71,7 +79,6 @@ const Charging = () => {
 
   const handleClose = () => {
     setAnchorEl(null);
-    setSelectedRow(null);
   };
 
   const handleTabChange = (event, newValue) => {
@@ -81,6 +88,7 @@ const Charging = () => {
   const handleArchiveClick = () => {
     if (!selectedRow) return;
     setConfirmDialogOpen(true);
+    setAnchorEl(null);
   };
 
   const handleConfirmArchive = async () => {
@@ -93,7 +101,7 @@ const Charging = () => {
         message: `Charging record ${action} successfully!`,
         severity: "success",
       });
-      handleClose();
+      setSelectedRow(null);
       setConfirmDialogOpen(false);
     } catch (err) {
       console.error("Failed to archive/restore:", err);
@@ -108,6 +116,7 @@ const Charging = () => {
 
   const handleConfirmDialogClose = () => {
     setConfirmDialogOpen(false);
+    setSelectedRow(null);
   };
 
   const handleSnackbarClose = () => {
@@ -126,6 +135,7 @@ const Charging = () => {
   const columns = [
     { id: "id", label: "ID" },
     { id: "name", label: "Name" },
+    { id: "code", label: "Code" },
     {
       id: "created_at",
       label: "Created At",
@@ -177,21 +187,26 @@ const Charging = () => {
             },
           }}
         />
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setAddDialogOpen(true)}
-          sx={{
-            backgroundColor: '#2c3e50',
-            textTransform: 'none',
-            borderRadius: '8px',
-            padding: '6px 20px',
-            fontWeight: 500,
-            '&:hover': { backgroundColor: '#34495e' },
-          }}
-        >
-          Add
-        </Button>
+        {canAddCharging && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => {
+              setSelectedRow(null);
+              setChargingDialogOpen(true);
+            }}
+            sx={{
+              backgroundColor: '#2c3e50',
+              textTransform: 'none',
+              borderRadius: '8px',
+              padding: '6px 20px',
+              fontWeight: 500,
+              '&:hover': { backgroundColor: '#34495e' },
+            }}
+          >
+            Create
+          </Button>
+        )}
       </Box>
 
       {/* Tabs */}
@@ -236,7 +251,7 @@ const Charging = () => {
           columns={columns}
           rows={filteredData}
           totalCount={filteredData.length}
-          isLoading={isLoading}
+          isLoading={isLoading || searchTerm !== debouncedSearchTerm}
           isError={isError}
           tableSx={{
             minWidth: 800,
@@ -280,25 +295,16 @@ const Charging = () => {
             <RestoreIcon fontSize="small" sx={{ mr: 1.5, color: '#2e7d32' }} />
             Restore
           </MenuItem>
-        ) : [
+        ) : (
           <MenuItem
-            key="edit"
-            onClick={() => { handleClose(); }}
-            sx={{ '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' } }}
-          >
-            <EditIcon fontSize="small" sx={{ mr: 1.5, color: '#1976d2' }} />
-            Edit
-          </MenuItem>,
-          <MenuItem
-            key="archive"
             onClick={handleArchiveClick}
             disabled={isDeleting}
             sx={{ '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' } }}
           >
             <ArchiveIcon fontSize="small" sx={{ mr: 1.5, color: '#ed6c02' }} />
             Archive
-          </MenuItem>,
-        ]}
+          </MenuItem>
+        )}
       </Menu>
 
       {/* Archive / Restore Confirmation */}
@@ -312,13 +318,17 @@ const Charging = () => {
         />
       )}
 
-      {/* Add Charging Dialog */}
-      <AddNewChargingDialog
-        open={addDialogOpen}
-        onClose={() => setAddDialogOpen(false)}
-        onSave={(data) => createCharging(data)}
-        onSuccess={(message) => setSnackbar({ open: true, message, severity: "success" })}
-        onError={(message) => setSnackbar({ open: true, message, severity: "error" })}
+      {/* Charging Form Dialog (Add only) */}
+      <ChargingFormDialog
+        key="add-charging"
+        open={chargingDialogOpen}
+        onClose={() => {
+          setChargingDialogOpen(false);
+          setSelectedRow(null);
+        }}
+        charging={null}  // Always null for add mode only
+        onSave={createCharging}
+        isLoading={false}
       />
 
       {/* Snackbar */}

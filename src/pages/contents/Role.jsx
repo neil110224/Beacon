@@ -12,26 +12,38 @@ import {
   Tab,
   Button
 } from '@mui/material';
+import { useSelector } from 'react-redux';
+import { selectCurrentUser } from '../../features/api/slice/authSlice';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import EditIcon from '@mui/icons-material/Edit';
 import ArchiveIcon from '@mui/icons-material/Archive';
 import SearchIcon from '@mui/icons-material/Search';
 import RestoreIcon from '@mui/icons-material/Restore';
 import AddIcon from '@mui/icons-material/Add';
-import { useGetRolesQuery, useDeleteRoleMutation } from '../../features/api/role/roleApi';
-import DataTable from '../../component/reuseable/DataTable'; // adjust the path
+import { useDebounce } from '../../hooks/useDebounce';
+import { useGetRolesQuery, useDeleteRoleMutation, useCreateRoleMutation, useUpdateRoleMutation } from '../../features/api/role/roleApi';
+import DataTable from '../../component/reuseable/DataTable';
+import RoleFormDialog from '../dialog/RoleFormDialog';
 
 const Role = () => {
+  const currentUser = useSelector(selectCurrentUser);
+  const userPermissions = currentUser?.role?.access_permissions || [];
+  const canAddRole = userPermissions.includes('Role.Add');
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRole, setSelectedRole] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [showArchived, setShowArchived] = useState(false);
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const open = Boolean(anchorEl);
 
   const { data, isLoading, isError, error, refetch } = useGetRolesQuery({
-    status: showArchived ? 'inactive' : 'active'
+    status: showArchived ? 'inactive' : 'active',
+    term: debouncedSearchTerm,
   });
   const [deleteRole, { isLoading: isDeleting }] = useDeleteRoleMutation();
+  const [createRole] = useCreateRoleMutation();
+  const [updateRole] = useUpdateRoleMutation();
 
   const handleMenuOpen = (event, role) => {
     setAnchorEl(event.currentTarget);
@@ -44,9 +56,9 @@ const Role = () => {
   };
 
   const handleEdit = () => {
-    console.log('Edit role:', selectedRole);
-    // Add your edit logic here (e.g., open edit dialog)
-    handleMenuClose();
+    // Keep selectedRole while opening dialog
+    setRoleDialogOpen(true);
+    setAnchorEl(null);
   };
 
   const handleArchive = async () => {
@@ -66,20 +78,28 @@ const Role = () => {
 
   const roles = Array.isArray(data) ? data : [];
 
-  // Filter roles based on search term
+  // Filter roles by debounced search term
   const filteredRoles = useMemo(() => {
-    if (!searchTerm) return roles;
-    
-    return roles.filter((role) => 
-      role.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      role.id?.toString().includes(searchTerm)
+    if (!debouncedSearchTerm) return roles;
+    return roles.filter(role =>
+      role.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
     );
-  }, [roles, searchTerm]);
+  }, [roles, debouncedSearchTerm]);
 
   // Define columns for DataTable
   const columns = [
     { id: 'id', label: 'ID', align: 'center' },
     { id: 'name', label: 'ROLES' },
+    {
+      id: 'access_permissions',
+      label: 'Permissions',
+      render: (row) => {
+        const permissions = row.access_permissions || [];
+        return permissions.length > 0 
+          ? permissions.slice(0, 2).join(', ') + (permissions.length > 2 ? '...' : '')
+          : 'None';
+      }
+    },
     {
       id: 'created_at',
       label: 'Created At',
@@ -215,22 +235,28 @@ const Role = () => {
             },
           }}
         />
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          sx={{
-            backgroundColor: '#2c3e50',
-            textTransform: 'none',
-            borderRadius: '8px',
-            padding: '6px 20px',
-            fontWeight: 500,
-            '&:hover': {
-              backgroundColor: '#34495e',
-            },
-          }}
-        >
-          Add
-        </Button>
+        {canAddRole && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => {
+              setSelectedRole(null);
+              setRoleDialogOpen(true);
+            }}
+            sx={{
+              backgroundColor: '#2c3e50',
+              textTransform: 'none',
+              borderRadius: '8px',
+              padding: '6px 20px',
+              fontWeight: 500,
+              '&:hover': {
+                backgroundColor: '#34495e',
+              },
+            }}
+          >
+            Create
+          </Button>
+        )}
       </Box>
 
       {/* Tabs */}
@@ -264,7 +290,7 @@ const Role = () => {
         columns={columns}
         rows={filteredRoles}
         totalCount={filteredRoles.length}
-        isLoading={isLoading}
+        isLoading={isLoading || searchTerm !== debouncedSearchTerm}
         isError={isError}
         error={error}
         tableSx={{ 
@@ -289,6 +315,19 @@ const Role = () => {
             padding: '16px',
           }
         }}
+      />
+
+      {/* Role Form Dialog (Add/Edit) */}
+      <RoleFormDialog
+        key={selectedRole ? `edit-${selectedRole.id}` : 'add'}
+        open={roleDialogOpen}
+        onClose={() => {
+          setRoleDialogOpen(false);
+          setSelectedRole(null);
+        }}
+        role={selectedRole}
+        onSave={selectedRole ? updateRole : createRole}
+        isLoading={false}
       />
       </Box>
   );

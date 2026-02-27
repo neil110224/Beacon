@@ -7,14 +7,15 @@ function SlideTransition(props) {
   return <Slide {...props} direction="left" />;
 }
 
-export default function Snackbar({ open, message, severity, onClose }) {
+export default function Snackbar({ open, message, severity, onClose, anchorOrigin, sx }) {
   return (
     <MuiSnackbar
       open={open}
       onClose={onClose}
       autoHideDuration={1200}
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      anchorOrigin={anchorOrigin || { vertical: 'bottom', horizontal: 'right' }}
       TransitionComponent={SlideTransition}
+      sx={{mt: 6, ...sx}}
     >
       <Alert
         onClose={onClose}

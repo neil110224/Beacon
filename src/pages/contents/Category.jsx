@@ -1,59 +1,55 @@
   import React, { useState, useMemo } from 'react'
-  import { 
-    Box, 
-    IconButton, 
-    Menu, 
-    MenuItem, 
-    CircularProgress,
-    TextField,
-    InputAdornment,
-    Tabs,
-    Tab,
-    Button
-  } from '@mui/material'
-  import MoreVertIcon from '@mui/icons-material/MoreVert'
-  import ArchiveIcon from '@mui/icons-material/Archive'
-  import SearchIcon from '@mui/icons-material/Search'
-  import RestoreIcon from '@mui/icons-material/Restore'
-  import AddIcon from '@mui/icons-material/Add'
-  import { useGetCategoriesListQuery, useDeleteCategoryMutation, useCreateCategoryMutation } from '../../features/api/category/categoryApi'
-  import DataTable from '../../component/reuseable/DataTable'
-  import Confirmation from '../../component/reuseable/Confirmation'
-
-  import AddNewCategoryDialog from '../dialog/adddialog/AddNewCategoryDialog'
-  import Snackbar from '../../component/reuseable/Snackbar'
+import { useSelector } from 'react-redux'
+import { 
+  Box, 
+  IconButton, 
+  Menu, 
+  MenuItem, 
+  CircularProgress,
+  TextField,
+  InputAdornment,
+  Tabs,
+  Tab,
+  Button
+} from '@mui/material'
+import MoreVertIcon from '@mui/icons-material/MoreVert'
+import ArchiveIcon from '@mui/icons-material/Archive'
+import SearchIcon from '@mui/icons-material/Search'
+import RestoreIcon from '@mui/icons-material/Restore'
+import AddIcon from '@mui/icons-material/Add'
+import { useDebounce } from '../../hooks/useDebounce'
+import { selectCurrentUser } from '../../features/api/slice/authSlice'
+import { useGetCategoriesListQuery, useDeleteCategoryMutation, useCreateCategoryMutation } from '../../features/api/category/categoryApi'
+import DataTable from '../../component/reuseable/DataTable'
+import Confirmation from '../../component/reuseable/Confirmation'
+import CategoryFormDialog from '../dialog/CategoryFormDialog'
+import Snackbar from '../../component/reuseable/Snackbar'
 
   const Category = () => {
+    const currentUser = useSelector(selectCurrentUser)
+    const userPermissions = currentUser?.role?.access_permissions || []
+    const canAddCategory = userPermissions.includes('Category.Add')
+    
     const [anchorEl, setAnchorEl] = useState(null)
     const [selectedCategory, setSelectedCategory] = useState(null)
     const [searchTerm, setSearchTerm] = useState('')
+    const debouncedSearchTerm = useDebounce(searchTerm, 500)
     const [showArchived, setShowArchived] = useState(false)
     const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
     const [snackbarOpen, setSnackbarOpen] = useState(false)
     const [snackbarMessage, setSnackbarMessage] = useState('')
     const [snackbarSeverity, setSnackbarSeverity] = useState('success')
-    const [addDialogOpen, setAddDialogOpen] = useState(false)
+    const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
     
     const open = Boolean(anchorEl)
 
     const { data, isLoading, isError, error } = useGetCategoriesListQuery({
-      status: showArchived ? 'inactive' : 'active'
+      status: showArchived ? 'inactive' : 'active',
+      search: debouncedSearchTerm,
     })
 
     const [deleteCategory] = useDeleteCategoryMutation()
     const [createCategory] = useCreateCategoryMutation()
-
-    const handleAddCategorySuccess = (message) => {
-      setSnackbarMessage(message)
-      setSnackbarSeverity('success')
-      setSnackbarOpen(true)
-    }
-
-    const handleAddCategoryError = (message) => {
-      setSnackbarMessage(message)
-      setSnackbarSeverity('error')
-      setSnackbarOpen(true)
-    }
 
     const handleMenuOpen = (event, category) => {
       setAnchorEl(event.currentTarget)
@@ -98,16 +94,13 @@
 
     const categories = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : []
 
-    // Filter categories based on search term
+    // Filter categories by debounced search term
     const filteredCategories = useMemo(() => {
-      if (!searchTerm) return categories
-      
-      return categories.filter((category) => 
-        category.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        category.categoryName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        category.id?.toString().includes(searchTerm)
+      if (!debouncedSearchTerm) return categories
+      return categories.filter(category =>
+        category.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
       )
-    }, [categories, searchTerm])
+    }, [categories, debouncedSearchTerm])
 
     // Define columns for DataTable
     const columns = [
@@ -165,10 +158,9 @@
                   <RestoreIcon fontSize="small" sx={{ mr: 1.5, color: '#2e7d32' }} />
                   Restore
                 </MenuItem>
-              ) : [
+              ) : (
                 // Active category - show only Archive
                 <MenuItem 
-                  key="archive"
                   onClick={handleArchive}
                   sx={{
                     '&:hover': {
@@ -179,7 +171,7 @@
                   <ArchiveIcon fontSize="small" sx={{ mr: 1.5, color: '#ed6c02' }} />
                   Archive
                 </MenuItem>
-              ]}
+              )}
             </Menu>
           </>
         ),
@@ -216,23 +208,28 @@
               },
             }}
           />
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setAddDialogOpen(true)}
-            sx={{
-              backgroundColor: '#2c3e50',
-              textTransform: 'none',
-              borderRadius: '8px',
-              padding: '6px 20px',
-              fontWeight: 500,
-              '&:hover': {
-                backgroundColor: '#34495e',
-              },
-            }}
-          >
-            Add
-          </Button>
+          {canAddCategory && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => {
+                setSelectedCategory(null)
+                setCategoryDialogOpen(true)
+              }}
+              sx={{
+                backgroundColor: '#2c3e50',
+                textTransform: 'none',
+                borderRadius: '8px',
+                padding: '6px 20px',
+                fontWeight: 500,
+                '&:hover': {
+                  backgroundColor: '#34495e',
+                },
+              }}
+            >
+              Create
+            </Button>
+          )}
         </Box>
 
         {/* Tabs */}
@@ -271,7 +268,7 @@
             columns={columns}
             rows={filteredCategories}
             totalCount={filteredCategories.length}
-            isLoading={isLoading}
+            isLoading={isLoading || searchTerm !== debouncedSearchTerm}
             isError={isError}
             error={error}
             tableSx={{ 
@@ -307,19 +304,24 @@
           message={selectedCategory?.deleted_at ? "Are you sure you want to restore this category?" : "Are you sure you want to archive this category?"}
         />
 
+        {/* Merged Category Form Dialog (Add Only) */}
+        <CategoryFormDialog
+          key="add-category"
+          open={categoryDialogOpen}
+          onClose={() => {
+            setCategoryDialogOpen(false)
+            setSelectedCategory(null)
+          }}
+          category={null}
+          onSave={createCategory}
+          isLoading={false}
+        />
+
         <Snackbar
           open={snackbarOpen}
           message={snackbarMessage}
           severity={snackbarSeverity}
           onClose={() => setSnackbarOpen(false)}
-        />
-
-        <AddNewCategoryDialog
-          open={addDialogOpen}
-          onClose={() => setAddDialogOpen(false)}
-          onSave={createCategory}
-          onSuccess={handleAddCategorySuccess}
-          onError={handleAddCategoryError}
         />
       </Box>
     )

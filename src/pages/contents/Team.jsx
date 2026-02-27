@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Avatar,
   AvatarGroup,
@@ -18,33 +18,39 @@ import {
   Tab,
   Button,
 } from "@mui/material";
+import { useSelector } from "react-redux";
+import { selectCurrentUser } from "../../features/api/slice/authSlice";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import SearchIcon from "@mui/icons-material/Search";
 import ArchiveIcon from "@mui/icons-material/Archive";
 import RestoreIcon from "@mui/icons-material/Restore";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
+import { useDebounce } from "../../hooks/useDebounce";
 
-import EditTeam from "../dialog/editdialog/EditTeam";
-import AddNewTeamDialog from "../dialog/adddialog/AddNewTeamDialog";
+import TeamFormDialog from "../dialog/TeamFormDialog";
 import Confirmation from "../../component/reuseable/Confirmation";
 
-import { useGetTeamsQuery, useDeleteTeamMutation, useCreateTeamMutation } from "../../features/api/team/teamApi";
+import { useGetTeamsQuery, useDeleteTeamMutation, useCreateTeamMutation, useUpdateTeamMutation } from "../../features/api/team/teamApi";
 import { useGetUsersQuery } from "../../features/api/user/userApi";
 
 const Team = () => {
+  const currentUser = useSelector(selectCurrentUser);
+  const userPermissions = currentUser?.role?.access_permissions || [];
+  const canAddTeam = userPermissions.includes('Team.Add');
   const [teams, setTeams] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [teamDialogOpen, setTeamDialogOpen] = useState(false);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [showArchived, setShowArchived] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const { data: teamsData, isLoading: teamsLoading, isError: teamsError, error: teamsErrorData, refetch } = useGetTeamsQuery({
-    status: showArchived ? 'inactive' : 'active'
+    status: showArchived ? 'inactive' : 'active',
+    term: debouncedSearchTerm,
   });
   const { data: usersData, isLoading: usersLoading } = useGetUsersQuery({
     status: 'active',
@@ -53,8 +59,10 @@ const Team = () => {
   });
   const [deleteTeam] = useDeleteTeamMutation();
   const [createTeam, { isLoading: isCreating }] = useCreateTeamMutation();
+  const [updateTeam, { isLoading: isUpdating }] = useUpdateTeamMutation();
 
   const isLoading = teamsLoading || usersLoading;
+  const isDialogLoading = isCreating || isUpdating;
 
   /* ================= Listen for archive toggle ================= */
   useEffect(() => {
@@ -119,13 +127,8 @@ const Team = () => {
   };
 
   const handleEdit = () => {
-    setEditDialogOpen(true);
+    setTeamDialogOpen(true);
     handleMenuClose();
-  };
-
-  const handleEditDialogClose = () => {
-    setEditDialogOpen(false);
-    setSelectedTeam(null);
   };
 
   const handleArchiveClick = () => {
@@ -139,31 +142,10 @@ const Team = () => {
     setSelectedTeam(null);
   };
 
-  const handleAddDialogOpen = () => {
-    setAddDialogOpen(true);
-  };
-
-  const handleAddDialogClose = () => {
-    setAddDialogOpen(false);
-  };
-
-  const handleAddTeamSave = async (payload) => {
-    try {
-      await createTeam(payload).unwrap();
-      setSnackbar({
-        open: true,
-        message: "Team created successfully!",
-        severity: "success",
-      });
-      setAddDialogOpen(false);
-      refetch();
-    } catch (error) {
-      setSnackbar({
-        open: true,
-        message: error?.data?.message || "Failed to create team",
-        severity: "error",
-      });
-    }
+  const handleTeamDialogClose = () => {
+    setTeamDialogOpen(false);
+    setSelectedTeam(null);
+    refetch();
   };
 
   const handleArchiveConfirm = async () => {
@@ -197,11 +179,13 @@ const Team = () => {
     setTeams([]); // clear previous tab's teams while new data loads
   };
 
-  // Filter teams based on search term
-  const filteredTeams = Array.isArray(teams) ? teams.filter(team =>
-    team.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    team.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  ) : [];
+  // Filter teams by debounced search term
+  const filteredTeams = useMemo(() => {
+    if (!debouncedSearchTerm) return Array.isArray(teams) ? teams : [];
+    return (Array.isArray(teams) ? teams : []).filter(team =>
+      team.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+    );
+  }, [teams, debouncedSearchTerm]);
 
   // Determine if it's a real error vs just empty (404)
   const isRealError = teamsError && teamsErrorData?.status !== 404;
@@ -244,21 +228,26 @@ const Team = () => {
             },
           }}
         />
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleAddDialogOpen}
-          sx={{
-            backgroundColor: '#2c3e50',
-            textTransform: 'none',
-            borderRadius: '8px',
-            padding: '6px 20px',
-            fontWeight: 500,
-            '&:hover': { backgroundColor: '#34495e' },
-          }}
-        >
-          Add
-        </Button>
+        {canAddTeam && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => {
+              setSelectedTeam(null);
+              setTeamDialogOpen(true);
+            }}
+            sx={{
+              backgroundColor: '#2c3e50',
+              textTransform: 'none',
+              borderRadius: '8px',
+              padding: '6px 20px',
+              fontWeight: 500,
+              '&:hover': { backgroundColor: '#34495e' },
+            }}
+          >
+            Create
+          </Button>
+        )}
       </Box>
 
       {/* Tabs */}
@@ -405,15 +394,14 @@ const Team = () => {
         />
       )}
 
-      {/* Edit Team Dialog */}
-      <EditTeam open={editDialogOpen} onClose={handleEditDialogClose} team={selectedTeam} />
-
-      {/* Add New Team Dialog */}
-      <AddNewTeamDialog 
-        open={addDialogOpen} 
-        onClose={handleAddDialogClose} 
-        onSave={handleAddTeamSave}
-        isLoading={isCreating}
+      {/* Merged Team Form Dialog (Add/Edit) */}
+      <TeamFormDialog
+        key={teamDialogOpen ? (selectedTeam ? `edit-${selectedTeam.id}` : 'add') : 'closed'}
+        open={teamDialogOpen}
+        onClose={handleTeamDialogClose}
+        team={selectedTeam}  // null = add mode, object = edit mode
+        onSave={selectedTeam ? updateTeam : createTeam}
+        isLoading={isDialogLoading}
       />
 
       {/* Snackbar */}

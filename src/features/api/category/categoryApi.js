@@ -62,6 +62,17 @@ export const categoryApi = todoListApi.injectEndpoints({
       }),
       invalidatesTags: [{ type: "categories", id: "active" }],
     }),
+    updateCategory: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `category/${id}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: [
+        { type: "categories", id: "active" },
+        { type: "categories", id: "inactive" },
+      ],
+    }),
   }),
 });
 
@@ -69,4 +80,5 @@ export const {
   useGetCategoriesListQuery,
   useDeleteCategoryMutation,
   useCreateCategoryMutation,
+  useUpdateCategoryMutation,
 } = categoryApi;

@@ -3,6 +3,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import AddIcon from '@mui/icons-material/Add'
 import React, { useMemo, useState, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import { selectCurrentUser } from '../../features/api/slice/authSlice'
 import { useGetSystemsListQuery } from '../../features/api/system/systemApi'
 import { useUpdateProgressStatusMutation, useUpdateProgressMutation } from '../../features/api/progress/progressApi'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
@@ -12,7 +14,28 @@ import dayjs from 'dayjs'
 
 const SystemCategory = () => {
   const { systemName } = useParams()
-  const { data: systemsData, isLoading, error, refetch } = useGetSystemsListQuery()
+  const user = useSelector(selectCurrentUser)
+  
+  // Build query params based on user role
+  const buildQueryParams = () => {
+    const isUserRole = user?.role?.name?.toLowerCase() === "user"
+    
+    if (isUserRole && user?.team?.id) {
+      return {
+        status: "active",
+        scope: "per_team",
+        team_id: user.team.id
+      }
+    } else {
+      return {
+        status: "active",
+        scope: "global"
+      }
+    }
+  }
+
+  const queryParams = buildQueryParams()
+  const { data: systemsData, isLoading, error, refetch } = useGetSystemsListQuery(queryParams)
   const [updateProgressStatus] = useUpdateProgressStatusMutation()
   const [updateProgress] = useUpdateProgressMutation()
   const [editingStatus, setEditingStatus] = useState({})
@@ -177,9 +200,13 @@ const SystemCategory = () => {
   // Handle error state
   if (error) {
     return (
-      <Box sx={{ p: 2, color: 'error.main' }}>
-        Error loading system data:{' '}
-        {error?.data?.message || error?.error || String(error?.status) || 'Unknown error'}
+      <Box sx={{ p: 3, textAlign: 'center', color: '#6c757d' }}>
+        <Typography variant="h6" sx={{ mb: 1, fontWeight: 500 }}>
+          {user?.team?.name || 'Your Team'}
+        </Typography>
+        <Typography variant="body2">
+          Currently no system
+        </Typography>
       </Box>
     )
   }
@@ -187,9 +214,12 @@ const SystemCategory = () => {
   // Handle not found state
   if (!currentSystem) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Typography variant="h4" sx={{ mb: 3, color: 'error.main' }}>
-          System not found: {systemName}
+      <Box sx={{ p: 3, textAlign: 'center', color: '#6c757d' }}>
+        <Typography variant="h6" sx={{ mb: 1, fontWeight: 500 }}>
+          {systemName}
+        </Typography>
+        <Typography variant="body2">
+          Currently no system
         </Typography>
       </Box>
     )
@@ -214,6 +244,7 @@ const SystemCategory = () => {
           </Typography>
         </Box>
         
+
         <Button
           variant="contained"
           startIcon={<AddIcon />}
@@ -240,6 +271,7 @@ const SystemCategory = () => {
           currentSystem.categories.map((category, idx) => (
             <Accordion
               key={idx}
+              defaultExpanded={true}
               sx={{
                 mb: 2,
                 bgcolor: '#f5f5f5',
@@ -248,11 +280,12 @@ const SystemCategory = () => {
                 },
               }}
             >
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
+              <AccordionSummary 
+                expandIcon={<ExpandMoreIcon sx={{ color: '#f4f4f4' }} />}
                 sx={{
                   bgcolor: '#1a1a2e',
                   color: '#f4f4f4',
+                  borderRadius: '5px 5px 0 0'
                 }}
               >
                 <Typography variant="h6">
@@ -298,35 +331,52 @@ const SystemCategory = () => {
                               />
                             </TableCell>
                             <TableCell>
-                              <Select
-                                value={editingStatus[item.id] || item.status || ''}
-                                onChange={(e) => handleStatusChange(item.id, e.target.value)}
-                                size="small"
-                                disabled={loadingStatusId === item.id}
-                                sx={{
-                                  minWidth: 120,
-                                  bgcolor: getStatusColor(editingStatus[item.id] || item.status),
-                                  color: '#fff',
-                                  fontWeight: 'bold',
-                                  opacity: loadingStatusId === item.id ? 0.6 : 1,
-                                  '& .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: getStatusColor(editingStatus[item.id] || item.status),
-                                  },
-                                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: getStatusColor(editingStatus[item.id] || item.status),
-                                  },
-                                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: getStatusColor(editingStatus[item.id] || item.status),
-                                  },
-                                  '& .MuiSvgIcon-root': {
+                              <Box sx={{ position: 'relative', display: 'inline-block', width: 'auto' }}>
+                                <Select
+                                  value={editingStatus[item.id] || item.status || ''}
+                                  onChange={(e) => handleStatusChange(item.id, e.target.value)}
+                                  size="small"
+                                  disabled={loadingStatusId === item.id}
+                                  sx={{
+                                    minWidth: 120,
+                                    bgcolor: getStatusColor(editingStatus[item.id] || item.status),
                                     color: '#fff',
-                                  },
-                                }}
-                              >
-                                {STATUS_OPTIONS.map(option => (
-                                  <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
-                                ))}
-                              </Select>
+                                    fontWeight: 'bold',
+                                    opacity: loadingStatusId === item.id ? 0.6 : 1,
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                      borderColor: getStatusColor(editingStatus[item.id] || item.status),
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                      borderColor: getStatusColor(editingStatus[item.id] || item.status),
+                                    },
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                      borderColor: getStatusColor(editingStatus[item.id] || item.status),
+                                    },
+                                    '& .MuiSvgIcon-root': {
+                                      color: '#fff',
+                                    },
+                                  }}
+                                >
+                                  {STATUS_OPTIONS.map(option => (
+                                    <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
+                                  ))}
+                                </Select>
+                                {loadingStatusId === item.id && (
+                                  <Box
+                                    sx={{
+                                      position: 'absolute',
+                                      top: '50%',
+                                      left: '50%',
+                                      transform: 'translate(-50%, -50%)',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                    }}
+                                  >
+                                    <CircularProgress size={20} sx={{ color: '#fff' }} />
+                                  </Box>
+                                )}
+                              </Box>
                             </TableCell>
                             <TableCell sx={{ maxWidth: 200, whiteSpace: 'normal', wordWrap: 'break-word' }}>
                               {item.remarks || '-'}

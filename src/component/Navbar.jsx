@@ -17,41 +17,53 @@ import PersonIcon from "@mui/icons-material/Person";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
-import { selectCurrentUser } from "../features/api/slice/authSlice";
+import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { selectCurrentUser, logout } from "../features/api/slice/authSlice";
 
 
 import ChangeProfileDialog from "../pages/dialog/ChangeProfileDialog";  
 import MainContent from "./MainContent";
 import Confirmation from "./reuseable/Confirmation";
 
-import { useCreateUserMutation } from "../features/api/user/userApi";
+import { useCreateUserMutation, useUpdateUserMutation } from "../features/api/user/userApi";
 import TopNavContent from "./TopNavContent";
-import AddNewUserDialog from "../pages/dialog/adddialog/AddNewUserDialog";
-import AddNewTeamDialog from "../pages/dialog/adddialog/AddNewTeamDialog";
-import { useCreateTeamMutation } from "../features/api/team/teamApi";
+import UserFormDialog from "../pages/dialog/UserFormDialog";
+import TeamFormDialog from "../pages/dialog/TeamFormDialog";
+import { useCreateTeamMutation, useUpdateTeamMutation } from "../features/api/team/teamApi";
 import Sidebar from "./sidebar";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const user = useSelector(selectCurrentUser);
+  const dispatch = useDispatch();
   const firstName = user?.first_name;
   const location = useLocation();
-  const [addUserOpen, setAddUserOpen] = useState(false);
-  const [addTeamOpen, setAddTeamOpen] = useState(false);
+  const [userDialogOpen, setUserDialogOpen] = useState(false);
+  const [teamDialogOpen, setTeamDialogOpen] = useState(false);
   const [activePage, setActivePage] = useState("HOME");
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const [dateTime, setDateTime] = useState(new Date());
+  const navigate = useNavigate();
 
   const theme = useTheme();
+
+  // Update date and time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setDateTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
   
   // Check if current route is dashboard
-  const isDashboard = useLocation().pathname === '/Dashboard';
+  const isDashboard = location.pathname.toLowerCase() === '/dashboard';
 
-  // Initialize sidebar collapsed state based on page
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(isDashboard);
+  // Initialize sidebar collapsed state - always closed after login
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [isSidebarLocked, setIsSidebarLocked] = useState(false);
 
   // Custom breakpoints matching your SCSS
@@ -63,7 +75,9 @@ const Navbar = () => {
   const isLg = useMediaQuery('(max-width:1199.98px)');
 
   const [createUser, { isLoading: isCreatingUser }] = useCreateUserMutation();
+  const [updateUser] = useUpdateUserMutation();
   const [createTeam, { isLoading: creatingTeam }] = useCreateTeamMutation();
+  const [updateTeam] = useUpdateTeamMutation();
 
   const open = Boolean(anchorEl);
 
@@ -86,10 +100,11 @@ const Navbar = () => {
 
   const handleConfirmLogout = () => {
     setLogoutConfirmOpen(false);
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    sessionStorage.clear();
-    window.location.replace("http://localhost:5173");
+    dispatch(logout());
+    // Use window.location to force a hard redirect, bypassing React routing caches
+    setTimeout(() => {
+      window.location.href = "/login";
+    }, 100);
   };
 
   const handleToggleSidebar = () => {
@@ -107,29 +122,9 @@ const Navbar = () => {
 
   const handleAddClick = () => {
     if (activePage === "USERS") {
-      setAddUserOpen(true);
+      setUserDialogOpen(true);
     } else if (activePage === "TEAM") {
-      setAddTeamOpen(true);
-    }
-  };
-
-  const handleCreateUser = async (userData) => {
-    try {
-      await createUser(userData).unwrap();
-      setAddUserOpen(false);
-    } catch (error) {
-      console.error('Failed to create user:', error);
-      alert('Failed to create user: ' + (error?.data?.message || 'Unknown error'));
-    }
-  };
-
-  const handleCreateTeam = async (teamData) => {
-    try {
-      await createTeam(teamData).unwrap();
-      setAddTeamOpen(false);
-    } catch (error) {
-      console.error("Failed to create team:", error);
-      alert("Failed to create team: " + (error?.data?.message || "Unknown error"));
+      setTeamDialogOpen(true);
     }
   };
 
@@ -155,11 +150,14 @@ const Navbar = () => {
         anchor="left"
         open={mobileDrawerOpen}
         onClose={handleToggleMobileDrawer}
+        hideBackdrop={true}
+        slotProps={{ backdrop: { sx: { display: 'none' } } }}
         sx={{
           display: { xs: "block", md: "none" },
           "& .MuiDrawer-paper": {
             width: 250,
-            bgcolor: "#1e1e1e",
+            bgcolor: "transparent",
+            boxShadow: "none",
           },
         }}
       >
@@ -192,8 +190,56 @@ const Navbar = () => {
             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
           }}
         >
-          {/* Left side - Toggle buttons */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          {/* Left side - Date and Time */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+            {/* Sidebar Toggle Button */}
+            {!showMobileSidebar && (
+              <Tooltip title={isSidebarLocked ? "Unlock sidebar" : "Lock sidebar"}>
+                <IconButton
+                  onClick={handleToggleSidebarLock}
+                  sx={{ 
+                    color: '#ffffff',
+                    '&:hover': {
+                      bgcolor: 'rgba(255, 255, 255, 0.15)',
+                    },
+                    width: 36,
+                    height: 36,
+                    flexShrink: 0,
+                  }}
+                >
+                  {isSidebarCollapsed ? (
+                    <ArrowForwardIosIcon sx={{ fontSize: '0.9rem', transition: 'transform 0.3s ease' }} />
+                  ) : (
+                    <ArrowBackIosNewIcon sx={{ fontSize: '0.9rem', transition: 'transform 0.3s ease' }} />
+                  )}
+                </IconButton>
+              </Tooltip>
+            )}
+
+            {/* Date and Time Display */}
+            <Box sx={{ display: { xs: "none", sm: "flex" }, flexDirection: "column", justifyContent: "center" }}>
+              <Typography variant="h7"
+                sx={{ 
+                  fontSize: "0.85rem",
+                  fontWeight: 300,
+                  color: "rgba(255, 255, 255, 0.9)",
+                  lineHeight: 1.2,
+                }}
+              >
+                {dateTime.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+              </Typography>
+              <Typography variant="h7"
+                sx={{ 
+                  fontSize: "0.9rem",
+                  fontWeight: 400,
+                  color: "#ffffff",
+                  lineHeight: 1,
+                }}
+              >
+                {dateTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
+              </Typography>
+            </Box>
+
             {/* Mobile Menu Button */}
             {showMobileSidebar && (
               <IconButton
@@ -321,21 +367,23 @@ const Navbar = () => {
           {!isDashboard && <TopNavContent />}
           
           <Box sx={{ padding: { xs: 1, sm: 2 }, flexGrow: 1, overflow: "auto" }}>
-            <Outlet />
+            <Outlet context={{ isSidebarCollapsed, isSidebarLocked }} />
           </Box>
         </Box>
 
-        <AddNewUserDialog
-          open={addUserOpen}
-          onClose={() => setAddUserOpen(false)}
-          onSave={handleCreateUser}
-          isLoading={isCreatingUser} 
+        <UserFormDialog
+          open={userDialogOpen}
+          onClose={() => setUserDialogOpen(false)}
+          user={null}  // null = add mode
+          onSave={createUser}
+          isLoading={isCreatingUser}
         />
 
-        <AddNewTeamDialog
-          open={addTeamOpen}
-          onClose={() => setAddTeamOpen(false)}
-          onSave={handleCreateTeam}
+        <TeamFormDialog
+          open={teamDialogOpen}
+          onClose={() => setTeamDialogOpen(false)}
+          team={null}  // null = add mode
+          onSave={createTeam}
           isLoading={creatingTeam}
         />
       </Box>

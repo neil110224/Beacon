@@ -2,13 +2,16 @@ import React, { useState, useEffect } from 'react'
 import {
   useGetUsersQuery,
   useDeleteUserMutation,
-  useCreateUserMutation,   // ✅ ADD THIS
+  useCreateUserMutation,
+  useUpdateUserMutation,
 } from '../../features/api/user/userApi'
+import { useDebounce } from '../../hooks/useDebounce'
+import { useSelector } from 'react-redux'
+import { selectCurrentUser } from '../../features/api/slice/authSlice'
 
 import DataTable from '../../component/reuseable/DataTable'
 import Confirmation from '../../component/reuseable/Confirmation'
-import AddNewUserDialog from '../dialog/adddialog/AddNewUserDialog' // ✅ MAKE SURE PATH IS CORRECT
-import EditUserDialog from '../dialog/editdialog/UserDialog'
+import UserFormDialog from '../dialog/UserFormDialog'
 
 import {
   Box,
@@ -27,22 +30,22 @@ import ArchiveIcon from '@mui/icons-material/Archive'
 import RestoreIcon from '@mui/icons-material/Restore'
 import AddIcon from '@mui/icons-material/Add'
 import EditIcon from '@mui/icons-material/Edit'
-import Snackbar from '../../component/reuseable/snackbar'
+import Snackbar from '../../component/reuseable/Snackbar'
 
 const Users = () => {
+  const currentUser = useSelector(selectCurrentUser)
+  const userPermissions = currentUser?.role?.access_permissions || []
+  const canAddUser = userPermissions.includes('Users.Add')
   const [searchTerm, setSearchTerm] = useState('')
+  const debouncedSearchTerm = useDebounce(searchTerm, 500)
   const [anchorEl, setAnchorEl] = useState(null)
   const [selectedUser, setSelectedUser] = useState(null)
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [addDialogOpen, setAddDialogOpen] = useState(false)
+  const [userDialogOpen, setUserDialogOpen] = useState(false)
   const [showArchived, setShowArchived] = useState(false)
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarSeverity, setSnackbarSeverity] = useState('success')
-console.log(
-"seearch", searchTerm
-)
   const open = Boolean(anchorEl)
 
   // ✅ FETCH USERS
@@ -50,14 +53,15 @@ console.log(
     status: showArchived ? 'inactive' : 'active',
     // paginate: 10,
     // pagination: "none"
-    search: searchTerm,
+    search: debouncedSearchTerm,
   })
 
   // ✅ DELETE
   const [deleteUser, { isLoading: isArchiving }] = useDeleteUserMutation()
 
-  // ✅ CREATE USER (THIS WAS MISSING)
+  // ✅ CREATE & UPDATE USER
   const [createUser] = useCreateUserMutation()
+  const [updateUser] = useUpdateUserMutation()
 
   useEffect(() => {
     const handleArchiveToggle = (event) => {
@@ -78,17 +82,18 @@ console.log(
 
   const handleMenuClose = () => {
     setAnchorEl(null)
-    setSelectedUser(null)
   }
 
   const handleEdit = () => {
-    setEditDialogOpen(true)
+    setUserDialogOpen(true)
     handleMenuClose()
   }
 
   const handleArchive = () => {
     // Show confirmation dialog (don't close menu yet, we need selectedUser)
-    setConfirmDialogOpen(true)
+    if (!selectedUser) return;
+    setConfirmDialogOpen(true);
+    setAnchorEl(null);  // Close the menu but keep selectedUser
   }
 
   const handleConfirmArchive = async () => {
@@ -97,7 +102,7 @@ console.log(
     try {
       await deleteUser(selectedUser.id).unwrap()
       setConfirmDialogOpen(false)
-      handleMenuClose()
+      setSelectedUser(null)
       setSnackbarMessage(selectedUser.deleted_at ? 'User restored successfully!' : 'User archived successfully!')
       setSnackbarSeverity('success')
       setSnackbarOpen(true)
@@ -111,7 +116,7 @@ console.log(
 
   const handleCancelConfirm = () => {
     setConfirmDialogOpen(false)
-    handleMenuClose()
+    setSelectedUser(null)
   }
 
   const handleTabChange = (event, newValue) => {
@@ -275,23 +280,28 @@ console.log(
             },
           }}
         />
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setAddDialogOpen(true)}
-          sx={{
-            backgroundColor: '#2c3e50',
-            textTransform: 'none',
-            borderRadius: '8px',
-            padding: '6px 20px',
-            fontWeight: 500,
-            '&:hover': {
-              backgroundColor: '#34495e',
-            },
-          }}
-        >
-          Add
-        </Button>
+        {canAddUser && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => {
+              setSelectedUser(null)
+              setUserDialogOpen(true)
+            }}
+            sx={{
+              backgroundColor: '#2c3e50',
+              textTransform: 'none',
+              borderRadius: '8px',
+              padding: '6px 20px',
+              fontWeight: 500,
+              '&:hover': {
+                backgroundColor: '#34495e',
+              },
+            }}
+          >
+            Create
+          </Button>
+        )}
       </Box>
 
       {/* Tabs */}
@@ -325,7 +335,7 @@ console.log(
         columns={columns}
         rows={users}
         totalCount={data?.data?.total}
-        isLoading={isLoading}
+        isLoading={isLoading || searchTerm !== debouncedSearchTerm}
         isError={isError}
         error={error}
         tableSx={{ 
@@ -352,22 +362,18 @@ console.log(
         }}
       />
 
-      {/* ✅ ADD USER DIALOG */}
-      <AddNewUserDialog
-        open={addDialogOpen}
-        onClose={() => setAddDialogOpen(false)}
-        onSave={createUser}   // 🔥 THIS FIXES EVERYTHING
+      {/* Merged User Form Dialog (Add/Edit) */}
+      <UserFormDialog
+        key={userDialogOpen ? (selectedUser ? `edit-${selectedUser.id}` : 'add') : 'closed'}
+        open={userDialogOpen}
+        onClose={() => {
+          setUserDialogOpen(false)
+          setSelectedUser(null)
+        }}
+        user={selectedUser}  // null = add mode, object = edit mode
+        onSave={selectedUser ? updateUser : createUser}
+        isLoading={false}
       />
-
-      {selectedUser && (
-        <EditUserDialog
-          open={editDialogOpen}
-          onClose={() => setEditDialogOpen(false)}
-          user={selectedUser}
-          onSave={() => {}}
-          isLoading={false}
-        />
-      )}
 
       <Confirmation
         open={confirmDialogOpen}

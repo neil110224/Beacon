@@ -96,7 +96,7 @@ const userApi = todoListApi
       updateUserProfilePicture: build.mutation({
         query: ({ id, data }) => ({
           url: `user/${id}/profile-picture`,
-          method: "POST",
+          method: "GET",
           body: data,
         }),
         invalidatesTags: (result, error, { id }) => [

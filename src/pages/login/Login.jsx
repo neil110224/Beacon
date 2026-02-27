@@ -1,4 +1,4 @@
-import { Box, TextField, Button, Slide } from '@mui/material';
+import { Box, TextField, Button, Slide, CircularProgress } from '@mui/material';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import reindeer from "../../assets/reindeer.jpg";
@@ -8,15 +8,11 @@ import { useUserLoginMutation } from '../../features/api/login/loginApi';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '../../features/api/slice/authSlice';
-import React from 'react';
-import { Alert } from '@mui/material';
-import Snackbar from '../../component/reuseable/snackbar';
-
-
-
+import React, { useState } from 'react';
+import Snackbar from '../../component/reuseable/Snackbar';
 
 function SlideTransition(props) {
-  return <Slide {...props} direction="left" />; // Slide in from the right
+  return <Slide {...props} direction="left" />;
 }
 
 const Login = () => {
@@ -24,55 +20,40 @@ const Login = () => {
   const dispatch = useDispatch();
   const [userLogin] = useUserLoginMutation();
 
-  // Snackbar state
-  const [snackbarOpen, setSnackbarOpen] = React.useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [isLoading, setIsLoading] = useState(false);
 
-  // React Hook Form
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(schema),
     defaultValues: { username: '', password: '' }
   });
 
-  const handleSnackbarClose = () => {
-    setSnackbarOpen(false);
-  };
-
-
-
-const [snackbarMessage, setSnackbarMessage] = React.useState('');
-const [snackbarSeverity, setSnackbarSeverity] = React.useState('success');
-
-
-
   const onSubmit = async (data) => {
-  try {
-    const response = await userLogin(data).unwrap();
+    setIsLoading(true);
+    try {
+      const response = await userLogin(data).unwrap();
 
-    const user = response.data.user;
-    const token = response.data.access_token;
+      const user = response.data.user;
+      const token = response.data.access_token;
 
-    dispatch(setCredentials({ user, token }));
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
+      dispatch(setCredentials({ user, token }));
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("loginSuccess", "true");
 
-    setSnackbarSeverity('success');
-    setSnackbarMessage('Login Successful!');
-    setSnackbarOpen(true);
+      // Navigate immediately
+      navigate("/Dashboard");
 
-    setTimeout(() => navigate("/Dashboard"), 1); // Navigate after 1.5 seconds
-
-  } catch (error) {
-    console.log(error);
-
-    setSnackbarSeverity('error');
-    setSnackbarMessage(
-      error?.data?.message || "Invalid username or password"
-    );
-    setSnackbarOpen(true);
-  }
-};
-
-
+    } catch (error) {
+      console.log(error);
+      setSnackbarSeverity('error');
+      setSnackbarMessage(error?.data?.message || "Invalid username or password");
+      setSnackbarOpen(true);
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Box
@@ -81,51 +62,52 @@ const [snackbarSeverity, setSnackbarSeverity] = React.useState('success');
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
+        bgcolor: '#27374D',
       }}
     >
       <Box
-  sx={{
-    width: '75%',                // slightly smaller width
-    maxWidth: { xs: '100%', md: 750 },  // reduced from 900
-    height: { xs: 'auto', md: 450 },    // reduced from 520
-    display: 'flex',
-    flexDirection: { xs: 'column', md: 'row' },
-    bgcolor: '#1a1a2e ',
-    borderRadius: 2,
-    boxShadow: '0 8px 25px rgba(51, 47, 47, 0.12)', // softer shadow
-    overflow: 'hidden',
-    position: 'relative',
-    color:'#f4f4f4'
-  }}
->
-
+        sx={{
+          width: '75%',
+          maxWidth: { xs: '100%', md: 750 },
+          height: { xs: 'auto', md: 450 },
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          bgcolor: '#1a1a2e',
+          borderRadius: 2,
+          boxShadow: '0 8px 25px rgba(51, 47, 47, 0.12)',
+          overflow: 'hidden',
+          position: 'relative',
+          color: '#f4f4f4'
+        }}
+      >
         {/* LEFT PANEL - Form */}
         <Box
-  component="form"
-  onSubmit={handleSubmit(onSubmit)}
-  sx={{
-    flex: 1,
-    p: { xs: 3, md: 6 }, // reduced from 10
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-  }}
->
-
+          component="form"
+          onSubmit={handleSubmit(onSubmit)}
+          sx={{
+            flex: 1,
+            p: { xs: 3, md: 6 },
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+          }}
+        >
           <Box sx={{ mb: 5 }}>
             <Box
-  component="h2"
-  sx={{
-    m: 2, // reduced from 4
-    fontFamily: 'Montserrat, sans-serif',
-    fontWeight: 500,
-    letterSpacing: 1,
-    textAlign: 'center',
-    fontSize: { xs: 18, md: 22 } // slightly smaller
-  }}
->
-
-              Welcome to  <Box component="span" sx={{ color: '#0387bb', fontWeight: 900, fontSize: { xs: 25, md: 30 } }}>Beacon!</Box>
+              component="h2"
+              sx={{
+                m: 2,
+                fontFamily: 'Montserrat, sans-serif',
+                fontWeight: 500,
+                letterSpacing: 1,
+                textAlign: 'center',
+                fontSize: { xs: 18, md: 22 }
+              }}
+            >
+              Welcome to{' '}
+              <Box component="span" sx={{ color: '#0387bb', fontWeight: 900, fontSize: { xs: 25, md: 30 } }}>
+                Beacon!
+              </Box>
             </Box>
           </Box>
 
@@ -142,7 +124,7 @@ const [snackbarSeverity, setSnackbarSeverity] = React.useState('success');
                 fontWeight: 700,
                 fontSize: { xs: 9, md: 11 },
                 height: 8,
-                color:'#f4f4f4'
+                color: '#f4f4f4'
               }
             }}
           />
@@ -160,38 +142,48 @@ const [snackbarSeverity, setSnackbarSeverity] = React.useState('success');
                 fontFamily: 'Montserrat, sans-serif',
                 fontWeight: 700,
                 fontSize: { xs: 9, md: 11 },
-                height: 8, // slightly smaller height
-                color:'#f4f4f4'
+                height: 8,
+                color: '#f4f4f4'
               }
             }}
           />
 
           <Button
-  type="submit"
-  fullWidth
-  sx={{
-    py: { xs: 0.6, md: 0.8 }, // smaller height
-    bgcolor: '#0397d1',
-    color: '#ffffff',
-    fontFamily: 'Montserrat, sans-serif',
-    fontWeight: 500,
-    fontSize: { xs: 12, md: 13 },
-    mb: 2,
-    '&:hover': { bgcolor: '#027baa' },
-    boxShadow: '0px 4px 4px rgba(0,0,0,0.4)',
-  }}
->
-  SIGN IN
-</Button>
-<Box sx={{display:'flex', flexDirection:'column', alignItems:'center', gap:0.5, mt: 3}}>
-<img src={mis} alt="MIS Logo" style={{ width: 50, height: 'auto', objectFit: 'contain' }} />
+            type="submit"
+            fullWidth
+            disabled={isLoading}
+            sx={{
+              py: { xs: 0.6, md: 0.8 },
+              bgcolor: '#0397d1',
+              color: '#ffffff',
+              fontFamily: 'Montserrat, sans-serif',
+              fontWeight: 500,
+              fontSize: { xs: 12, md: 13 },
+              mb: 2,
+              '&:hover': { bgcolor: '#027baa' },
+              '&:disabled': { bgcolor: '#0397d1', opacity: 0.7 },
+              boxShadow: '0px 4px 4px rgba(0,0,0,0.4)',
+            }}
+          >
+            {isLoading ? (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CircularProgress size={20} sx={{ color: '#ffffff' }} />
+                <span>Signing In...</span>
+              </Box>
+            ) : (
+              'SIGN IN'
+            )}
+          </Button>
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5, mt: 3 }}>
+            <img src={mis} alt="MIS Logo" style={{ width: 50, height: 'auto', objectFit: 'contain' }} />
             <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 200, fontSize: 9 }}>
               Powered By <strong>MIS</strong>
             </div>
-            <div style={{ fontFamily: 'Montserrat, sans-serif',fontWeight: 300, fontSize: 9 }}>
+            <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 300, fontSize: 9 }}>
               All rights reserved © 2026
             </div>
-</Box>
+          </Box>
         </Box>
 
         {/* RIGHT PANEL */}
@@ -209,7 +201,6 @@ const [snackbarSeverity, setSnackbarSeverity] = React.useState('success');
             alt="Work Illustration"
             style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
           />
-
           <Box
             sx={{
               position: 'absolute',
@@ -224,21 +215,19 @@ const [snackbarSeverity, setSnackbarSeverity] = React.useState('success');
               color: '#fff',
               textShadow: '0 0 5px rgba(0,0,0,0.5)',
             }}
-          >
-            
-          </Box>
+          />
         </Box>
       </Box>
 
-      {/* Snackbar */}
       <Snackbar
-  open={snackbarOpen}
-  message={snackbarMessage}
-  severity={snackbarSeverity}
-  onClose={() => setSnackbarOpen(false)}
-/>
-
-
+        open={snackbarOpen}
+        message={snackbarMessage}
+        severity={snackbarSeverity}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        sx={{ marginTop: '20px' }}
+      />
     </Box>
   );
 };
