@@ -10,7 +10,8 @@ import {
   InputAdornment,
   Tabs,
   Tab,
-  Button
+  Button,
+  Alert
 } from '@mui/material';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../features/api/slice/authSlice';
@@ -195,16 +196,6 @@ const Role = () => {
     );
   }
 
-  if (isError) {
-    return (
-      <Box p={3}>
-        <Typography color="error">
-          Error: {error?.message || 'Failed to fetch Role'}
-        </Typography>
-      </Box>
-    );
-  }
-
   return (
     <Box sx={{ p: 3 }}>
       {/* Search Bar and Add Button */}
@@ -286,6 +277,18 @@ const Role = () => {
         </Tabs>
       </Box>
 
+      {/* Empty / Error State */}
+      {!isLoading && filteredRoles.length === 0 && (
+        <Box mb={2}>
+          <Alert severity="info">
+            {showArchived
+              ? "Currently no roles in the archive."
+              : "No roles data available."}
+          </Alert>
+        </Box>
+      )}
+
+      {filteredRoles.length > 0 && !isError && (
       <DataTable
         columns={columns}
         rows={filteredRoles}
@@ -316,6 +319,7 @@ const Role = () => {
           }
         }}
       />
+      )}
 
       {/* Role Form Dialog (Add/Edit) */}
       <RoleFormDialog

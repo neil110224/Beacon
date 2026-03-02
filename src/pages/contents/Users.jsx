@@ -23,6 +23,7 @@ import {
   InputAdornment,
   Tabs,
   Tab,
+  Alert,
 } from '@mui/material'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import SearchIcon from '@mui/icons-material/Search'
@@ -331,6 +332,18 @@ const Users = () => {
         </Tabs>
       </Box>
 
+      {/* Empty / Error State */}
+      {!isLoading && users.length === 0 && (
+        <Box mb={2}>
+          <Alert severity="info">
+            {showArchived
+              ? "Currently no users in the archive."
+              : "No users data available."}
+          </Alert>
+        </Box>
+      )}
+
+      {users.length > 0 && !isError && (
       <DataTable
         columns={columns}
         rows={users}
@@ -361,6 +374,7 @@ const Users = () => {
           }
         }}
       />
+      )}
 
       {/* Merged User Form Dialog (Add/Edit) */}
       <UserFormDialog

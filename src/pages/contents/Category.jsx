@@ -10,7 +10,8 @@ import {
   InputAdornment,
   Tabs,
   Tab,
-  Button
+  Button,
+  Alert
 } from '@mui/material'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import ArchiveIcon from '@mui/icons-material/Archive'
@@ -259,11 +260,18 @@ import Snackbar from '../../component/reuseable/Snackbar'
           </Tabs>
         </Box>
 
-        {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-            <CircularProgress />
+        {/* Empty / Error State */}
+        {!isLoading && filteredCategories.length === 0 && (
+          <Box mb={2}>
+            <Alert severity="info">
+              {showArchived
+                ? "Currently no categories in the archive."
+                : "No categories data available."}
+            </Alert>
           </Box>
-        ) : (
+        )}
+
+        {filteredCategories.length > 0 && !isError && (
           <DataTable
             columns={columns}
             rows={filteredCategories}

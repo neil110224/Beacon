@@ -187,11 +187,6 @@ const Team = () => {
     );
   }, [teams, debouncedSearchTerm]);
 
-  // Determine if it's a real error vs just empty (404)
-  const isRealError = teamsError && teamsErrorData?.status !== 404;
-  const isEmpty = (!teamsError && filteredTeams.length === 0 && !isLoading) ||
-                  (teamsError && teamsErrorData?.status === 404);
-
   /* ================= Loading ================= */
   if (isLoading) {
     return (
@@ -276,29 +271,19 @@ const Team = () => {
         </Tabs>
       </Box>
 
-      {/* Real error state */}
-      {isRealError && (
-        <Box sx={{ py: 4 }}>
-          <Typography color="error" fontWeight={600}>Failed to load teams</Typography>
-          <Typography variant="body2" color="text.secondary">
-            {teamsErrorData?.data?.message || "Something went wrong"}
-          </Typography>
-        </Box>
-      )}
-
-      {/* Empty state */}
-      {!isRealError && isEmpty && (
-        <Box sx={{ textAlign: 'center', py: 8 }}>
-          <Typography variant="body1" color="text.secondary">
+      {/* Empty / Error State */}
+      {!isLoading && filteredTeams.length === 0 && (
+        <Box mb={2}>
+          <Alert severity="info">
             {showArchived
-              ? 'No teams are currently archived.'
-              : 'No active teams found.'}
-          </Typography>
+              ? "Currently no teams in the archive."
+              : "No teams data available."}
+          </Alert>
         </Box>
       )}
 
       {/* Team Cards */}
-      {!isRealError && !isEmpty && (
+      {filteredTeams.length > 0 && (
         <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 2 }}>
           {filteredTeams.map(team => (
             <Card key={team.id} sx={{ borderRadius: 2, border: "1px solid #e0e0e0", boxShadow: "none" }}>
