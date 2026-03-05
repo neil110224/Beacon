@@ -1,0 +1,158 @@
+@import "../../styles/colors.scss";
+@import "../../styles/mixins.scss";
+
+.teamLoadingContainer {
+  min-height: 60vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.teamContainer {
+  padding: 2rem;
+}
+
+.teamEmptyStateWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.teamEmptyStateBox {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  max-width: 700px;
+}
+
+.teamEmptyImage {
+  width: 300px;
+  height: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.teamEmptyTextBox {
+  text-align: left;
+  color: #6c757d;
+}
+
+.teamEmptyTitle {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.teamCardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.teamCard {
+  border-radius: 0.5rem;
+  border: 1px solid #e0e0e0;
+  box-shadow: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+}
+
+.teamCardContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.teamCardInfo {
+  flex: 1;
+}
+
+.teamCardTitle {
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.teamCardActions {
+  margin-left: 0.5rem;
+}
+
+.teamMenuIcon {
+  color: inherit;
+}
+
+.teamMenu {
+  &.MuiPopover-root {
+    .MuiMenuItem-root {
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+      }
+    }
+  }
+}
+
+.teamMenuItemEdit {
+  color: #1976d2;
+  font-size: 1.25rem;
+}
+
+.teamMenuItemArchive {
+  color: #ed6c02;
+  font-size: 1.25rem;
+}
+
+.teamMenuItemRestore {
+  color: #2e7d32;
+  font-size: 1.25rem;
+}
+
+.teamMembersDialog {
+  .MuiDialogTitle-root {
+    font-weight: 600;
+    padding-bottom: 0.25rem;
+  }
+
+  .MuiDialogContent-root {
+    padding-top: 1rem;
+  }
+
+  .MuiDialogActions-root {
+    padding: 1rem;
+  }
+}
+
+.teamMembersContentBox {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.teamMemberItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.teamMemberInfo {
+  flex: 1;
+}
+
+.teamMemberName {
+  font-weight: 500;
+}
+
+.teamEmptyMembersText {
+  font-style: italic;
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+.teamSnackbar {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+}

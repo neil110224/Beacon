@@ -22,13 +22,14 @@ import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
 import InboxIcon from "@mui/icons-material/Inbox";
+import "./reuseablescss/DataTable.scss";
 
 function TablePaginationActions(props) {
   const theme = useTheme();
   const { count, page, rowsPerPage, onPageChange } = props;
 
   return (
-    <Box sx={{ flexShrink: 0, ml: 2.5 }}>
+    <Box className="paginationActionsWrapper">
       <IconButton
         onClick={(e) => onPageChange(e, 0)}
         disabled={page === 0}
@@ -76,11 +77,12 @@ function DataTable({
   isLoading = false,
   isError = false,
   error = null,
+  cellTextColor = "#03346E",
   tableSx = { minWidth: 1400 },
   headSx = { bgcolor: "#dadada" },
 }) {
   const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
   // Prevent slice crash if rows is undefined
   const safeRows = Array.isArray(rows) ? rows : [];
@@ -92,7 +94,7 @@ function DataTable({
 
   if (isLoading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", minHeight: 400 }}>
+      <Box className="dataTableLoading">
         <CircularProgress />
       </Box>
     );
@@ -103,7 +105,7 @@ function DataTable({
   
   if (isError && !isNotFoundError && error) {
     return (
-      <Box sx={{ p: 3, color: "error.main" }}>
+      <Box className="dataTableError">
         Error: {error?.data?.message || error?.error || "Failed to load data"}
       </Box>
     );
@@ -114,20 +116,11 @@ function DataTable({
     return (
       <Paper 
         elevation={0}
-        sx={{
-          borderRadius: '12px',
-          overflow: 'hidden',
-          border: '1px solid rgba(0, 0, 0, 0.08)',
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-          minHeight: 400,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
+        className="dataTablePaperEmpty"
       >
-        <Box sx={{ textAlign: 'center', py: 8 }}>
-          <InboxIcon sx={{ fontSize: 64, color: '#bdbdbd', mb: 2 }} />
-          <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+        <Box className="emptyStateContainer">
+          <InboxIcon className="emptyStateIcon" />
+          <Typography variant="h6" color="text.secondary" className="emptyStateTitle">
             No records found
           </Typography>
           <Typography variant="body2" color="text.secondary">
@@ -141,28 +134,40 @@ function DataTable({
   return (
     <Paper 
       elevation={0}
-      sx={{
-        borderRadius: '12px',
-        overflow: 'hidden',
-        border: '1px solid rgba(0, 0, 0, 0.08)',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-      }}
+      className="dataTablePaper"
+      sx={{ display: "flex", flexDirection: "column", maxHeight: "400px" }}
     >
-      <TableContainer>
-        <Table sx={tableSx}>
-          <TableHead sx={headSx}>
+      <TableContainer className="dataTableContainer" sx={{ overflow: "auto", flex: 1 }}>
+        <Table className="dataTableBase">
+          <TableHead className="dataTableHead" sx={{ position: "sticky", top: 0, zIndex: 1 }}>
             <TableRow>
               {columns.length === 0 ? (
                 <TableCell align="center">No Columns Defined</TableCell>
               ) : (
                 columns.map((col) => (
-                  <TableCell key={col.id} align={col.align || "left"} sx={{ width: col.width }}>
+                  <TableCell 
+                    key={col.id} 
+                    align={col.align || "left"} 
+                    className="dataTableHeaderCell" 
+                    title={col.label}
+                    sx={{ 
+                      width: col.width, 
+                      maxWidth: "200px",
+                      fontSize: "1.3rem", 
+                      color: "#03346E", 
+                      fontWeight: 700,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      cursor: "help"
+                    }}
+                  >
                     {col.label}
                   </TableCell>
                 ))
               )}
             </TableRow>
-          </TableHead>
+          </TableHead>  
 
           <TableBody>
             {paginatedRows.length === 0 ? (
@@ -170,10 +175,10 @@ function DataTable({
                 <TableCell
                   colSpan={columns.length || 1}
                   align="center"
-                  sx={{ py: 8 }}
+                  className="dataTableEmptyCell"
                 >
-                  <Box sx={{ textAlign: 'center' }}>
-                    <InboxIcon sx={{ fontSize: 48, color: '#bdbdbd', mb: 1 }} />
+                  <Box className="emptyDataBox">
+                    <InboxIcon className="emptyDataIcon" />
                     <Typography variant="body1" color="text.secondary">
                       {safeRows.length === 0
                         ? "No data available"
@@ -186,19 +191,22 @@ function DataTable({
               paginatedRows.map((row, index) => (
                 <TableRow 
                   key={row.id || Math.random()}
-                  sx={{
-                    '&:hover': {
-                      backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                      transition: 'background-color 0.2s ease',
-                    },
-                    '&:last-child td': {
-                      borderBottom: 0,
-                    },
-                    borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
-                  }}
+                  className="dataTableRow"
                 >
                   {columns.map((col) => (
-                    <TableCell key={col.id} align={col.align || "left"} sx={{ width: col.width }}>
+                    <TableCell 
+                      key={col.id} 
+                      align={col.align || "left"} 
+                      className="dataTableBodyCell" 
+                      sx={{ 
+                        width: col.width, 
+                        maxWidth: "200px",
+                        color: cellTextColor,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap"
+                      }}
+                    >
                       {col.render ? col.render(row) : row[col.id]}
                     </TableCell>
                   ))}
@@ -211,7 +219,7 @@ function DataTable({
 
       <TablePagination
         component="div"
-        rowsPerPageOptions={[5, 10, 25]}
+        rowsPerPageOptions={[10,20, 30, 50]}
         count={totalCount || safeRows.length}
         rowsPerPage={rowsPerPage}
         page={page}
@@ -221,6 +229,7 @@ function DataTable({
           setPage(0);
         }}
         ActionsComponent={TablePaginationActions}
+        sx={{ color: "#03346E" }}
       />
     </Paper>
   );
@@ -242,6 +251,7 @@ DataTable.propTypes = {
   error: PropTypes.any,
   tableSx: PropTypes.object,
   headSx: PropTypes.object,
+  cellTextColor: PropTypes.string,
 };
 
 export default DataTable;

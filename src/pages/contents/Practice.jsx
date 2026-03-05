@@ -1,14 +1,11 @@
-import { Box } from '@mui/material'
 import React from 'react'
-import { useGetRolesQuery } from '../../features/api/role/roleApi'
 
-const practice = () => {
-  const { data } = useGetRolesQuery({ status: 'active' });
+const Practice = () => {
   return (
-    <Box>
-        practice
-    </Box>
+    <div>
+      
+    </div>
   )
 }
 
-export default practice
+export default Practice

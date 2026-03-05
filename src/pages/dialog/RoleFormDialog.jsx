@@ -38,7 +38,7 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
   const isEdit = !!role;
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [localLoading, setLocalLoading] = useState(false);
-  const [expandedGroups, setExpandedGroups] = useState({ masterlist: true, users: false, category: false, team: false, charging: false, role: false, systems: false });
+  const [expandedGroups, setExpandedGroups] = useState({ dashboard: false, masterlist: true, users: false, category: false, team: false, charging: false, role: false, systems: false });
 
   // Hierarchical permission structure
   const PERMISSION_STRUCTURE = {
@@ -51,6 +51,11 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
       'Charging',
       'Role',
     ],
+  };
+
+  // Sub-children permissions for Dashboard items
+  const DASHBOARD_SUBCHILDREN = {
+    Dashboard: ['Dashboard.FilterTeam'],
   };
 
   // Sub-children permissions for Masterlist items
@@ -269,14 +274,14 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
                 Permissions:
               </Typography>
               <FormGroup sx={{ gap: 1 }}>
-                {/* Dashboard - parent permission */}
+                {/* Dashboard - parent permission with expandable FilterTeam */}
                 <Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <FormControlLabel
                       control={
                         <Checkbox
                           checked={selectedPermissions?.includes('Dashboard') || false}
-                          onChange={() => handleParentPermissionChange('Dashboard')}
+                          onChange={() => handleChildPermissionChange('Dashboard')}
                           sx={{
                             color: '#9e9e9e',
                             '&.Mui-checked': {
@@ -294,7 +299,48 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
                         },
                       }}
                     />
+                    <IconButton
+                      size="small"
+                      onClick={() => toggleGroup('dashboard')}
+                      sx={{ padding: 0, marginLeft: 'auto', marginRight: 1 }}
+                    >
+                      {expandedGroups.dashboard ? (
+                        <ExpandLessIcon sx={{ fontSize: '1.2rem', color: '#2c3e50' }} />
+                      ) : (
+                        <ExpandMoreIcon sx={{ fontSize: '1.2rem', color: '#2c3e50' }} />
+                      )}
+                    </IconButton>
                   </Box>
+
+                  {/* Dashboard child permissions */}
+                  <Collapse in={expandedGroups.dashboard} timeout="auto" unmountOnExit>
+                    <FormGroup sx={{ paddingLeft: 3, gap: 0.5, marginTop: 1 }}>
+                      {DASHBOARD_SUBCHILDREN.Dashboard?.map((subchild) => (
+                        <FormControlLabel
+                          key={subchild}
+                          control={
+                            <Checkbox
+                              checked={selectedPermissions?.includes(subchild) || false}
+                              onChange={() => handleSubchildPermissionChange(subchild)}
+                              sx={{
+                                color: '#9e9e9e',
+                                '&.Mui-checked': {
+                                  color: '#2c3e50',
+                                },
+                              }}
+                            />
+                          }
+                          label={subchild}
+                          sx={{
+                            marginBottom: 0,
+                            '& .MuiFormControlLabel-label': {
+                              fontSize: '0.9rem',
+                            },
+                          }}
+                        />
+                      ))}
+                    </FormGroup>
+                  </Collapse>
                 </Box>
 
                 {/* Systems - parent permission with expandable Add */}

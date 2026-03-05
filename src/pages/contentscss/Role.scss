@@ -1,0 +1,118 @@
+@use "../../styles/colors.scss" as *;
+@use "../../styles/mixins.scss" as bp;
+
+// Main container
+.roleContainer {
+  padding: 16px;
+}
+
+// Loading state
+.roleLoadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+// Empty state
+.roleEmptyStateWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.roleEmptyStateBox {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 700px;
+}
+
+.roleEmptyImage {
+  width: 300px;
+  height: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.roleEmptyTextBox {
+  text-align: left;
+  color: #6c757d;
+}
+
+.roleEmptyTitle {
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+// Role action button
+.roleActionButton {
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+}
+
+// Role action icons
+.roleMenuIcon {
+  font-size: 1.2rem;
+  color: #5f6368;
+}
+
+.roleRestoreIcon {
+  margin-right: 12px;
+  color: #2e7d32;
+}
+
+.roleEditIcon {
+  margin-right: 12px;
+  color: #1976d2;
+}
+
+.roleArchiveIcon {
+  margin-right: 12px;
+  color: #ed6c02;
+}
+
+// Role menu
+.roleMenu {
+  & .MuiPaper-root {
+    border-radius: 8px;
+    margin-top: 8px;
+    min-width: 160px;
+  }
+}
+
+.roleMenuItem {
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+}
+
+// Role table styles
+.roleTableContainer {
+  min-width: 800px;
+
+  & .MuiTableCell-root {
+    padding: 14px 16px;
+    font-size: 0.875rem;
+    color: #2c3e50;
+  }
+
+  & .MuiTableBody-root .MuiTableRow-root {
+    cursor: default;
+  }
+}
+
+.roleTableHeader {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+
+  & th {
+    font-weight: 600;
+    color: #ffffff !important;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 16px;
+  }
+}

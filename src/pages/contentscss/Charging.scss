@@ -1,0 +1,98 @@
+@import "../../styles/colors.scss";
+@import "../../styles/mixins.scss";
+
+.chargingLoadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.chargingContainer {
+  padding: 1rem;
+}
+
+.chargingEmptyStateWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.chargingEmptyStateBox {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  max-width: 700px;
+}
+
+.chargingEmptyImage {
+  width: 300px;
+  height: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.chargingEmptyTextBox {
+  text-align: left;
+  color: #6c757d;
+}
+
+.chargingEmptyTitle {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.chargingTableWrapper {
+  min-width: 800px;
+}
+
+.chargingTableCell {
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  color: #2c3e50;
+}
+
+.chargingTableBody {
+  cursor: default;
+}
+
+.chargingTableHead {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+
+  & th {
+    font-weight: 600;
+    color: #ffffff !important;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px;
+  }
+}
+
+.chargingActionButton {
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+}
+
+.chargingMenuIcon {
+  font-size: 1.2rem;
+  color: #5f6368;
+}
+
+.chargingMenu {
+  border-radius: 8px;
+  margin-top: 0.5rem;
+  min-width: 160px;
+}
+
+.chargingMenuItemArchive {
+  color: #ed6c02;
+  font-size: 1.25rem;
+}
+
+.chargingMenuItemRestore {
+  color: #2e7d32;
+  font-size: 1.25rem;
+}

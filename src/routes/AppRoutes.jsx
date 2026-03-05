@@ -4,7 +4,7 @@ import Users from '../pages/contents/Users'
 import Team from '../pages/contents/Team'
 import SDLC from '../pages/contents/SDLC'
 import Charging from '../pages/contents/Charging'
-import UserPage from '../userpage/userPage'
+
 import DataTable from '../component/reuseable/DataTable'
 import Confirmation from '../component/reuseable/Confirmation'
 import UserArchive from '../pages/dialog/archivedialog/UserArchive'
@@ -18,10 +18,7 @@ import Category from '../pages/contents/category'
 import Sidebar from '../component/sidebar'
 import ProtectedRoute from './ProtectedRoute'
 import PublicRoute from './PublicRoute'
-
-
-
-
+import LighthouseLoader from '../component/reuseable/Loading'
 
 const AppRoutes = () => {
   return (
@@ -51,6 +48,7 @@ const AppRoutes = () => {
       <Route path='/sdlc' element={<ProtectedRoute element={<SDLC/>}/>}/>
       <Route path='/topnavcontent' element={<ProtectedRoute element={<TopNavContent/>}/>}/>
       <Route path='/datatable' element={<ProtectedRoute element={<DataTable/>}/>}/>
+      <Route path='/LighthouseLoader' element={<ProtectedRoute element={<LighthouseLoader/>}/>}/>
       
     </Routes>
   )

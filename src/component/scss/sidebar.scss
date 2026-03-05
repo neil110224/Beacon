@@ -1,0 +1,318 @@
+@use "../../styles/mixins" as bp;
+@use "../../styles/colors" as *;
+
+
+// Main Sidebar Container Wrapper
+.sidebarWrapper {
+  background: $primary-dark;
+  height: 100vh;
+  color: $nav-text;
+  overflow: hidden;
+  transition: width 1s ease, min-width 1s ease, max-width 1s ease;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 1px 0 14px rgba(0, 0, 0, 0.2);
+
+  &--collapsed {
+    width: 90px;
+    min-width: 90px;
+    max-width: 90px;
+  }
+
+  &--expanded {
+    width: 230px;
+    min-width: 230px;
+    max-width: 230px;
+  }
+}
+
+// Main Sidebar Container
+.sidebar {
+  background: $primary-dark;
+  height: 100vh;
+  color: $nav-text;
+  overflow: hidden;
+  transition: width 1s ease, min-width 1s ease, max-width 1s ease;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.1);
+}
+
+// Header Section - FIXED LOGO POSITION, FLUSH LEFT
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid $primary-text-light;
+  height: 60px;
+  min-height: 60px;
+  max-height: 60px;
+  position: relative;
+
+  @include bp.sm {
+    height: 70px;
+    min-height: 70px;
+    max-height: 70px;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, $border-color, transparent);
+  }
+}
+
+// Logo Section - FIXED SIZE, NO MOVEMENT, FLUSH LEFT
+.logoBox {
+  width: 80px;
+  height: 80px;
+  min-width: 80px;
+  min-height: 80px;
+  max-width: 80px;
+  max-height: 80px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  margin-left: 0;
+
+  img {
+    width: 55px;
+    height: 55px;
+    object-fit: contain;
+  }
+}
+
+// Title Section
+.titleBox {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  flex: 1;
+  justify-content: center;
+}
+
+// Title Heading
+.title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  font-family: "Inter", "Segoe UI", "Roboto", sans-serif;
+  color: $primary-text-light;
+}
+
+// List/Nav Container
+.list {
+  flex-grow: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0;
+  color: $primary-text-dark;
+
+
+  // Hide scrollbar
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+// List Item Button - ICON ALWAYS ON LEFT, FLUSH TO EDGE
+.listItemButton {
+  background: transparent;
+  color: $primary-text-dark;
+  justify-content: flex-start;
+  align-items: center;
+  border-radius: 0;
+  margin-bottom: 0.5rem;
+  padding: 0;
+  padding-left:0;
+  margin-left: 0;
+  margin-right: 0;
+  border: none;
+  transition: all 0.3s ease;
+  height: 48px;
+  min-height: 48px;
+  max-height: 48px;
+  display: flex;
+  gap: 0.5rem;  // Gap between icon and text
+  position: relative;
+  width: 100%;
+
+  &:hover {
+    border: 1px solid rgba(82, 152, 114, 0.2);
+  }
+
+  &--active {
+    border: 1px solid rgba(82, 152, 114, 0.5);
+  }
+
+  &--collapsed {
+    border-radius: 8px;
+  }
+}
+
+// List Item Icon - FIXED WIDTH, NO MOVEMENT ON COLLAPSE
+.listItemIcon {
+  color: $primary-text-dark;
+  height: 30px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding-left: 15px;
+  margin: 0;
+  flex-shrink: 0;
+  svg {
+    font-size: 1.65rem;
+  }
+}
+
+// List Item Text - FLEXIBLE, EXPANDS TO FILL SPACE
+.listItemText {
+  font-weight: 300;
+  font-family: "Inter", "Segoe UI", "Roboto", sans-serif;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-left: 0;  // Flush text to the left
+
+  span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// Masterlist Styles
+.masterlistButton {
+  padding-left: 0;
+
+  &:hover {
+    background-color: rgba(82, 152, 114, 0.1);
+    border: 1px solid rgba(82, 152, 114, 0.2);
+
+    .listItemIcon {
+      color: $nav-icon;
+    }
+  }
+
+  &--open {
+    background-color: rgba(82, 152, 114, 0.1);
+  }
+}
+
+// Nested List Items (Masterlist children)
+.nestedItem {
+  background-color: transparent;
+  color: $primary-text-dark;
+  padding-left: 3.5rem;
+  transition: all 0.2s ease;
+  position: relative;
+
+  &:hover {
+    background-color: rgb(255, 255, 255);
+  }
+
+  &--active {
+    background-color: rgb(255, 255, 255);
+    color: $text-white;
+
+    &:hover {
+      background-color: rgba(82, 152, 114, 0.45);
+    }
+  }
+
+  .listItemIcon {
+    color: $primary-text-dark;
+  }
+}
+
+// Menu Item Styles
+.menuItem {
+  background-color: transparent;
+  color: $primary-text-dark;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: rgba(82, 152, 114, 0.1);
+  }
+
+  &--active {
+    background-color: rgba(82, 152, 114, 0.35);
+    color: $text-white;
+
+    &:hover {
+      background-color: rgba(82, 152, 114, 0.45);
+    }
+  }
+
+  .listItemIcon {
+    color: $primary-text-dark;
+    min-width: 36px;
+  }
+}
+
+// Spacer
+.spacer {
+  flex-grow: 1;
+}
+
+// Tooltip Styles
+.tooltip {
+  font-family: "Inter", "Segoe UI", "Roboto", sans-serif;
+  font-size: 0.875rem;
+}
+
+// Responsive adjustments
+@include bp.sm {
+  .sidebar {
+    &--collapsed {
+      width: 60px;
+    }
+
+    &--expanded {
+      width: 160px;
+    }
+  }
+
+  .header {
+    height: 70px;
+    min-height: 70px;
+    max-height: 70px;
+  }
+
+  .titleBox {
+    h4 {
+      font-size: 1rem;
+    }
+  }
+}
+
+@include bp.xs {
+  .sidebar {
+    width: 100%;
+    max-width: none;
+  }
+
+  .header {
+    height: 60px;
+    min-height: 60px;
+    max-height: 60px;
+  }
+
+  .list {
+    padding-top: 0.5rem;
+  }
+}

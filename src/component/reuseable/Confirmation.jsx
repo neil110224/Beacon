@@ -7,6 +7,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import { CircularProgress } from '@mui/material';
+import WarningIcon from '@mui/icons-material/Warning';
 
 const Confirmation = ({ open, onClose, onConfirm, title = "Confirm Action", message = "Are you sure?", isLoading = false }) => {
   const [localLoading, setLocalLoading] = useState(false);
@@ -30,14 +31,17 @@ const Confirmation = ({ open, onClose, onConfirm, title = "Confirm Action", mess
       aria-describedby="confirmation-dialog-description"
       sx={{
     '& .MuiDialog-paper': {
-      width: '400px',      // 👈 custom width
-      maxWidth: '60vw',    // 👈 responsive fallback for small screens
-      minHeight: '100px',  // 👈 optional: control height too
+      width: '400px',
+      maxWidth: '60vw',
+      minHeight: '100px',
       p: 2,
     }
   }}
     >
-      <DialogTitle id="confirmation-dialog-title">{title}</DialogTitle>
+      <DialogTitle id="confirmation-dialog-title" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <WarningIcon sx={{ color: '#ff9800' }} />
+        {title}
+      </DialogTitle>
       <DialogContent>
         <DialogContentText id="confirmation-dialog-description">
           {message}

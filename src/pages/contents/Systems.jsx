@@ -1,8 +1,9 @@
 import {
   Box,
   Paper,
+  Card,
+  CardContent,
   Typography,
-  CircularProgress,
   Avatar,
   Stack,
   Button,
@@ -15,6 +16,7 @@ import {
   DialogActions,
   Menu,
   MenuItem,
+  CircularProgress,
 } from '@mui/material'
 import SourceIcon from '@mui/icons-material/Source'
 import ArrowCircleRightIcon from '@mui/icons-material/ArrowCircleRight'
@@ -28,8 +30,9 @@ import { selectCurrentUser } from '../../features/api/slice/authSlice'
 import { useGetSystemsListQuery, useCreateSystemMutation, useUpdateSystemMutation } from '../../features/api/system/systemApi'
 import { useDebounce } from '../../hooks/useDebounce'
 import { useGetTeamsQuery } from '../../features/api/team/teamApi'
-import DataTable from '../../component/reuseable/DataTable'
 import SystemFormDialog from '../dialog/SystemFormDialog'
+import LighthouseLoader from '../../component/reuseable/Loading'
+import alhImg from '../../assets/alh.png'
 
 const Systems = () => {
   const navigate = useNavigate()
@@ -60,6 +63,28 @@ const Systems = () => {
   const [selectedTeam, setSelectedTeam] = React.useState(null)
   const [systemsDialogOpen, setSystemsDialogOpen] = React.useState(false)
 
+  // Fetch all systems to count per team
+  const { data: allSystemsData, isLoading: allSystemsLoading } = useGetSystemsListQuery({
+    status: 'active',
+    scope: 'global',
+    paginate: 'none',
+    pagination: 'none',
+  })
+
+  // Safe all systems data
+  const allSystems = React.useMemo(() => {
+    if (!Array.isArray(allSystemsData)) {
+      if (allSystemsData?.data?.data && Array.isArray(allSystemsData.data.data)) {
+        return allSystemsData.data.data
+      }
+      if (allSystemsData?.data && Array.isArray(allSystemsData.data)) {
+        return allSystemsData.data
+      }
+      return []
+    }
+    return allSystemsData
+  }, [allSystemsData])
+
   // Fetch systems for selected team with search
   const { data: teamSystemsData, isLoading: teamSystemsLoading } = useGetSystemsListQuery(
     selectedTeam?.id 
@@ -89,19 +114,28 @@ const Systems = () => {
     return teamsData
   }, [teamsData])
 
-  // Safe systems data from team query
+  // Safe systems data from team query - filter by team on frontend
   const teamSystems = React.useMemo(() => {
+    let systems = []
     if (!Array.isArray(teamSystemsData)) {
       if (teamSystemsData?.data?.data && Array.isArray(teamSystemsData.data.data)) {
-        return teamSystemsData.data.data
+        systems = teamSystemsData.data.data
+      } else if (teamSystemsData?.data && Array.isArray(teamSystemsData.data)) {
+        systems = teamSystemsData.data
       }
-      if (teamSystemsData?.data && Array.isArray(teamSystemsData.data)) {
-        return teamSystemsData.data
-      }
-      return []
+    } else {
+      systems = teamSystemsData
     }
-    return teamSystemsData
-  }, [teamSystemsData])
+    
+    // Filter by selected team on frontend as backup
+    if (selectedTeam?.id) {
+      systems = systems.filter(system => 
+        system.team_id === selectedTeam.id || system.team?.id === selectedTeam.id
+      )
+    }
+    
+    return systems
+  }, [teamSystemsData, selectedTeam?.id])
 
   // Filter systems by debounced search term
   const filteredTeamSystems = React.useMemo(() => {
@@ -119,35 +153,33 @@ const Systems = () => {
     )
   }, [teams, debouncedTeamsSearch])
 
-  // DataTable columns
-  const columns = [
-    {
-      id: 'name',
-      label: 'Team Name',
-      render: (row) => row.name || 'N/A'
-    },
-    {
-      id: 'action',
-      label: 'Action',
-      render: (row) => (
-        <IconButton
-          size="small"
-          onClick={() => {
-            setSelectedTeam(row)
-            setSystemsDialogOpen(true)
-          }}
-          sx={{
-            color: '#0397d1',
-            '&:hover': {
-              bgcolor: 'rgba(3, 151, 209, 0.1)',
-            }
-          }}
-        >
-          <SourceIcon />
-        </IconButton>
-      )
+  // Random color generator
+  const getRandomColor = (seed) => {
+    const colors = [
+      '#FFB6C1', '#87CEEB', '#98FB98', '#FFD700', '#FF6347',
+      '#DDA0DD', '#F0E68C', '#87CEEB', '#FFA07A', '#20B2AA',
+      '#DA70D6', '#F08080', '#B0E0E6', '#FFE4B5', '#F0FFFF'
+    ]
+    return colors[seed % colors.length]
+  }
+
+  // Memoize team color map
+  const teamColorMap = React.useMemo(() => {
+    const colorMap = {}
+    if (Array.isArray(teams)) {
+      teams.forEach((team, index) => {
+        colorMap[team.id] = getRandomColor(index)
+      })
     }
-  ]
+    return colorMap
+  }, [teams])
+
+  // Get system count per team from all systems
+  const getSystemCountForTeam = (teamId) => {
+    return allSystems.filter(system => 
+      system.team_id === teamId || system.team?.id === teamId
+    ).length
+  }
 
   const handleMenuOpen = (event) => {
     setMenuAnchor(event.currentTarget)
@@ -200,6 +232,12 @@ const Systems = () => {
   }
 
   return (
+    <>
+      {teamsLoading || allSystemsLoading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <LighthouseLoader text="Loading Systems" />
+        </Box>
+      ) : (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Header with Search and Add Button */}
       <Box sx={{
@@ -283,39 +321,71 @@ const Systems = () => {
         </Box>
       </Box>
 
-      {/* Teams DataTable */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', }}>
-        <DataTable
-          columns={columns}
-          rows={filteredTeams}
-          isLoading={teamsLoading || searchQuery !== debouncedTeamsSearch}
-          emptyMessage="No teams found"
-          tableSx={{ 
-            minWidth: 700,
-           
-            '& .MuiTableCell-root': {
-              padding: '14px 16px',
-              fontSize: '1rem',
-              color: '#2c3e50',
-            },
-            '& .MuiTableBody-root .MuiTableRow-root': {
-              cursor: 'default',
-              fontSize: '1rem',  // 👈 only body cells (team name content)
-            }
-          }}
-          headSx={{ 
-            background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
-            '& th': { 
-              fontWeight: 600,
-              color: '#ffffff !important',
-              fontSize: '0.875rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              padding: '16px',
-            }
-          }}
-        />
-      </Box>
+      {/* Teams Cards Grid */}
+      {filteredTeams.length === 0 ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <Box sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 4, maxWidth: '700px' }}>
+            <Box
+              component="img"
+              src={alhImg}
+              alt="No data"
+              sx={{
+                width: '300px',
+                height: 'auto',
+                objectFit: 'contain',
+                flexShrink: 0,
+              }}
+            />
+            <Box sx={{ textAlign: 'left', color: '#6c757d' }}>
+              <Typography variant="h6" sx={{ mb: 1, fontWeight: 500 }}>
+                Systems
+              </Typography>
+              <Typography variant="body2">
+                No records found
+              </Typography>
+              <Typography variant="body2">
+                There are no records to display
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+      ) : (
+        <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: 2, p: 2 }}>
+          {filteredTeams.map(team => {
+            const systemCount = getSystemCountForTeam(team.id)
+            return (
+              <Card 
+                key={team.id} 
+                sx={{ 
+                  borderRadius: 2, 
+                  border: "1px solid #e0e0e0", 
+                  boxShadow: "none",
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  backgroundColor: teamColorMap[team.id],
+                  '&:hover': {
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                    transform: 'translateY(-2px)',
+                  }
+                }}
+                onClick={() => {
+                  setSelectedTeam(team)
+                  setSystemsDialogOpen(true)
+                }}
+              >
+                <CardContent>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#2c3e50' }}>
+                    {team.name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>{systemCount}</strong> {systemCount === 1 ? 'system' : 'systems'}
+                  </Typography>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </Box>
+      )}
 
       {/* Systems Dialog - Shows systems for selected team */}
       <Dialog
@@ -432,6 +502,8 @@ const Systems = () => {
         onSave={handleSystemsSave}
       />
     </Box>
+      )}
+    </>
   )
 }
 

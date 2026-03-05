@@ -1,0 +1,68 @@
+@use "../../../styles/colors.scss" as *;
+@use "../../../styles/mixins.scss" as bp;
+
+.masterlistTabsWrapper {
+  border-color: divider;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.masterlistTabsContainer {
+  & .MuiTab-root {
+    text-transform: none;
+    font-weight: 500;
+    font-size: 1rem;
+    min-height: 42px;
+    color: $primary-text-dark;
+
+    &.Mui-selected {
+      color: $primary-text-dark;
+    }
+  }
+
+  & .MuiTabs-indicator {
+    background-color: $primary-text-dark;
+    height: 2px;
+  }
+}
+
+.masterlistActionBar {
+  flex-grow: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+}
+
+.masterlistCreateButton {
+  text-transform: none;
+  border-radius: 8px;
+  padding: 6px 20px;
+  font-weight: 500;
+
+  &:hover {
+    background-color: $primary-text-dark;
+  }
+}
+
+.masterlistSearchField {
+  max-width: 400px;
+
+  & .MuiOutlinedInput-root {
+    border-radius: 8px;
+    background-color: #fff;
+
+    &:hover fieldset {
+      border-color: #2c3e50;
+    }
+
+    &.Mui-focused fieldset {
+      border-color: $primary-text-dark;
+    }
+  }
+}
+
+.masterlistSearchIcon {
+  color: $primary-text-dark;
+}

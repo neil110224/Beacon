@@ -1,0 +1,164 @@
+@use "../../../styles/mixins.scss" as bp;
+@use "../../../styles/colors.scss" as *;
+
+// Pagination Actions Container
+.paginationActionsWrapper {
+  flex-shrink: 0;
+  margin-left: 20px;
+}
+
+// Loading Container
+.dataTableLoading {
+  display: flex;
+  justify-content: center;
+  min-height: 400px;
+}
+
+// Error Container
+.dataTableError {
+  padding: 24px;
+  color: #d32f2f;
+}
+
+// Paper Container for empty state
+.dataTablePaperEmpty {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Empty State Box
+.emptyStateContainer {
+  text-align: center;
+  padding: 32px 0;
+}
+
+// Empty State Icon
+.emptyStateIcon {
+  font-size: 64px;
+  color: $primary-text-dark;
+  margin-bottom: 16px;
+}
+
+// Empty State Title
+.emptyStateTitle {
+  margin-bottom: 8px;
+}
+
+// Paper Container for main table
+.dataTablePaper {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+// Table Container with custom scrollbar
+.dataTableContainer {
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: $primary-text-light;
+    border-radius: 4px;
+    
+    &:hover {
+      background-color: $primary-text-dark;
+    }
+  }
+}
+
+
+// Table base styles
+.dataTableBase {
+  min-width: 1400px;
+
+  // Table cell padding
+  & .MuiTableCell-root {
+    padding: 8px;
+  }
+}
+
+// Table Head styles
+.dataTableHead {
+  background-color: $primary-dark;
+}
+
+// Table Header Cell
+.dataTableHeaderCell {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: $primary-text-light;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    cursor: help;
+  }
+}
+
+// Table Row styles
+.dataTableRow {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+    transition: background-color 0.2s ease;
+  }
+
+  &:last-child td {
+    border-bottom: none;
+  }
+}
+
+// Table Body Cell
+.dataTableBodyCell {
+  font-size: 0.8rem;
+  color: $primary-text-light;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  
+  &:hover {
+    overflow: visible;
+    text-overflow: initial;
+    white-space: normal;
+    word-break: break-word;
+  }
+}
+
+// Empty Row Cell
+.dataTableEmptyCell {
+  padding: 32px 0;
+  text-align: center;
+}
+
+// Empty Data Box
+.emptyDataBox {
+  text-align: center;
+}
+
+// Empty Data Icon
+.emptyDataIcon {
+  font-size: 48px;
+  color: $primary-text-light;
+  margin-bottom: 8px;
+}
+
+// // Table Pagination
+// .dataTablePagination {
+//   component: div;
+// }

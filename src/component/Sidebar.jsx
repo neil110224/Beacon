@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import Confirmation from './reuseable/Confirmation';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Box, List, ListItemButton, ListItemIcon, ListItemText, Collapse, IconButton, Avatar, Typography, Menu, MenuItem, Tooltip, Popover } from '@mui/material';
+import { Box, List, ListItemButton, ListItemIcon, ListItemText, Collapse, Menu, MenuItem, Tooltip } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import SettingsSystemDaydreamIcon from '@mui/icons-material/SettingsSystemDaydream';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
-import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import PeopleIcon from '@mui/icons-material/People';
 import GroupsIcon from '@mui/icons-material/Groups';
@@ -13,671 +11,230 @@ import LocationCityIcon from '@mui/icons-material/LocationCity';
 import CategoryIcon from '@mui/icons-material/Category';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import mis from "../assets/mis.png";
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import logo from "../assets/logo.png";
+import plogo from "../assets/pl.png";
+import "./scss/sidebar.scss";
 
-const Sidebar = ({ user, onChangeProfile, isSidebarLocked = false, onToggleSidebarLock = () => {}, isSidebarCollapsed = false }) => {
-  const location = useLocation();
-  
-  // Get user permissions
-  const userPermissions = user?.role?.access_permissions || [];
-  
-  // Permission checks for each section/item
-  const hasDashboard = userPermissions.includes('Dashboard');
-  const hasRole = userPermissions.includes('Role');
-  const hasUsers = userPermissions.includes('Users');
-  const hasTeam = userPermissions.includes('Team');
-  const hasCharging = userPermissions.includes('Charging');
-  const hasCategory = userPermissions.includes('Category');
-  const hasSystems = userPermissions.includes('Systems');
-  
-  // Check if user has any masterlist permissions
-  const hasMasterlistAccess = hasRole || hasUsers || hasTeam || hasCharging || hasCategory;
+// Menu items configuration
+const MENU_ITEMS = [
+  { key: 'dashboard', path: '/Dashboard', label: 'Dashboard', icon: HomeIcon, permission: 'Dashboard', isMasterlist: false },
+  { key: 'users', path: '/users', label: 'Users', icon: PeopleIcon, permission: 'Users', isMasterlist: true },
+  { key: 'role', path: '/role', label: 'Role', icon: PersonIcon, permission: 'Role', isMasterlist: true },
+  { key: 'charging', path: '/charging', label: 'Charging', icon: LocationCityIcon, permission: 'Charging', isMasterlist: true },
+  { key: 'category', path: '/category', label: 'Category', icon: CategoryIcon, permission: 'Category', isMasterlist: true },
+  { key: 'team', path: '/team', label: 'Team', icon: GroupsIcon, permission: 'Team', isMasterlist: true },
+  { key: 'systems', path: '/systems', label: 'Systems', icon: SettingsSystemDaydreamIcon, permission: 'Systems', isMasterlist: false },
+];
 
-  const [openMasterlist, setOpenMasterlist] = useState(
-    hasMasterlistAccess && (
-      location.pathname.startsWith('/role') || 
-      location.pathname.startsWith('/users') || 
-      location.pathname.startsWith('/team') || 
-      location.pathname.startsWith('/charging') ||
-      location.pathname.startsWith('/category')
-    )
-  );
-  const [isHovered, setIsHovered] = useState(false);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [masterlistMenuAnchor, setMasterlistMenuAnchor] = useState(null);
-  
-  const open = Boolean(anchorEl);
-  const firstName = user?.first_name;
+const MASTERLIST_ITEMS = MENU_ITEMS.filter(item => item.isMasterlist === true);
 
-  const handleAvatarClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleChangeProfile = () => {
-    if (onChangeProfile) {
-      onChangeProfile();
-    }
-    handleClose();
-  };
-
-  const handleMasterlistToggle = () => {
-    setOpenMasterlist(!openMasterlist);
-  };
-
-  const handleMasterlistMenuClick = (event) => {
-    setMasterlistMenuAnchor(event.currentTarget);
-  };
-
-  const handleMasterlistMenuClose = () => {
-    setMasterlistMenuAnchor(null);
-  };
-
-  // Determine actual collapsed state - true means collapsed (narrower)
-  const isCollapsed = isSidebarCollapsed;
-
-  const handleSidebarMouseEnter = () => {
-    setIsHovered(true);
-  };
-
-  const handleSidebarMouseLeave = () => {
-    setIsHovered(false);
-  };
-
-
-
-
+const MenuItem_ = ({ item, isActive, isCollapsed, onClick }) => {
+  const Icon = item.icon;
   return (
-    <Box 
-      onMouseEnter={handleSidebarMouseEnter}
-      onMouseLeave={handleSidebarMouseLeave}
-      sx={{
-        background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 100%)',
-        height: '100vh', 
-        width: isCollapsed ? '80px' : '200px',
-        minWidth: isCollapsed ? '80px' : '200px',
-        maxWidth: isCollapsed ? '80px' : '200px',
-        color: '#f4f4f4',
-        overflow: 'hidden',
-        transition: 'width 1s ease, min-width 1s ease, max-width 1s ease',
-        display: 'flex',
-        flexDirection: 'column',
-        boxShadow: '4px 0 12px rgba(0, 0, 0, 0.1)',
-      }}
-    >
-      {/* Header with Logo and Title */}
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: isCollapsed ? 'center' : 'space-between',
-          px: isCollapsed ? 1 : { xs: 1, sm: 2 },
-          py: 0,
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-          height: { xs: '70px', sm: '80px' },
-          minHeight: { xs: '70px', sm: '80px' },
-          maxHeight: { xs: '70px', sm: '80px' },
-          gap: 1,
-          position: 'relative',
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: '1px',
-            background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)',
+    <Tooltip title={isCollapsed ? item.label : ""} placement="right">
+      <ListItemButton
+        className={`listItemButton ${isActive ? 'listItemButton--active' : ''} ${isCollapsed ? 'listItemButton--collapsed' : ''}`}
+        onClick={onClick}
+        sx={{ 
+          gap: '1rem',
+          backgroundColor: isActive ? 'rgba(82, 152, 114, 0.35)' : 'transparent',
+          '&:hover': {
+            backgroundColor: isActive ? 'rgba(82, 152, 114, 0.45)' : 'rgba(255, 255, 255, 0.1)'
           }
         }}
       >
-        {/* Logo and Title - show full when expanded, logo only when collapsed */}
-        {isCollapsed ? (
-          <Box
-            sx={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
-            }}
-          >
-            <Link to="/dashboard">
-            <img 
-              src={mis} 
-              alt="MIS Logo" 
-              style={{ 
-                width: '28px', 
-                height: '28px',
-                objectFit: 'contain' 
-              }} 
-            />
-            </Link>
-          </Box>
-        ) : (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1, justifyContent: 'flex-start' }}>
-            <Box
-              sx={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
-              }}
-            >
-              <Link to="/dashboard">
-              <img 
-                src={mis} 
-                alt="MIS Logo" 
-                style={{ 
-                  width: '28px', 
-                  height: '28px',
-                  objectFit: 'contain' 
-                }} 
-              />
-              </Link>
-            </Box>
-            <Box
-              component="h3"
-              sx={{
-                margin: 0,
-                fontSize: '1.3rem',
-                fontWeight: 600,
-                letterSpacing: '0.5px',
-                fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
-                color: '#ffffff',
-              }}
-            >
-              Beacon
-            </Box>
-          </Box>
-        )}
+        <ListItemIcon className="listItemIcon" sx={{ minWidth: '0', margin: '0', color: '#03346E' }}>
+          <Icon />
+        </ListItemIcon>
+        {!isCollapsed && <ListItemText primary={item.label} sx={{ '& .MuiTypography-root': { fontSize: '1.05rem', fontWeight: 600, display:'flex', justifyContent:'flex-start', color: '#03346E'  } }} className="listItemText"  />}
+      </ListItemButton>
+    </Tooltip>
+  );
+};
+
+const NavMenuItem = ({ item, isCollapsed, isActive, inMenu = false }) => {
+  return (
+    <NavLink to={item.path} style={{ textDecoration: 'none', color: 'inherit' }}>
+      {({ isActive: isNavActive }) => {
+        const active = inMenu ? isActive : isNavActive;
+        if (inMenu) {
+          return (
+            <MenuItem className={`menuItem ${active ? 'menuItem--active' : ''}`}>
+              <ListItemIcon sx={{ color:'#03346E', minWidth: '36px' }}>
+                {item.icon && <item.icon fontSize="large" />}
+              </ListItemIcon>
+              {item.label}
+            </MenuItem>
+          );
+        }
+        return (
+          <MenuItem_ item={item} isActive={active} isCollapsed={isCollapsed} />
+        );
+      }}
+    </NavLink>
+  );
+};
+
+const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false }) => {
+  const location = useLocation();
+  const userPermissions = user?.role?.access_permissions || [];
+  const isCollapsed = isSidebarCollapsed;
+
+  const [openMasterlist, setOpenMasterlist] = useState(
+    MASTERLIST_ITEMS.some(item => 
+      userPermissions.includes(item.permission) && location.pathname.startsWith(item.path)
+    )
+  );
+  const [masterlistMenuAnchor, setMasterlistMenuAnchor] = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleClose = () => setAnchorEl(null);
+  const handleChangeProfile = () => {
+    onChangeProfile?.();
+    handleClose();
+  };
+  const handleMasterlistToggle = () => setOpenMasterlist(!openMasterlist);
+  const handleMasterlistMenuClick = (e) => setMasterlistMenuAnchor(e.currentTarget);
+  const handleMasterlistMenuClose = () => setMasterlistMenuAnchor(null);
+
+  const hasMasterlistAccess = MASTERLIST_ITEMS.some(item => userPermissions.includes(item.permission));
+
+  return (
+    <Box className={`sidebarWrapper ${isCollapsed ? 'sidebarWrapper--collapsed' : 'sidebarWrapper--expanded'}`}>
+      {/* Header with Logo and Title */}
+      <Box className="header">
+        <Box className="logoBox">
+          <Link to="/dashboard">
+            <img src={plogo} alt="Beacon Logo" />
+          </Link>
+        </Box>
+        {!isCollapsed && <Box component="h4" className="title">Beacon</Box>}
       </Box>
 
-      <List 
-        component="nav" 
-        sx={{ 
-          flexGrow: 1,
-          overflowY: 'auto',
-          overflowX: 'hidden',
-          px: isCollapsed ? 0.5 : 1,
-          py: 1,
-          // Hide scrollbar for Chrome, Safari and Opera
-          '&::-webkit-scrollbar': {
-            display: 'none',
-          },
-          // Hide scrollbar for IE, Edge and Firefox
-          msOverflowStyle: 'none',
-          scrollbarWidth: 'none',
-        }}
-      >
+      <List component="nav" className="list">
         {/* Dashboard */}
-        {hasDashboard && (
-          <NavLink
-            to="/Dashboard"
-            style={{ textDecoration: 'none', color: 'inherit' }}
-          >
+        {MENU_ITEMS.filter(item => 
+          item.key === 'dashboard' && userPermissions.includes(item.permission)
+        ).map(item => (
+          <NavLink key={item.key} to={item.path} style={{ textDecoration: 'none', color: 'inherit' }}>
             {({ isActive }) => (
-              <Tooltip title={isCollapsed ? "Dashboard" : ""} placement="right">
-                <ListItemButton
-                  sx={{
-                    background: isActive 
-                      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)'
-                      : 'transparent',
-                    color: '#ffffff',
-                    justifyContent: isCollapsed ? 'center' : 'flex-start',
-                    borderRadius: isCollapsed ? '8px' : '12px',
-                    mb: 0.5,
-                    border: isActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
-                    backdropFilter: isActive ? 'blur(10px)' : 'none',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      background: isActive 
-                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.12) 100%)'
-                        : 'rgba(255, 255, 255, 0.08)',
-                      transform: 'translateX(4px)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
-                    },
-                  }}
-                >
-                  <ListItemIcon 
-                    sx={{ 
-                      color: '#ffffff', 
-                      minWidth: isCollapsed ? 'auto' : '48px',
-                      display: 'flex',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <HomeIcon sx={{ fontSize: isCollapsed ? '1.5rem' : '1.3rem' }} />
-                  </ListItemIcon>
-                  {!isCollapsed && (
-                    <ListItemText 
-                      primary="Dashboard" 
-                      primaryTypographyProps={{
-                        fontSize: '0.95rem',
-                        fontWeight: isActive ? 600 : 500,
-                        fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
-                      }}
-                    />
-                  )}
-                </ListItemButton>
-              </Tooltip>
+              <MenuItem_ item={item} isActive={isActive} isCollapsed={isCollapsed} />
             )}
           </NavLink>
-        )}
+        ))}
 
-        {/* Masterlist */}
+        {/* Masterlist Section */}
         {hasMasterlistAccess && (
-        <Tooltip title={isCollapsed ? "Masterlist" : ""} placement="right">
-          <ListItemButton
-            onClick={isCollapsed ? handleMasterlistMenuClick : handleMasterlistToggle}
-            sx={{
-              background: openMasterlist && !isCollapsed
-                ? 'rgba(255, 255, 255, 0.08)'
-                : 'transparent',
-              color: '#ffffff',
-              justifyContent: isCollapsed ? 'center' : 'flex-start',
-              borderRadius: isCollapsed ? '8px' : '12px',
-              mb: 0.5,
-              border: '1px solid transparent',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                bgcolor: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                transform: isCollapsed ? 'none' : 'translateX(4px)',
-              },
-            }}
-          >
-            <ListItemIcon 
-              sx={{ 
-                color: '#ffffff',
-                minWidth: isCollapsed ? 'auto' : '48px',
-                display: 'flex',
-                justifyContent: 'center',
-              }}
-            >
-              <LibraryBooksIcon sx={{ fontSize: isCollapsed ? '1.5rem' : '1.3rem' }} />
-            </ListItemIcon>
-            {!isCollapsed && (
-              <>
-                <ListItemText
-                  primary="Masterlist"
-                  primaryTypographyProps={{
-                    fontSize: '0.95rem',
-                    fontWeight: 500,
-                    fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
-                  }}
-                />
-                {openMasterlist ? <ExpandLess /> : <ExpandMore />}
-              </>
-            )}
-          </ListItemButton>
-        </Tooltip>
-        )}
-        {!isCollapsed && (
           <>
-            {/* Masterlist Children */}
-            
-            <Collapse in={openMasterlist} timeout={1000} unmountOnExit>
-              <List component="div" disablePadding>
-                {/* Role */}
-                {hasRole && (
-                  <NavLink
-                    to="/role"
-                    style={{ textDecoration: 'none', color: 'inherit' }}
-                  >
-                    {({ isActive }) => (
-                      <ListItemButton
-                        sx={{
-                          pl: 4,
-                          bgcolor: isActive ? '#2e244b' : 'transparent',
-                          color: isActive ? '#fff' : '#f4f4f4',
-                          '&:hover': {
-                            bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
-                          },
-                        }}
-                      >
-                        <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4' }}>
-                          <PersonIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Role" />
-                      </ListItemButton>
-                    )}
-                  </NavLink>
+            <Tooltip title={isCollapsed ? "Masterlist" : ""} placement="right">
+              <ListItemButton
+                onClick={isCollapsed ? handleMasterlistMenuClick : handleMasterlistToggle}
+                className={`listItemButton ${openMasterlist && !isCollapsed ? 'listItemButton--active' : ''} ${isCollapsed ? 'listItemButton--collapsed' : ''}`}
+                sx={{
+                  gap: '1rem',
+                  backgroundColor: openMasterlist && !isCollapsed ? 'transparent' : 'transparent',
+                  '&:hover': {
+                    backgroundColor: openMasterlist && !isCollapsed ? 'rgba(82, 152, 114, 0.45)' : 'rgba(255, 255, 255, 0.1)'
+                  },
+                  '& .MuiTypography-root': { fontSize: '1.05rem',  fontWeight: 600, color: '#03346E' }
+                }}
+              >
+                <ListItemIcon className="listItemIcon" sx={{ minWidth: '0', margin: '0', color: '#03346E' }}>
+                  <LibraryBooksIcon />
+                </ListItemIcon>
+                {!isCollapsed && (
+                  <>
+                    <ListItemText primary="Masterlist" className="listItemText" sx={{ '& .MuiTypography-root': { color: '#03346E' } }} />
+                    <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
+                      {openMasterlist ? <ExpandLess sx={{ color: '#03346E' }} /> : <ExpandMore sx={{ color: '#03346E' }} />}
+                    </Box>
+                  </>
                 )}
+              </ListItemButton>
+            </Tooltip>
 
-                {/* User */}
-                {hasUsers && (
-                  <NavLink
-                    to="/users"
-                    style={{ textDecoration: 'none', color: 'inherit' }}
-                  >
-                    {({ isActive }) => (
-                      <ListItemButton
-                        sx={{
-                          pl: 4,
-                          bgcolor: isActive ? '#2e244b' : 'transparent',
-                          color: isActive ? '#fff' : '#f4f4f4',
-                          '&:hover': {
-                            bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
-                          },
-                        }}
-                      >
-                        <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4' }}>
-                          <PeopleIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Users" />
-                      </ListItemButton>
-                    )}
-                  </NavLink>
-                )}
+            {/* Expanded Masterlist */}
+            {!isCollapsed && (
+              <Collapse in={openMasterlist}>
+                <List component="div" disablePadding>
+                  {MASTERLIST_ITEMS.filter(item => 
+                    userPermissions.includes(item.permission)
+                  ).map(item => (
+                    <NavLink key={item.key} to={item.path} style={{ textDecoration: 'none', color: 'inherit' }}>
+                      {({ isActive }) => (
+                        <ListItemButton 
+                          className={`nestedItem ${isActive ? 'nestedItem--active' : ''}`}
+                          sx={{
+                            paddingLeft: '3.5rem',
+                            gap: '1rem',
+                            backgroundColor: isActive ? 'rgba(82, 152, 114, 0.35)' : 'transparent',
+                            '&:hover': {
+                              backgroundColor: isActive ? 'rgba(82, 152, 114, 0.45)' : 'rgba(82, 152, 114, 0.1)'
+                            },
+                            '& .MuiTypography-root': { fontSize: '1rem' , fontWeight: 600, color: '#03346E' }
+                          }}
+                        >
+                          <ListItemIcon sx={{ color: '#03346E', minWidth: '0', margin: '0' }}>
+                            <item.icon />
+                          </ListItemIcon>
+                          <ListItemText primary={item.label} sx={{ '& .MuiTypography-root': { color: '#03346E' } }} />
+                        </ListItemButton>
+                      )}
+                    </NavLink>
+                  ))}
+                </List>
+              </Collapse>
+            )}
 
-                {/* Team */}
-                {hasTeam && (
-                  <NavLink
-                    to="/team"
-                    style={{ textDecoration: 'none', color: 'inherit' }}
-                  >
+            {/* Collapsed Masterlist Menu */}
+            {isCollapsed && (
+              <Menu
+                anchorEl={masterlistMenuAnchor}
+                open={Boolean(masterlistMenuAnchor)}
+                onClose={handleMasterlistMenuClose}
+                PaperProps={{ elevation: 8, className: 'menuPaper' }}
+              >
+                {MASTERLIST_ITEMS.filter(item => 
+                  userPermissions.includes(item.permission)
+                ).map(item => (
+                  <NavLink key={item.key} to={item.path} style={{ textDecoration: 'none', color: 'inherit' }}>
                     {({ isActive }) => (
-                      <ListItemButton
-                        sx={{
-                          pl: 4,
-                          bgcolor: isActive ? '#2e244b' : 'transparent',
-                          color: isActive ? '#fff' : '#f4f4f4',
-                          '&:hover': {
-                            bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
-                          },
-                        }}
+                      <MenuItem 
+                        onClick={handleMasterlistMenuClose}
+                        className={`menuItem ${isActive ? 'menuItem--active' : ''}`}
                       >
-                        <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4' }}>
-                          <GroupsIcon />
+                        <ListItemIcon sx={{ color: '#03346E', minWidth: '36px' }}>
+                          <item.icon fontSize="small" />
                         </ListItemIcon>
-                        <ListItemText primary="Team" />
-                      </ListItemButton>
+                        {item.label}
+                      </MenuItem>
                     )}
                   </NavLink>
-                )}
-
-                {/* Charging */}
-                {hasCharging && (
-                  <NavLink
-                    to="/charging"
-                    style={{ textDecoration: 'none', color: 'inherit' }}
-                  >
-                    {({ isActive }) => (
-                      <ListItemButton
-                        sx={{
-                          pl: 4,
-                          bgcolor: isActive ? '#2e244b' : 'transparent',
-                          color: isActive ? '#fff' : '#f4f4f4',
-                          '&:hover': {
-                            bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
-                          },
-                        }}
-                      >
-                        <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4' }}>
-                          <LocationCityIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Charging" />
-                      </ListItemButton>
-                    )}
-                  </NavLink>
-                )}
-
-                {/* Category */}
-                {hasCategory && (
-                  <NavLink
-                    to="/category"
-                    style={{ textDecoration: 'none', color: 'inherit' }}
-                  >
-                    {({ isActive }) => (
-                      <ListItemButton
-                        sx={{
-                          pl: 4,
-                          bgcolor: isActive ? '#2e244b' : 'transparent',
-                          color: isActive ? '#fff' : '#f4f4f4',
-                          '&:hover': {
-                            bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
-                          },
-                        }}
-                      >
-                        <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4' }}>
-                          <CategoryIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Category" />
-                      </ListItemButton>
-                    )}
-                  </NavLink>
-                )}
-            </List>
-            </Collapse>
+                ))}
+              </Menu>
+            )}
           </>
         )}
 
-        {/* Collapsed Masterlist Menu */}
-        {isCollapsed && hasMasterlistAccess && (
-          <Menu
-            anchorEl={masterlistMenuAnchor}
-            open={Boolean(masterlistMenuAnchor)}
-            onClose={handleMasterlistMenuClose}
-            PaperProps={{
-              elevation: 8,
-              sx: {
-                bgcolor: '#1a1a2e',
-                color: '#f4f4f4',
-                borderRadius: '8px',
-                mt: 1,
-                minWidth: '160px',
-                backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
-              }
-            }}
-          >
-            {hasRole && (
-              <NavLink
-                to="/role"
-                style={{ textDecoration: 'none', color: 'inherit' }}
-              >
-                {({ isActive }) => (
-                  <MenuItem 
-                    onClick={handleMasterlistMenuClose}
-                    sx={{
-                      bgcolor: isActive ? '#2e244b' : 'transparent',
-                      color: isActive ? '#fff' : '#f4f4f4',
-                      '&:hover': {
-                        bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
-                      },
-                    }}
-                  >
-                    <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4', minWidth: '36px' }}>
-                      <PersonIcon fontSize="small" />
-                    </ListItemIcon>
-                    Role
-                  </MenuItem>
-                )}
-              </NavLink>
-            )}
-
-            {hasUsers && (
-              <NavLink
-                to="/users"
-                style={{ textDecoration: 'none', color: 'inherit' }}
-              >
-                {({ isActive }) => (
-                  <MenuItem 
-                    onClick={handleMasterlistMenuClose}
-                    sx={{
-                      bgcolor: isActive ? '#2e244b' : 'transparent',
-                      color: isActive ? '#fff' : '#f4f4f4',
-                      '&:hover': {
-                        bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
-                      },
-                    }}
-                  >
-                    <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4', minWidth: '36px' }}>
-                      <PeopleIcon fontSize="small" />
-                    </ListItemIcon>
-                    Users
-                  </MenuItem>
-                )}
-              </NavLink>
-            )}
-
-            {hasTeam && (
-              <NavLink
-                to="/team"
-                style={{ textDecoration: 'none', color: 'inherit' }}
-              >
-                {({ isActive }) => (
-                  <MenuItem 
-                    onClick={handleMasterlistMenuClose}
-                    sx={{
-                      bgcolor: isActive ? '#2e244b' : 'transparent',
-                      color: isActive ? '#fff' : '#f4f4f4',
-                      '&:hover': {
-                        bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
-                      },
-                    }}
-                  >
-                    <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4', minWidth: '36px' }}>
-                      <GroupsIcon fontSize="small" />
-                    </ListItemIcon>
-                    Team
-                  </MenuItem>
-                )}
-              </NavLink>
-            )}
-
-            {hasCharging && (
-              <NavLink
-                to="/charging"
-                style={{ textDecoration: 'none', color: 'inherit' }}
-              >
-                {({ isActive }) => (
-                  <MenuItem 
-                    onClick={handleMasterlistMenuClose}
-                    sx={{
-                      bgcolor: isActive ? '#2e244b' : 'transparent',
-                      color: isActive ? '#fff' : '#f4f4f4',
-                      '&:hover': {
-                        bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
-                      },
-                    }}
-                  >
-                    <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4', minWidth: '36px' }}>
-                      <LocationCityIcon fontSize="small" />
-                    </ListItemIcon>
-                    Charging
-                  </MenuItem>
-                )}
-              </NavLink>
-            )}
-
-            {hasCategory && (
-              <NavLink
-                to="/category"
-                style={{ textDecoration: 'none', color: 'inherit' }}
-              >
-                {({ isActive }) => (
-                  <MenuItem 
-                    onClick={handleMasterlistMenuClose}
-                    sx={{
-                      bgcolor: isActive ? '#2e244b' : 'transparent',
-                      color: isActive ? '#fff' : '#f4f4f4',
-                      '&:hover': {
-                        bgcolor: isActive ? '#2e244b' : 'rgba(255, 255, 255, 0.1)',
-                      },
-                    }}
-                  >
-                    <ListItemIcon sx={{ color: isActive ? '#fff' : '#f4f4f4', minWidth: '36px' }}>
-                      <CategoryIcon fontSize="small" />
-                    </ListItemIcon>
-                    Category
-                  </MenuItem>
-                )}
-              </NavLink>
-            )}
-          </Menu>
-        )}
-      
-    
-
         {/* Systems */}
-        {hasSystems && (
-          <NavLink
-            to="/systems"
-            style={{ textDecoration: 'none', color: 'inherit' }}
-          >
+        {MENU_ITEMS.filter(item => 
+          item.key === 'systems' && userPermissions.includes(item.permission)
+        ).map(item => (
+          <NavLink key={item.key} to={item.path} style={{ textDecoration: 'none', color: 'inherit' }}>
             {({ isActive }) => (
-              <Tooltip title={isCollapsed ? "systems" : ""} placement="right">
-                <ListItemButton
-                  sx={{
-                    background: isActive 
-                      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)'
-                      : 'transparent',
-                    color: '#ffffff',
-                    justifyContent: isCollapsed ? 'center' : 'flex-start',
-                    borderRadius: isCollapsed ? '8px' : '12px',
-                    mb: 0.5,
-                    border: isActive ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid transparent',
-                    backdropFilter: isActive ? 'blur(10px)' : 'none',
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      background: isActive 
-                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.12) 100%)'
-                        : 'rgba(255, 255, 255, 0.08)',
-                      transform: 'translateX(4px)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
-                    },
-                  }}
-                >
-                  <ListItemIcon 
-                    sx={{ 
-                      color: '#ffffff', 
-                      minWidth: isCollapsed ? 'auto' : '48px',
-                      display: 'flex',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <SettingsSystemDaydreamIcon sx={{ fontSize: isCollapsed ? '1.5rem' : '1.3rem' }} />
-                  </ListItemIcon>
-                  {!isCollapsed && (
-                    <ListItemText 
-                      primary="Systems" 
-                      primaryTypographyProps={{
-                        fontSize: '0.95rem',
-                        fontWeight: isActive ? 600 : 500,
-                        fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
-                      }}
-                    />
-                  )}
-                </ListItemButton>
-              </Tooltip>
+              <MenuItem_ item={item} isActive={isActive} isCollapsed={isCollapsed} />
             )}
           </NavLink>
-        )}
+        ))}
       </List>
 
-      {/* Spacer to push footer to bottom */}
-      <Box sx={{ flexGrow: 1 }} />
+      <Box className="spacer" />
 
-      <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
+      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
         <MenuItem onClick={handleChangeProfile}>
-          <PersonIcon sx={{ mr: 1 }} />
+          <ListItemIcon sx={{ minWidth: '0', margin: '0', mr: 1 }}>
+            <PersonIcon />
+          </ListItemIcon>
           Change Profile
         </MenuItem>
       </Menu>
