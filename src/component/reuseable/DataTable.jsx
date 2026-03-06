@@ -16,12 +16,14 @@ import {
   IconButton,
   CircularProgress,
   Typography,
+  Skeleton,
 } from "@mui/material";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
 import InboxIcon from "@mui/icons-material/Inbox";
+import Nodata from "./Nodata";
 import "./reuseablescss/DataTable.scss";
 
 function TablePaginationActions(props) {
@@ -80,6 +82,7 @@ function DataTable({
   cellTextColor = "#03346E",
   tableSx = { minWidth: 1400 },
   headSx = { bgcolor: "#dadada" },
+  onRowClick = null,
 }) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
@@ -94,9 +97,80 @@ function DataTable({
 
   if (isLoading) {
     return (
-      <Box className="dataTableLoading">
-        <CircularProgress />
-      </Box>
+      <Paper 
+        elevation={0}
+        className="dataTablePaper"
+        sx={{ display: "flex", flexDirection: "column", maxHeight: "400px" }}
+      >
+        <TableContainer className="dataTableContainer" sx={{ overflow: "auto", flex: 1 }}>
+          <Table className="dataTableBase">
+            <TableHead className="dataTableHead" sx={{ position: "sticky", top: 0, zIndex: 1 }}>
+              <TableRow>
+                {columns.length === 0 ? (
+                  <TableCell align="center"><Skeleton width="100%" /></TableCell>
+                ) : (
+                  columns.map((col) => (
+                    <TableCell 
+                      key={col.id} 
+                      align={col.align || "left"} 
+                      className="dataTableHeaderCell"
+                      sx={{ 
+                        width: col.width, 
+                        maxWidth: "150px",
+                        fontSize: "1.3rem", 
+                        color: "#03346E", 
+                        fontWeight: 700,
+                      }}
+                    >
+                      <Skeleton />
+                    </TableCell>
+                  ))
+                )}
+              </TableRow>
+            </TableHead>  
+
+            <TableBody>
+              {Array.from(new Array(10)).map((_, rowIndex) => (
+                <TableRow 
+                  key={rowIndex}
+                  className="dataTableRow"
+                >
+                  {columns.length === 0 ? (
+                    <TableCell align="center"><Skeleton width="100%" /></TableCell>
+                  ) : (
+                    columns.map((col) => (
+                      <TableCell 
+                        key={col.id} 
+                        align={col.align || "left"} 
+                        className="dataTableBodyCell"
+                        sx={{ 
+                          width: col.width, 
+                          maxWidth: "150px",
+                          fontSize: "0.85rem",
+                        }}
+                      >
+                        <Skeleton />
+                      </TableCell>
+                    ))
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <TablePagination
+          component="div"
+          rowsPerPageOptions={[10, 20, 30, 50]}
+          count={0}
+          rowsPerPage={10}
+          page={0}
+          onPageChange={() => {}}
+          onRowsPerPageChange={() => {}}
+          ActionsComponent={TablePaginationActions}
+          sx={{ color: "#03346E" }}
+        />
+      </Paper>
     );
   }
 
@@ -111,23 +185,12 @@ function DataTable({
     );
   }
 
-  // If 404 or no rows, show empty state
+  // If 404 or no rows, show empty state with Nodata animation
   if (isNotFoundError || safeRows.length === 0) {
     return (
-      <Paper 
-        elevation={0}
-        className="dataTablePaperEmpty"
-      >
-        <Box className="emptyStateContainer">
-          <InboxIcon className="emptyStateIcon" />
-          <Typography variant="h6" color="text.secondary" className="emptyStateTitle">
-            No records found
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            There are no records to display
-          </Typography>
-        </Box>
-      </Paper>
+      <Box className="emptyStateContainer" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <Nodata />
+      </Box>
     );
   }
 
@@ -152,7 +215,7 @@ function DataTable({
                     title={col.label}
                     sx={{ 
                       width: col.width, 
-                      maxWidth: "200px",
+                      maxWidth: "150px",
                       fontSize: "1.3rem", 
                       color: "#03346E", 
                       fontWeight: 700,
@@ -192,6 +255,8 @@ function DataTable({
                 <TableRow 
                   key={row.id || Math.random()}
                   className="dataTableRow"
+                  onClick={() => onRowClick && onRowClick(row)}
+                  sx={{ cursor: onRowClick ? 'pointer' : 'default' }}
                 >
                   {columns.map((col) => (
                     <TableCell 
@@ -200,8 +265,9 @@ function DataTable({
                       className="dataTableBodyCell" 
                       sx={{ 
                         width: col.width, 
-                        maxWidth: "200px",
+                        maxWidth: "150px",
                         color: cellTextColor,
+                        fontSize: "0.85rem",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap"

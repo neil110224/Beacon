@@ -16,7 +16,7 @@ import LogoutIcon from "@mui/icons-material/LogoutOutlined";
 import PersonIcon from "@mui/icons-material/Person";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";  
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { selectCurrentUser, logout } from "../features/api/slice/authSlice";
@@ -33,7 +33,7 @@ import { useCreateTeamMutation, useUpdateTeamMutation } from "../features/api/te
 import Sidebar from "./Sidebar";
 import { useNavigate } from "react-router-dom";
 
-import styles from "./scss/navbar.module.scss";
+import "./scss/navbar.scss";
 
 const Navbar = () => {
   const user = useSelector(selectCurrentUser);
@@ -154,11 +154,11 @@ const Navbar = () => {
   const showMobileSidebar = isMd;
 
   return (
-    <Box className={styles.navbarContainer}>
+    <Box className="navbarContainer">
       {/* Desktop Sidebar */}
       {!showMobileSidebar && (
-        <Box className={styles.desktopSidebar}>
-          <Sidebar user={user} onChangeProfile={() => setProfileDialogOpen(true)} isSidebarLocked={isSidebarLocked} onToggleSidebarLock={handleToggleSidebarLock} isSidebarCollapsed={isSidebarCollapsed} />
+        <Box className="desktopSidebar">
+          <Sidebar user={user} onChangeProfile={() => setProfileDialogOpen(true)} isSidebarLocked={isSidebarLocked} onToggleSidebarLock={handleToggleSidebarLock} isSidebarCollapsed={isSidebarCollapsed} isMobile={false} />
         </Box>
       )}
 
@@ -169,28 +169,28 @@ const Navbar = () => {
         onClose={handleToggleMobileDrawer}
         hideBackdrop={true}
         slotProps={{ backdrop: { sx: { display: 'none' } } }}
-        className={styles.mobileDrawer}
+        className="mobileDrawer"
       >
-        <Sidebar user={user} onChangeProfile={() => setProfileDialogOpen(true)} isSidebarLocked={isSidebarLocked} onToggleSidebarLock={handleToggleSidebarLock} isSidebarCollapsed={isSidebarCollapsed} />
+        <Sidebar user={user} onChangeProfile={() => setProfileDialogOpen(true)} isSidebarLocked={isSidebarLocked} onToggleSidebarLock={handleToggleSidebarLock} isSidebarCollapsed={isSidebarCollapsed} isMobile={true} mobileDrawerOpen={mobileDrawerOpen} onCloseMobileDrawer={handleToggleMobileDrawer} />
       </Drawer>
 
       {/* Main Content Area */}
-      <Box className={styles.mainContentArea}>
+      <Box className="mainContentArea">
         {/* Top Bar / Navbar */}
-        <Box className={styles.topBar}>
+        <Box className="topBar">
           {/* Left side - Date and Time */}
-          <Box className={styles.topBarLeft}>
+          <Box className="topBarLeft">
             {/* Sidebar Toggle Button */}
             {!showMobileSidebar && (
-              <Tooltip title={isSidebarLocked ? "Open sidebar" : "Close sidebar"}>
+              <Tooltip title={isSidebarCollapsed ? "Open sidebar" : "Close sidebar"}>
                 <IconButton
                   onClick={handleToggleSidebarLock}
-                  className={styles.sidebarToggleButton}
+                  className="sidebarToggleButton"
                 >
                   {isSidebarCollapsed ? (
-                    <ArrowForwardIosIcon className={styles.toggleIcon} />
+                    <ArrowForwardIosIcon className="toggleIcon" />
                   ) : (
-                    <ArrowBackIosNewIcon className={styles.toggleIcon} />
+                    <ArrowBackIosNewIcon className="toggleIcon" />
                   )}
                 </IconButton>
               </Tooltip>
@@ -200,7 +200,7 @@ const Navbar = () => {
             {showMobileSidebar && (
               <IconButton
                 onClick={handleToggleMobileDrawer}
-                className={styles.mobileMenuButton}
+                className="mobileMenuButton"
               >
                 <MenuIcon />
               </IconButton>
@@ -209,16 +209,16 @@ const Navbar = () => {
 
           {/* User Info */}
           <Box 
-            className={styles.userInfoContainer}
+            className="userInfoContainer"
             onClick={handleAvatarClick}
           >
-            <Typography className={styles.userName} sx={{ fontSize: '1.2rem', fontWeight: 600 }}>
+            <Typography className="userName" sx={{ fontSize: '1.2rem', fontWeight: 600 }}>
               {firstName}
             </Typography>
 
             <Avatar 
               src={user?.profile_picture || "/static/images/avatar/2.jpg"}
-              className={styles.userAvatar}
+              className="userAvatar"
             />
           </Box>
 
@@ -226,25 +226,25 @@ const Navbar = () => {
             anchorEl={anchorEl} 
             open={open} 
             onClose={handleClose}
-            className={styles.menu}
+            className="menu"
             transformOrigin={{ horizontal: 'right', vertical: 'top' }}
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
           >
             <MenuItem 
               onClick={handleChangeProfile}
-              className={styles.menuItem}
+              className="menuItem"
             >
-              <PersonIcon className={styles.menuIcon} />
-              <Typography className={styles.menuItemText}>
+              <PersonIcon className="menuIcon" />
+              <Typography className="menuItemText">
                 Change Profile
               </Typography>
             </MenuItem>
             <MenuItem 
               onClick={handleLogoutClick}
-              className={`${styles.menuItem} ${styles.logoutItem}`}
+              className="menuItem logoutItem"
             >
-              <LogoutIcon className={styles.menuIcon} />
-              <Typography className={styles.menuItemText}>
+              <LogoutIcon className="menuIcon" />
+              <Typography className="menuItemText">
                 Logout
               </Typography>
             </MenuItem>
@@ -252,11 +252,11 @@ const Navbar = () => {
         </Box>
 
         {/* Body Content */}
-        <Box className={styles.bodyContent}>
+        <Box className="bodyContent">
           {/* Conditionally render TopNavContent - only show when NOT on Dashboard */}
           {!isDashboard && <TopNavContent />}
           
-          <Box className={styles.contentWrapper}>
+          <Box className="contentWrapper">
             <Outlet context={{ isSidebarCollapsed, isSidebarLocked }} />
           </Box>
         </Box>

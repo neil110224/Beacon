@@ -11,8 +11,7 @@ import DataTable from '../../component/reuseable/DataTable'
 import Confirmation from '../../component/reuseable/Confirmation'
 import CategoryFormDialog from '../dialog/CategoryFormDialog'
 import Snackbar from '../../component/reuseable/Snackbar'
-import LighthouseLoader from '../../component/reuseable/Loading'
-import nodataImg from '../../assets/alh.png'
+import Nodata from '../../component/reuseable/Nodata'
 import MasterlistTab from '../../component/reuseable/MasterlistTab'
 import '../contentscss/Category.scss'
 
@@ -32,7 +31,7 @@ const Category = () => {
     const [snackbarSeverity, setSnackbarSeverity] = useState('success')
     const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
 
-    const { data, isLoading, isError, error } = useGetCategoriesListQuery({
+    const { data, isLoading, isError, error, refetch } = useGetCategoriesListQuery({
       status: showArchived ? 'inactive' : 'active',
       search: debouncedSearchTerm,
     })
@@ -78,12 +77,6 @@ const Category = () => {
     ];
 
     return (
-      <>
-        {isLoading ? (
-          <Box className="categoryLoadingContainer">
-            <LighthouseLoader text="Loading Categories" />
-          </Box>
-        ) : (
       <Box className="categoryContainer">
        <MasterlistTab
   showArchived={showArchived}
@@ -94,17 +87,15 @@ const Category = () => {
   canAdd={canAddCategory}
   onAddClick={() => setCategoryDialogOpen(true)}
   addLabel="Add categories"
+  onRefresh={refetch}
 />
 
         {!isLoading && filteredCategories.length === 0 && (
           <Box className="categoryEmptyStateWrapper">
             <Box className="categoryEmptyStateBox">
-              <Box
-                component="img"
-                src={nodataImg}
-                alt="No data"
-                className="categoryEmptyImage"
-              />
+              <Box>
+                <Nodata />
+              </Box>
               <Box className="categoryEmptyTextBox">
                 <Typography variant="h6" className="categoryEmptyTitle">
                   Categories
@@ -119,7 +110,7 @@ const Category = () => {
           </Box>
         )}
 
-        {filteredCategories.length > 0 && !isError && (
+        {!isError && (
           <DataTable
             columns={columns}
             rows={filteredCategories}
@@ -176,8 +167,6 @@ const Category = () => {
           onClose={() => setSnackbarOpen(false)}
         />
       </Box>
-        )}
-      </>
     )
   }
 

@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { Box, Typography, IconButton, Menu, MenuItem} 
+import { Box, Typography, IconButton, Menu, MenuItem } 
 from '@mui/material';
 import nodataImg from '../../assets/alh.png'
+import Nodata from '../../component/reuseable/Nodata';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../features/api/slice/authSlice';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -12,8 +13,9 @@ import { useDebounce } from '../../hooks/useDebounce';
 import { useGetRolesQuery, useDeleteRoleMutation, useCreateRoleMutation, useUpdateRoleMutation } from '../../features/api/role/roleApi';
 import DataTable from '../../component/reuseable/DataTable';
 import RoleFormDialog from '../dialog/RoleFormDialog';
-import LighthouseLoader from '../../component/reuseable/Loading';
 import MasterlistTab from '../../component/reuseable/MasterlistTab';
+import Confirmation from '../../component/reuseable/Confirmation';
+import Snackbar from '../../component/reuseable/Snackbar';
 import '../contentscss/Role.scss';
 
 const Role = () => {
@@ -27,8 +29,12 @@ const Role = () => {
   const [showArchived, setShowArchived] = useState(false);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const open = Boolean(anchorEl);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
-  const { data, isLoading, isError, error } = useGetRolesQuery({
+  const { data, isLoading, isError, error, refetch } = useGetRolesQuery({
     status: showArchived ? 'inactive' : 'active',
     term: debouncedSearchTerm,
   });
@@ -51,15 +57,40 @@ const Role = () => {
     setAnchorEl(null);
   };
 
-  const handleArchive = async () => {
+  const handleRowClick = (row) => {
+    setSelectedRole(row);
+    setRoleDialogOpen(true);
+  };
+
+  const handleArchiveClick = () => {
+    setConfirmDialogOpen(true);
+    setAnchorEl(null);
+  };
+
+  const handleConfirmArchive = async () => {
     if (!selectedRole) return;
 
     try {
       await deleteRole(selectedRole.id).unwrap();
-      handleMenuClose();
+      setSelectedRole(null);
+      setSnackbarMessage(selectedRole.deleted_at ? 'Role restored successfully' : 'Role archived successfully');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
     } catch (err) {
-      console.error('Failed to archive/restore role:', err);
+      const errorMessage = err?.data?.errors?.[0]?.detail || 'Failed to archive/restore role';
+      setSnackbarMessage(errorMessage);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
     }
+  };
+
+  const handleConfirmCancel = () => {
+    setConfirmDialogOpen(false);
+    setSelectedRole(null);
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
   };
 
   const handleTabChange = (event, newValue) => {
@@ -119,7 +150,7 @@ const Role = () => {
           >
             {row.deleted_at ? (
               <MenuItem 
-                onClick={handleArchive}
+                onClick={handleArchiveClick}
                 disabled={isDeleting}
                 className="roleMenuItem"
               >
@@ -131,7 +162,7 @@ const Role = () => {
                 <EditIcon fontSize="small" className="roleEditIcon" />
                 Edit
               </MenuItem>,
-              <MenuItem key="archive" onClick={handleArchive} disabled={isDeleting} className="roleMenuItem">
+              <MenuItem key="archive" onClick={handleArchiveClick} disabled={isDeleting} className="roleMenuItem">
                 <ArchiveIcon fontSize="small" className="roleArchiveIcon" />
                 Archive
               </MenuItem>
@@ -141,14 +172,6 @@ const Role = () => {
       ),
     },
   ];
-
-  if (isLoading) {
-    return (
-      <Box className="roleLoadingContainer">
-        <LighthouseLoader text="Loading roles..." />
-      </Box>
-    );
-  }
 
   return (
     <Box className="roleContainer">
@@ -161,12 +184,15 @@ const Role = () => {
         canAdd={canAddRole}
         onAddClick={() => { setSelectedRole(null); setRoleDialogOpen(true); }}
         addLabel="Create"
+        onRefresh={refetch}
       />
 
       {!isLoading && filteredRoles.length === 0 && (
         <Box className="roleEmptyStateWrapper">
           <Box className="roleEmptyStateBox">
-            <Box component="img" src={nodataImg} alt="No data" className="roleEmptyImage" />
+            <Box>
+              <Nodata />
+            </Box>
             <Box className="roleEmptyTextBox">
               <Typography variant="h6" className="roleEmptyTitle">Roles</Typography>
               <Typography variant="body2">{showArchived ? "Currently no roles in the archive." : "No roles data available."}</Typography>
@@ -175,7 +201,7 @@ const Role = () => {
         </Box>
       )}
 
-      {filteredRoles.length > 0 && !isError && (
+      {!isError && (
         <DataTable
           columns={columns}
           rows={filteredRoles}
@@ -183,6 +209,7 @@ const Role = () => {
           isLoading={isLoading || searchTerm !== debouncedSearchTerm}
           isError={isError}
           error={error}
+          onRowClick={handleRowClick}
           tableSx={{ 
             minWidth: 800,
             '& .MuiTableCell-root': {
@@ -190,9 +217,6 @@ const Role = () => {
               fontSize: '0.875rem',
               color: '#2c3e50',
             },
-            '& .MuiTableBody-root .MuiTableRow-root': {
-              cursor: 'default',
-            }
           }}
           headSx={{ 
             background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
@@ -215,6 +239,25 @@ const Role = () => {
         role={selectedRole}
         onSave={selectedRole ? updateRole : createRole}
         isLoading={false}
+      />
+
+      {/* Confirmation Dialog */}
+      <Confirmation
+        open={confirmDialogOpen}
+        onClose={handleConfirmCancel}
+        onConfirm={handleConfirmArchive}
+        title={selectedRole?.deleted_at ? 'Restore Role' : 'Archive Role'}
+        message={`Are you sure you want to ${selectedRole?.deleted_at ? 'restore' : 'archive'} the role "${selectedRole?.name}"?`}
+        isLoading={isDeleting}
+      />
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbarOpen}
+        message={snackbarMessage}
+        severity={snackbarSeverity}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       />
     </Box>
   );

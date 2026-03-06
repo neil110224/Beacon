@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Box, List, ListItemButton, ListItemIcon, ListItemText, Collapse, Menu, MenuItem, Tooltip } from '@mui/material';
+import { Box, List, ListItemButton, ListItemIcon, ListItemText, Collapse, Menu, MenuItem, Tooltip, IconButton } from '@mui/material';
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import HomeIcon from '@mui/icons-material/Home';
 import SettingsSystemDaydreamIcon from '@mui/icons-material/SettingsSystemDaydream';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
@@ -75,7 +76,7 @@ const NavMenuItem = ({ item, isCollapsed, isActive, inMenu = false }) => {
   );
 };
 
-const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false }) => {
+const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false, isMobile = false, mobileDrawerOpen = false, onCloseMobileDrawer = null }) => {
   const location = useLocation();
   const userPermissions = user?.role?.access_permissions || [];
   const isCollapsed = isSidebarCollapsed;
@@ -109,6 +110,22 @@ const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false }) => {
           </Link>
         </Box>
         {!isCollapsed && <Box component="h4" className="title">Beacon</Box>}
+        {isMobile && mobileDrawerOpen && (
+          <IconButton
+            onClick={onCloseMobileDrawer}
+            className="mobileCloseButton"
+            sx={{
+              position: 'absolute',
+              top: '1px',
+              right: '10px',
+              color: '#03346E',
+              width: '36px',
+              height: '36px'
+            }}
+          >
+            <ArrowBackIosNewIcon sx={{ fontSize: '1.2rem' }} />
+          </IconButton>
+        )}
       </Box>
 
       <List component="nav" className="list">

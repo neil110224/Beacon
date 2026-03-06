@@ -19,16 +19,16 @@
 }
 
 .mobileDrawer {
-  display: block;
+  display: none;
 
   @include bp.md {
-    display: none;
+    display: block;
   }
 
   :global {
     .MuiDrawer-paper {
       width: 250px;
-      background-color: transparent;
+      background-color: $primary-dark;
       box-shadow: none;
     }
   }
@@ -90,12 +90,17 @@
 }
 
 .sidebarToggleButton {
-  color: #ffffff;
+  color: #000000;
   width: 36px;
   height: 36px;
   flex-shrink: 0;
   border-radius: 8px;
   transition: background-color 0.2s ease;
+  display: flex;
+
+  @include bp.md {
+    display: none;
+  }
 
   &:hover {
     background-color: rgba(255, 255, 255, 0.15);
@@ -103,15 +108,15 @@
 }
 
 .toggleIcon {
-  font-size: 0.4rem;
+  font-size: 0.9rem;
   font-weight: lighter;
   transition: transform 0.3s ease;
   color: #313131;
 }
 
 .mobileMenuButton {
-  display: flex;
-  color: #ffffff;
+  display: none;
+  color: #000000;
   background-color: rgba(255, 255, 255, 0.1);
   width: 40px;
   height: 40px;
@@ -119,7 +124,7 @@
   transition: all 0.2s ease;
 
   @include bp.md {
-    display: none;
+    display: flex;
   }
 
   &:hover {

@@ -1,6 +1,7 @@
-import { Box, Typography, Paper, IconButton, Button, FormControl, Select, MenuItem, Chip } from '@mui/material'
-import LighthouseLoader from '../../component/reuseable/Loading'
+import { Box, Typography, Paper, IconButton, Button, FormControl, Select, MenuItem, Chip, TextField, Tooltip } from '@mui/material'
+import Loading from '../../component/reuseable/Loading'
 import nodataImg from '../../assets/alh.png'
+import Nodata from '../../component/reuseable/Nodata'
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import '../contentscss/Dashboard.scss'
@@ -11,6 +12,9 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import { useGetSystemsListQuery } from '../../features/api/system/systemApi'
 import { useGetTeamsQuery } from '../../features/api/team/teamApi'
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
+import { useDebounce } from '../../hooks/useDebounce'
+import SearchIcon from '@mui/icons-material/Search'
+import CachedIcon from '@mui/icons-material/Cached'
 
 const SystemProgress = ({ system, onNavigate }) => {
   // Calculate stats from the system's nested data
@@ -193,6 +197,10 @@ const Dashboard = () => {
   const canFilterByTeam = userPermissions.includes('Dashboard.FilterTeam')
   const { isSidebarCollapsed = false, isSidebarLocked = false } = useOutletContext() || {}
   const [selectedTeam, setSelectedTeam] = useState('')
+  const [systemsSearchQuery, setSystemsSearchQuery] = useState('')
+
+  // Debounce systems search query
+  const debouncedSystemsSearch = useDebounce(systemsSearchQuery, 500)
 
   // Mirror the same logic used in Sidebar to compute actual collapsed state
   const isActuallySidebarCollapsed = isSidebarCollapsed ? isSidebarLocked : false
@@ -241,14 +249,31 @@ const Dashboard = () => {
   }
 
   const queryParams = buildQueryParams()
-  const { data: systemsData, isLoading: systemsLoading, error: systemsError } = useGetSystemsListQuery(queryParams)
+  const { data: systemsData, isLoading: systemsLoading, error: systemsError, refetch: refetchSystems } = useGetSystemsListQuery(queryParams)
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Calculate overall stats from all systems
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetchSystems();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Filter systems based on search query
+  const filteredSystems = Array.isArray(systemsData)
+    ? systemsData.filter(system =>
+        system.systemName.toLowerCase().includes(debouncedSystemsSearch.toLowerCase())
+      )
+    : []
+
+  // Calculate overall stats from filtered systems
   const calculateOverallStats = () => {
     let totalSum = 0, completedSum = 0, pendingSum = 0
 
-    if (Array.isArray(systemsData)) {
-      systemsData.forEach((system) => {
+    if (Array.isArray(filteredSystems)) {
+      filteredSystems.forEach((system) => {
         if (system.categories && Array.isArray(system.categories)) {
           system.categories.forEach((category) => {
             if (category.progress && Array.isArray(category.progress)) {
@@ -301,7 +326,7 @@ const Dashboard = () => {
   if (systemsLoading) {
     return (
       <Box className="loadingContainer">
-        <LighthouseLoader text="Loading Systems" />
+        <Loading />
       </Box>
     )
   }
@@ -341,7 +366,7 @@ const Dashboard = () => {
 
       {/* Team Filter */}
       {canFilterByTeam && (
-        <Box className="filterSection">
+        <Box className="filterSection" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
           <FormControl className="filterSelect" size="small">
             <Select
               value={selectedTeam}
@@ -359,6 +384,31 @@ const Dashboard = () => {
               ))}
             </Select>
           </FormControl>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, justifyContent: 'flex-end' }}>
+            <Tooltip title="Refresh systems" placement="top">
+              <IconButton
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                sx={{
+                  color: '#03346E',
+                  '&:hover': { backgroundColor: 'rgba(3, 52, 110, 0.08)' }
+                }}
+              >
+                <CachedIcon sx={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none', '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } } }} />
+              </IconButton>
+            </Tooltip>
+            <TextField
+              placeholder="Search systems..."
+              value={systemsSearchQuery}
+              onChange={(e) => setSystemsSearchQuery(e.target.value)}
+              size="small"
+              className="systemsSearchField"
+              InputProps={{
+                startAdornment: <SearchIcon className="searchIcon" />,
+              }}
+              sx={{ minWidth: 250 }}
+            />
+          </Box>
         </Box>
       )}
 
@@ -366,12 +416,9 @@ const Dashboard = () => {
       {systemsError ? (
         <Box className="emptyStateContainer">
           <Box className="emptyStateContent">
-            <Box
-              component="img"
-              src={nodataImg}
-              alt="No data"
-              className="emptyStateImage"
-            />
+            <Box>
+              <Nodata />
+            </Box>
             <Box className="emptyStateText">
               <Typography variant="h6" className="emptyStateTitle">
                 {user?.team?.name || 'Your Team'}
@@ -382,7 +429,7 @@ const Dashboard = () => {
             </Box>
           </Box>
         </Box>
-      ) : !Array.isArray(systemsData) || systemsData.length === 0 ? (
+      ) : !Array.isArray(filteredSystems) || filteredSystems.length === 0 ? (
         <Box className="emptyStateContainer">
           <Box className="emptyStateContent">
             <Box
@@ -403,7 +450,7 @@ const Dashboard = () => {
         </Box>
       ) : (
         <Box className="systemsGrid">
-          {systemsData.map((system, idx) => (
+          {filteredSystems.map((system, idx) => (
           <Box
             key={`${system.systemName}-${idx}`}
             onClick={() => navigate(`/SystemCategory/${system.systemName}`)}

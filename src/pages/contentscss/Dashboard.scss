@@ -98,16 +98,18 @@
 // Team Filter Section
 .filterSection {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 1rem;
   margin-top: 1rem;
-  
+  gap: 1rem;
 }
 
 .filterSelect {
   min-width: 150px;
   min-height: 32px;
   color: $primary-text-light;
+  flex-shrink: 0;
 
   & .MuiOutlinedInput-root {
     &:hover fieldset {
@@ -129,6 +131,42 @@
 
 .filterMenuItemText {
   color: $primary-text-light;
+}
+
+.systemsSearchField {
+  flex: 1;
+  max-width: 350px;
+  color: $primary-text-light;
+
+  & .MuiOutlinedInput-root {
+    background-color: #fff;
+    border-radius: 8px;
+
+    &:hover fieldset {
+      border-color: $primary-text-light;
+    }
+
+    &.Mui-focused fieldset {
+      border-color: $primary-text-light;
+    }
+  }
+
+  & .MuiOutlinedInput-input {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    color: $primary-text-light;
+
+    &::placeholder {
+      color: #999;
+      opacity: 1;
+    }
+  }
+}
+
+.searchIcon {
+  margin-right: 8px;
+  color: #999;
+  font-size: 18px;
 }
 
 // Systems Grid

@@ -2,8 +2,7 @@ import React, { useState, useMemo } from "react";
 import { Box, Typography, IconButton, Menu, MenuItem } from "@mui/material";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../features/api/slice/authSlice";
-import LighthouseLoader from "../../component/reuseable/Loading";
-import nodataImg from '../../assets/alh.png'
+import Nodata from '../../component/reuseable/Nodata'
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ArchiveIcon from "@mui/icons-material/Archive";
 import RestoreIcon from "@mui/icons-material/Restore";
@@ -40,6 +39,7 @@ const Charging = () => {
     isLoading,
     isError,
     error,
+    refetch,
   } = useGetChargingQuery({ 
     status: showArchived ? "inactive" : "active",
     term: debouncedSearchTerm,
@@ -114,12 +114,6 @@ const Charging = () => {
   ];
 
   return (
-    <>
-      {isLoading ? (
-        <Box className="chargingLoadingContainer">
-          <LighthouseLoader text="Loading Charging" />
-        </Box>
-      ) : (
     <Box className="chargingContainer">
       <MasterlistTab
   showArchived={showArchived}
@@ -130,17 +124,15 @@ const Charging = () => {
   canAdd={canAddCharging}
   onAddClick={() => setChargingDialogOpen(true)}
   addLabel="Add Charging"
+  onRefresh={refetch}
 />
 
       {!isLoading && chargingData.length === 0 && (
         <Box className="chargingEmptyStateWrapper">
           <Box className="chargingEmptyStateBox">
-            <Box
-              component="img"
-              src={nodataImg}
-              alt="No data"
-              className="chargingEmptyImage"
-            />
+            <Box>
+              <Nodata />
+            </Box>
             <Box className="chargingEmptyTextBox">
               <Typography variant="h6" className="chargingEmptyTitle">
                 Charging
@@ -155,7 +147,7 @@ const Charging = () => {
         </Box>
       )}
 
-      {chargingData.length > 0 && !isError && (
+      {!isError && (
         <DataTable
           columns={columns}
           rows={filteredData}
@@ -220,8 +212,6 @@ const Charging = () => {
         onClose={handleSnackbarClose}
       />
     </Box>
-      )}
-    </>
   );
 };
 

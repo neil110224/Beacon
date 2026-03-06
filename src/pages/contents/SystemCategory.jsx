@@ -1,4 +1,4 @@
-import { Box, CircularProgress, Accordion, AccordionSummary, AccordionDetails, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Chip, Snackbar, Alert, Stack, Select, MenuItem } from '@mui/material'
+import { Box, CircularProgress, Accordion, AccordionSummary, AccordionDetails, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Select, MenuItem, Snackbar, Alert } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import AddIcon from '@mui/icons-material/Add'
 import React, { useMemo, useState, useCallback } from 'react'
@@ -11,6 +11,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import dayjs from 'dayjs'
+import '../contentscss/SystemCategory.scss'
 
 const SystemCategory = () => {
   const { systemName } = useParams()
@@ -64,11 +65,6 @@ const SystemCategory = () => {
     { value: 'hold', label: 'On Hold' },
     { value: 'done', label: 'Done' },
   ], [])
-
-  const handleAddItem = useCallback(() => {
-    // TODO: Implement add item dialog/modal
-    console.log('Add item clicked for system:', systemName)
-  }, [systemName])
 
   const handleStatusChange = useCallback(async (itemId, newStatus) => {
     setEditingStatus(prev => ({
@@ -190,17 +186,13 @@ const SystemCategory = () => {
 
   // Handle loading state
   if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
-      </Box>
-    )
+    return <Box className="systemCategoryLoadingContainer"><CircularProgress /></Box>
   }
 
   // Handle error state
   if (error) {
     return (
-      <Box sx={{ p: 3, textAlign: 'center', color: '#6c757d' }}>
+      <Box className="systemCategoryErrorContainer">
         <Typography variant="h6" sx={{ mb: 1, fontWeight: 500 }}>
           {user?.team?.name || 'Your Team'}
         </Typography>
@@ -214,7 +206,7 @@ const SystemCategory = () => {
   // Handle not found state
   if (!currentSystem) {
     return (
-      <Box sx={{ p: 3, textAlign: 'center', color: '#6c757d' }}>
+      <Box className="systemCategoryErrorContainer">
         <Typography variant="h6" sx={{ mb: 1, fontWeight: 500 }}>
           {systemName}
         </Typography>
@@ -226,79 +218,39 @@ const SystemCategory = () => {
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <Box className="systemCategoryContainer">
       {/* Header with Add Button */}
-      <Box sx={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        p: 2,
-        borderBottom: '1px solid #e5e7eb'
-      }}>
+      <Box className="systemCategoryHeader">
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 600, color: '#2c3e50', mb: 0.5 }}>
+          <Typography variant="h5" className="systemCategoryTitle">
             {currentSystem.systemName}
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          <Typography variant="body2" className="systemCategoryTeam">
             Team: {currentSystem.team?.name} ({currentSystem.team?.code})
           </Typography>
         </Box>
-        
-
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleAddItem}
-          sx={{
-            bgcolor: '#3b82f6',
-            color: '#fff',
-            textTransform: 'none',
-            fontWeight: 600,
-            mr:2,
-            px: 2,
-            '&:hover': {
-              bgcolor: '#2563eb',
-            },
-          }}
-        >
-          Add
+        <Button variant="contained" startIcon={<AddIcon />} className="systemCategoryAddButton" sx={{bgcolor:'#03346E'}}>
+          Create
         </Button>
       </Box>
 
       {/* Content */}
-      <Box sx={{ p: 3, flex: 1, overflow: 'auto' }}>
+      <Box className="systemCategoryContent">
         {currentSystem.categories && currentSystem.categories.length > 0 ? (
           currentSystem.categories.map((category, idx) => (
-            <Accordion
-              key={idx}
-              defaultExpanded={true}
-              sx={{
-                mb: 2,
-                bgcolor: '#f5f5f5',
-                '&:before': {
-                  display: 'none',
-                },
-              }}
-            >
-              <AccordionSummary 
-                expandIcon={<ExpandMoreIcon sx={{ color: '#f4f4f4' }} />}
-                sx={{
-                  bgcolor: '#1a1a2e',
-                  color: '#f4f4f4',
-                  borderRadius: '5px 5px 0 0'
-                }}
-              >
+            <Accordion key={idx} defaultExpanded={true} className="systemCategoryAccordion">
+              <AccordionSummary expandIcon={<ExpandMoreIcon className="systemCategoryExpandIcon" />}>
                 <Typography variant="h6">
                   {category.categoryName} ({category.progress?.length || 0} items)
                 </Typography>
               </AccordionSummary>
-              <AccordionDetails sx={{ bgcolor: '#ffffff', p: 0 }}>
+              <AccordionDetails>
                 {category.progress && category.progress.length > 0 ? (
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <TableContainer component={Paper} sx={{ m: 0 }}>
-                    <Table size="small">
+                    <TableContainer component={Paper} className="systemCategoryTableContainer">
+                    <Table size="small" className="systemCategoryTable">
                       <TableHead>
-                        <TableRow sx={{ bgcolor: '#f0f0f0' }}>
+                        <TableRow className="systemCategoryTableHead">
                           <TableCell sx={{ fontWeight: 'bold' }}>ID</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Description</TableCell>
                           <TableCell sx={{ fontWeight: 'bold' }}>Raised Date</TableCell>
@@ -310,7 +262,7 @@ const SystemCategory = () => {
                       </TableHead>
                       <TableBody>
                         {category.progress.map((item) => (
-                          <TableRow key={item.id} sx={{ '&:hover': { bgcolor: '#fafafa' } }}>
+                          <TableRow key={item.id} className="systemCategoryTableRow">
                             <TableCell>{item.id}</TableCell>
                             <TableCell>{item.description}</TableCell>
                             <TableCell>{item.raised_date}</TableCell>
@@ -318,7 +270,7 @@ const SystemCategory = () => {
                               <DatePicker
                                 value={editingDates[item.id]?.start_date ? dayjs(editingDates[item.id].start_date) : item.start_date ? dayjs(item.start_date) : null}
                                 onChange={(newValue) => handleStartDateChange(item, newValue)}
-                                slotProps={{ textField: { size: "small", sx: { width: '120px' } } }}
+                                slotProps={{ textField: { size: "small", className: "systemCategoryDatePicker" } }}
                                 disabled={loadingStatusId === item.id}
                               />
                             </TableCell>
@@ -326,59 +278,32 @@ const SystemCategory = () => {
                               <DatePicker
                                 value={editingDates[item.id]?.end_date ? dayjs(editingDates[item.id].end_date) : item.end_date ? dayjs(item.end_date) : null}
                                 onChange={(newValue) => handleEndDateChange(item, newValue)}
-                                slotProps={{ textField: { size: "small", sx: { width: '120px' } } }}
+                                slotProps={{ textField: { size: "small", className: "systemCategoryDatePicker" } }}
                                 disabled={loadingStatusId === item.id}
                               />
                             </TableCell>
                             <TableCell>
-                              <Box sx={{ position: 'relative', display: 'inline-block', width: 'auto' }}>
+                              <Box className="systemCategoryStatusContainer">
                                 <Select
                                   value={editingStatus[item.id] || item.status || ''}
                                   onChange={(e) => handleStatusChange(item.id, e.target.value)}
                                   size="small"
                                   disabled={loadingStatusId === item.id}
-                                  sx={{
-                                    minWidth: 120,
-                                    bgcolor: getStatusColor(editingStatus[item.id] || item.status),
-                                    color: '#fff',
-                                    fontWeight: 'bold',
-                                    opacity: loadingStatusId === item.id ? 0.6 : 1,
-                                    '& .MuiOutlinedInput-notchedOutline': {
-                                      borderColor: getStatusColor(editingStatus[item.id] || item.status),
-                                    },
-                                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                                      borderColor: getStatusColor(editingStatus[item.id] || item.status),
-                                    },
-                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                      borderColor: getStatusColor(editingStatus[item.id] || item.status),
-                                    },
-                                    '& .MuiSvgIcon-root': {
-                                      color: '#fff',
-                                    },
-                                  }}
+                                  className="systemCategoryStatusSelect"
+                                  sx={{ bgcolor: getStatusColor(editingStatus[item.id] || item.status) }}
                                 >
                                   {STATUS_OPTIONS.map(option => (
                                     <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
                                   ))}
                                 </Select>
                                 {loadingStatusId === item.id && (
-                                  <Box
-                                    sx={{
-                                      position: 'absolute',
-                                      top: '50%',
-                                      left: '50%',
-                                      transform: 'translate(-50%, -50%)',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center',
-                                    }}
-                                  >
+                                  <Box className="systemCategoryStatusLoading">
                                     <CircularProgress size={20} sx={{ color: '#fff' }} />
                                   </Box>
                                 )}
                               </Box>
                             </TableCell>
-                            <TableCell sx={{ maxWidth: 200, whiteSpace: 'normal', wordWrap: 'break-word' }}>
+                            <TableCell className="systemCategoryRemarks">
                               {item.remarks || '-'}
                             </TableCell>
                           </TableRow>
@@ -388,7 +313,7 @@ const SystemCategory = () => {
                   </TableContainer>
                   </LocalizationProvider>
                 ) : (
-                  <Box sx={{ p: 2 }}>
+                  <Box className="systemCategoryEmptyItems">
                     <Typography>No items in this category</Typography>
                   </Box>
                 )}
@@ -410,21 +335,15 @@ const SystemCategory = () => {
         <Alert
           onClose={() => setSnackbar({ ...snackbar, open: false })}
           severity={snackbar.severity}
-          sx={{
-            width: '100%',
-            backgroundColor: snackbar.severity === 'success' ? '#4caf50' : '#f44336',
-            color: '#fff',
-            fontWeight: 'bold',
-            '& .MuiAlert-icon': {
-              color: '#fff',
-            },
+          className="systemCategorySnackbar"
+          sx={{ 
+            backgroundColor: snackbar.severity === 'success' ? '#4caf50' : '#f44336'
           }}
         >
           {snackbar.message}
         </Alert>
       </Snackbar>
-      </Box>
-    
+    </Box>
   )
 }
 

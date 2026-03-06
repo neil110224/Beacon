@@ -1,7 +1,8 @@
-import React from 'react'
-import { Box, Tabs, Tab, Button, TextField, InputAdornment } from '@mui/material'
+import React, { useState } from 'react'
+import { Box, Tabs, Tab, Button, TextField, InputAdornment, IconButton, Tooltip } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import SearchIcon from '@mui/icons-material/Search'
+import CachedIcon from '@mui/icons-material/Cached'
 import './reuseablescss/MasterlistTab.scss'
 
 const MasterlistTab = ({
@@ -18,7 +19,22 @@ const MasterlistTab = ({
   canAdd = false,
   onAddClick,
   addLabel = "Create",  // default value
+  onRefresh,
 }) => {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    if (!onRefresh) return;
+    setIsRefreshing(true);
+    try {
+      const result = await onRefresh();
+      console.log('Data refreshed successfully', result);
+    } catch (error) {
+      console.error('Failed to refresh data:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
   return (
     <Box className="masterlistTabsWrapper">
       <Tabs
@@ -31,6 +47,19 @@ const MasterlistTab = ({
       </Tabs>
 
       <Box className="masterlistActionBar">
+        <Tooltip title="Refresh data" placement="top">
+          <IconButton
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            sx={{
+              color: '#03346E',
+              '&:hover': { backgroundColor: 'rgba(3, 52, 110, 0.08)' }
+            }}
+          >
+            <CachedIcon sx={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none', '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } } }} />
+          </IconButton>
+        </Tooltip>
+
         {canAdd && (
           <Button
             variant="contained"

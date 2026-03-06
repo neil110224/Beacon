@@ -1,0 +1,134 @@
+.systemsContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.systemsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  gap: 16px;
+  border-bottom: 1px solid #1a1a2e;
+  margin-bottom: 16px;
+}
+
+.systemsTitle {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.systemsHeaderActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.systemsSearchField {
+  max-width: 400px;
+
+  .MuiOutlinedInput-root {
+    border-radius: 8px;
+    background-color: #fff;
+
+    &:hover fieldset {
+      border-color: #2c3e50;
+    }
+
+    &.Mui-focused fieldset {
+      border-color: #2c3e50;
+    }
+  }
+}
+
+.systemsAddButton {
+  background-color: #2c3e50;
+  color: #fff;
+  text-transform: none;
+  border-radius: 8px;
+  padding: 6px 20px;
+  font-weight: 500;
+
+  &:hover {
+    background-color: #34495e;
+  }
+}
+
+.systemsMenuIcon {
+  margin-right: 8px;
+}
+
+.systemsEmptyStateContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.systemsEmptyStateBox {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  max-width: 700px;
+}
+
+.systemsEmptyStateContent {
+  text-align: left;
+  color: #6c757d;
+
+  h6 {
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  p {
+    font-size: 0.875rem;
+  }
+}
+
+.systemsCardsGrid {
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+  grid-template-columns: repeat(3, 1fr);
+
+  // Default: show 3 columns
+  // Override with sx prop for 4 columns when sidebar collapsed
+}
+
+.systemsCard {
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  box-shadow: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+}
+
+.systemsCardTitle {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #2c3e50;
+}
+
+.systemsCardCount {
+  font-size: 0.875rem;
+  color: #6b7280;
+
+  strong {
+    font-weight: 600;
+  }
+}
+
+.systemsLoadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 500px;
+}

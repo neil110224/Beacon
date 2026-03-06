@@ -16,10 +16,10 @@ import {
   DialogContent,
   DialogActions,
 } from "@mui/material";
+import Loading from "../../component/reuseable/Loading";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../features/api/slice/authSlice";
-import LighthouseLoader from "../../component/reuseable/Loading";
-import nodataImg from '../../assets/alh.png'
+import Nodata from '../../component/reuseable/Nodata'
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ArchiveIcon from "@mui/icons-material/Archive";
 import RestoreIcon from "@mui/icons-material/Restore";
@@ -150,13 +150,16 @@ const Team = () => {
     if (!debouncedSearchTerm) return Array.isArray(teams) ? teams : [];
     return (Array.isArray(teams) ? teams : []).filter(team => team.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()));
   }, [teams, debouncedSearchTerm]);
+
+  if (isLoading) {
+    return (
+      <Box className="teamContainer" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '500px' }}>
+        <Loading />
+      </Box>
+    );
+  }
+
   return (
-    <>
-      {isLoading ? (
-        <Box className="teamLoadingContainer" sx={{ height: '100vh' }}>
-          <LighthouseLoader text="Loading Teams" />
-        </Box>
-      ) : (
     <Box className="teamContainer">
       <MasterlistTab
   showArchived={showArchived}
@@ -172,12 +175,9 @@ const Team = () => {
       {!isLoading && filteredTeams.length === 0 && (
         <Box className="teamEmptyStateWrapper">
           <Box className="teamEmptyStateBox">
-            <Box
-              component="img"
-              src={nodataImg}
-              alt="No data"
-              className="teamEmptyImage"
-            />
+            <Box>
+              <Nodata />
+            </Box>
             <Box className="teamEmptyTextBox">
               <Typography variant="h6" className="teamEmptyTitle">
                 Teams
@@ -192,7 +192,7 @@ const Team = () => {
         </Box>
       )}
 
-      {filteredTeams.length > 0 && (
+      {filteredTeams.length > 0 || isLoading ? (
         <Box className="teamCardsGrid">
           {filteredTeams.map(team => (
             <Card key={team.id} className="teamCard" style={{ backgroundColor: teamColorMap[team.id] }} onClick={() => handleOpenMembersDialog(team)}>
@@ -211,6 +211,18 @@ const Team = () => {
               </CardContent>
             </Card>
           ))}
+        </Box>
+      ) : (
+        <Box className="teamEmptyStateWrapper">
+          <Box className="teamEmptyStateBox">
+            <Box>
+              <Nodata />
+            </Box>
+            <Box className="teamEmptyTextBox">
+              <Typography variant="h6" className="teamEmptyTitle">Teams</Typography>
+              <Typography variant="body2">{showArchived ? "Currently no teams in the archive." : "No teams data available."}</Typography>
+            </Box>
+          </Box>
         </Box>
       )}
 
@@ -294,8 +306,6 @@ const Team = () => {
         </Alert>
       </Snackbar>
     </Box>
-      )}
-    </>
   );
 };
 

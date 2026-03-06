@@ -12,8 +12,7 @@ import { selectCurrentUser } from '../../features/api/slice/authSlice'
 import DataTable from '../../component/reuseable/DataTable'
 import Confirmation from '../../component/reuseable/Confirmation'
 import UserFormDialog from '../dialog/UserFormDialog'
-import LighthouseLoader from '../../component/reuseable/Loading'
-import nodataImg from '../../assets/alh.png'
+import Nodata from '../../component/reuseable/Nodata'
 
 import {
   Box,
@@ -46,7 +45,7 @@ const Users = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState('success')
   const open = Boolean(anchorEl)
 
-  const { data, isLoading, isError, error } = useGetUsersQuery({
+  const { data, isLoading, isError, error, refetch } = useGetUsersQuery({
     status: showArchived ? 'inactive' : 'active',
     search: debouncedSearchTerm,
   })
@@ -144,27 +143,25 @@ const Users = () => {
 
   return (
     <>
-      {isLoading ? (
-        <Box className="usersLoadingContainer">
-          <LighthouseLoader text="Loading Users" />
-        </Box>
-      ) : (
-        <Box className="usersContainer">
-          <MasterlistTab
-            showArchived={showArchived}
-            onTabChange={handleTabChange}
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            searchPlaceholder="Search users..."
-            canAdd={canAddUser}
-            onAddClick={() => setUserDialogOpen(true)}
-            addLabel="Add User"
-          />
+      <Box className="usersContainer">
+        <MasterlistTab
+          showArchived={showArchived}
+          onTabChange={handleTabChange}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder="Search users..."
+          canAdd={canAddUser}
+          onAddClick={() => setUserDialogOpen(true)}
+          addLabel="Add User"
+          onRefresh={refetch}
+        />
 
           {!isLoading && users.length === 0 && (
             <Box className="usersEmptyStateWrapper">
               <Box className="usersEmptyStateBox">
-                <Box component="img" src={nodataImg} alt="No data" className="usersEmptyImage" />
+                <Box>
+                  <Nodata />
+                </Box>
                 <Box className="usersEmptyTextBox">
                   <Typography variant="h6" className="usersEmptyTitle">Users</Typography>
                   <Typography variant="body2">{showArchived ? "Currently no users in the archive." : "No users data available."}</Typography>
@@ -173,7 +170,7 @@ const Users = () => {
             </Box>
           )}
 
-          {users.length > 0 && !isError && (
+          {!isError && (
             <DataTable
               columns={columns}
               rows={users}
@@ -230,9 +227,8 @@ const Users = () => {
             onClose={() => setSnackbarOpen(false)}
           />
         </Box>
-      )}
-    </>
-  )
-}
+      </>
+    )
+  }
 
 export default Users

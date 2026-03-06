@@ -1,53 +1,52 @@
 import {
   Box,
-  Paper,
   Card,
   CardContent,
   Typography,
-  Avatar,
-  Stack,
   Button,
   TextField,
   InputAdornment,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Menu,
   MenuItem,
-  CircularProgress,
+  IconButton,
+  Tooltip,
 } from '@mui/material'
-import SourceIcon from '@mui/icons-material/Source'
-import ArrowCircleRightIcon from '@mui/icons-material/ArrowCircleRight'
 import AddIcon from '@mui/icons-material/Add'
 import FileUploadIcon from '@mui/icons-material/FileUpload'
 import SearchIcon from '@mui/icons-material/Search'
+import CachedIcon from '@mui/icons-material/Cached'
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useOutletContext } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '../../features/api/slice/authSlice'
 import { useGetSystemsListQuery, useCreateSystemMutation, useUpdateSystemMutation } from '../../features/api/system/systemApi'
 import { useDebounce } from '../../hooks/useDebounce'
 import { useGetTeamsQuery } from '../../features/api/team/teamApi'
 import SystemFormDialog from '../dialog/SystemFormDialog'
-import LighthouseLoader from '../../component/reuseable/Loading'
-import alhImg from '../../assets/alh.png'
+import SystemCategoryDialog from '../dialog/SystemCategoryDialog'
+import Nodata from '../../component/reuseable/Nodata'
+import Loading from '../../component/reuseable/Loading'
+import '../contentscss/System.scss'
 
 const Systems = () => {
   const navigate = useNavigate()
+  const { isSidebarCollapsed = false, isSidebarLocked = false } = useOutletContext() || {}
   const user = useSelector(selectCurrentUser)
   const currentUser = useSelector(selectCurrentUser)
   const userPermissions = currentUser?.role?.access_permissions || []
   const canAddSystem = userPermissions.includes('Systems.Add')
   const canImportSystem = userPermissions.includes('Systems.Import')
+  const isUserRole = user?.role?.name?.toLowerCase() === 'user'
   
-  // Fetch all teams
-  const { data: teamsData, isLoading: teamsLoading, error: teamsError } = useGetTeamsQuery({
-    status: 'active',
-    paginate: 'none',
-    pagination: 'none',
-  })
+  // Fetch all teams (for admin view)
+  const { data: teamsData, isLoading: teamsLoading, error: teamsError } = useGetTeamsQuery(
+    !isUserRole ? {
+      status: 'active',
+      paginate: 'none',
+      pagination: 'none',
+    } : undefined,
+    { skip: isUserRole }
+  )
 
   const [createSystem] = useCreateSystemMutation()
   const [updateSystem] = useUpdateSystemMutation()
@@ -55,23 +54,53 @@ const Systems = () => {
   const debouncedTeamsSearch = useDebounce(searchQuery, 500)
   const [menuAnchor, setMenuAnchor] = React.useState(null)
   const openMenu = Boolean(menuAnchor)
-  const [selectedAction, setSelectedAction] = React.useState('Create')
   const [systemsSearchQuery, setSystemsSearchQuery] = React.useState('')
   const debouncedSystemsSearch = useDebounce(systemsSearchQuery, 500)
   const [systemDialogOpen, setSystemDialogOpen] = React.useState(false)
   const [selectedSystem, setSelectedSystem] = React.useState(null)
   const [selectedTeam, setSelectedTeam] = React.useState(null)
   const [systemsDialogOpen, setSystemsDialogOpen] = React.useState(false)
+  const [isRefreshing, setIsRefreshing] = React.useState(false)
 
-  // Fetch all systems to count per team
-  const { data: allSystemsData, isLoading: allSystemsLoading } = useGetSystemsListQuery({
-    status: 'active',
-    scope: 'global',
-    paginate: 'none',
-    pagination: 'none',
-  })
+  // Refresh handler for both user and admin views
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    try {
+      if (isUserRole) {
+        await refetchUserTeamSystems()
+      } else {
+        await refetchAllSystems()
+      }
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
 
-  // Safe all systems data
+  // Fetch all systems to count per team (admin view)
+  const { data: allSystemsData, isLoading: allSystemsLoading, refetch: refetchAllSystems } = useGetSystemsListQuery(
+    !isUserRole ? {
+      status: 'active',
+      scope: 'global',
+      paginate: 'none',
+      pagination: 'none',
+    } : undefined,
+    { skip: isUserRole }
+  )
+
+  // Fetch systems for user's team (user view)
+  const { data: userTeamSystemsData, isLoading: userTeamSystemsLoading, refetch: refetchUserTeamSystems } = useGetSystemsListQuery(
+    isUserRole && user?.team?.id ? {
+      status: 'active',
+      scope: 'per_team',
+      team_id: user.team.id,
+      ...(debouncedSystemsSearch && { term: debouncedSystemsSearch }),
+      paginate: 'none',
+      pagination: 'none',
+    } : undefined,
+    { skip: !isUserRole || !user?.team?.id }
+  )
+
+  // Safe all systems data (admin view)
   const allSystems = React.useMemo(() => {
     if (!Array.isArray(allSystemsData)) {
       if (allSystemsData?.data?.data && Array.isArray(allSystemsData.data.data)) {
@@ -85,9 +114,31 @@ const Systems = () => {
     return allSystemsData
   }, [allSystemsData])
 
-  // Fetch systems for selected team with search
-  const { data: teamSystemsData, isLoading: teamSystemsLoading } = useGetSystemsListQuery(
-    selectedTeam?.id 
+  // Safe user team systems data (user view)
+  const userTeamSystems = React.useMemo(() => {
+    if (!Array.isArray(userTeamSystemsData)) {
+      if (userTeamSystemsData?.data?.data && Array.isArray(userTeamSystemsData.data.data)) {
+        return userTeamSystemsData.data.data
+      }
+      if (userTeamSystemsData?.data && Array.isArray(userTeamSystemsData.data)) {
+        return userTeamSystemsData.data
+      }
+      return []
+    }
+    return userTeamSystemsData
+  }, [userTeamSystemsData])
+
+  // Filter user team systems by debounced search
+  const filteredUserTeamSystems = React.useMemo(() => {
+    if (!debouncedSystemsSearch) return userTeamSystems
+    return userTeamSystems.filter(system =>
+      system.systemName?.toLowerCase().includes(debouncedSystemsSearch.toLowerCase())
+    )
+  }, [userTeamSystems, debouncedSystemsSearch])
+
+  // Fetch systems for selected team with search (admin view)
+  const { data: teamSystemsData, isLoading: teamSystemsLoading, refetch: refetchTeamSystems } = useGetSystemsListQuery(
+    !isUserRole && selectedTeam?.id 
       ? {
           status: 'active',
           scope: 'global',
@@ -97,10 +148,10 @@ const Systems = () => {
           pagination: 'none',
         }
       : undefined,
-    { skip: !selectedTeam?.id }
+    { skip: isUserRole || !selectedTeam?.id }
   )
 
-  // Safe teams data
+  // Safe teams data (admin view)
   const teams = React.useMemo(() => {
     if (!Array.isArray(teamsData)) {
       if (teamsData?.data?.data && Array.isArray(teamsData.data.data)) {
@@ -114,7 +165,7 @@ const Systems = () => {
     return teamsData
   }, [teamsData])
 
-  // Safe systems data from team query - filter by team on frontend
+  // Safe systems data from team query (admin view) - filter by team on frontend
   const teamSystems = React.useMemo(() => {
     let systems = []
     if (!Array.isArray(teamSystemsData)) {
@@ -137,7 +188,7 @@ const Systems = () => {
     return systems
   }, [teamSystemsData, selectedTeam?.id])
 
-  // Filter systems by debounced search term
+  // Filter systems by debounced search term (admin view)
   const filteredTeamSystems = React.useMemo(() => {
     if (!debouncedSystemsSearch) return teamSystems
     return teamSystems.filter(system =>
@@ -145,7 +196,7 @@ const Systems = () => {
     )
   }, [teamSystems, debouncedSystemsSearch])
 
-  // Filter teams by debounced search query
+  // Filter teams by debounced search query (admin view)
   const filteredTeams = React.useMemo(() => {
     if (!debouncedTeamsSearch) return teams
     return teams.filter(team => 
@@ -181,6 +232,11 @@ const Systems = () => {
     ).length
   }
 
+  // Refresh handler for the SystemCategoryDialog
+  const handleDialogRefresh = async () => {
+    await refetchTeamSystems()
+  }
+
   const handleMenuOpen = (event) => {
     setMenuAnchor(event.currentTarget)
   }
@@ -192,20 +248,15 @@ const Systems = () => {
   const handleAddSystem = () => {
     setSelectedSystem(null)
     setSystemDialogOpen(true)
-    setSelectedAction('Create')
     handleMenuClose()
   }
 
   const handleImportSystem = () => {
-    setSelectedAction('Import')
-    // TODO: Implement import functionality
     console.log('Import system')
     handleMenuClose()
   }
 
   const handleExportSystem = () => {
-    setSelectedAction('Export')
-    // TODO: Implement export functionality
     console.log('Export system')
     handleMenuClose()
   }
@@ -231,31 +282,45 @@ const Systems = () => {
     }
   }
 
+  // Get actual collapsed state
+  const isActuallySidebarCollapsed = isSidebarCollapsed ? !isSidebarLocked : false
+  const gridColumns = isActuallySidebarCollapsed ? 'repeat(4, 1fr)' : 'repeat(3, 1fr)'
+
+  // Determine which loading state to use
+  const isLoading = isUserRole ? userTeamSystemsLoading : (teamsLoading || allSystemsLoading)
+
+  if (isLoading) {
+    return (
+      <Box className="systemsLoadingContainer">
+        <Loading />
+      </Box>
+    )
+  }
+
   return (
-    <>
-      {teamsLoading || allSystemsLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-          <LighthouseLoader text="Loading Systems" />
-        </Box>
-      ) : (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Header with Search and Add Button */}
-      <Box sx={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        p: 2,
-        gap: 2,
-        borderBottom: '1px solid #1a1a2e',
-        mb: 2,  
-      }}>
-        <Typography variant="h5" sx={{ fontWeight: 600, color: '#2c3e50' }}>
-          Systems Management
+    <Box className="systemsContainer">
+      {/* Header with Search, Refresh, and Add Button */}
+      <Box className="systemsHeader" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: 3 }}>
+        <Typography variant="h5" className="systemsTitle">
+          {isUserRole ? 'Systems' : 'Systems Management'}
         </Typography>
         
-        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+        <Box className="systemsHeaderActions" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Tooltip title="Refresh systems" placement="top">
+            <IconButton
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              sx={{
+                color: '#03346E',
+                '&:hover': { backgroundColor: 'rgba(3, 52, 110, 0.08)' }
+              }}
+            >
+              <CachedIcon sx={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none', '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } } }} />
+            </IconButton>
+          </Tooltip>
+          
           <TextField
-            placeholder="Search teams..."
+            placeholder={isUserRole ? 'Search systems...' : 'Search teams...'}
             variant="outlined"
             size="small"
             value={searchQuery}
@@ -267,19 +332,8 @@ const Systems = () => {
                 </InputAdornment>
               ),
             }}
-            sx={{
-              maxWidth: 400,
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '8px',
-                backgroundColor: '#fff',
-                '&:hover fieldset': {
-                  borderColor: '#2c3e50',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#2c3e50',
-                },
-              },
-            }}
+            className="systemsSearchField"
+            sx={{ minWidth: 250 }}
           />
           
           {canAddSystem && (
@@ -288,18 +342,10 @@ const Systems = () => {
                 variant="contained"
                 startIcon={<AddIcon />}
                 onClick={handleMenuOpen}
-                sx={{
-                  backgroundColor: '#2c3e50',
-                  textTransform: 'none',
-                  borderRadius: '8px',
-                  padding: '6px 20px',
-                  fontWeight: 500,
-                  '&:hover': {
-                    backgroundColor: '#34495e',
-                  },
-                }}
+                className="systemsAddButton"
+                sx={{ bgcolor: '#03346E' }}
               >
-                {selectedAction}
+                Create
               </Button>
               <Menu
                 anchorEl={menuAnchor}
@@ -307,10 +353,10 @@ const Systems = () => {
                 onClose={handleMenuClose}
               >
                 <MenuItem onClick={handleAddSystem}>
-                  <AddIcon sx={{ mr: 1 }} /> Create
+                  <AddIcon className="systemsMenuIcon" /> Create
                 </MenuItem>
                 <MenuItem onClick={handleImportSystem}>
-                  <FileUploadIcon sx={{ mr: 1 }} /> Import
+                  <FileUploadIcon className="systemsMenuIcon" /> Import
                 </MenuItem>
                 <MenuItem onClick={handleExportSystem}>
                   Export
@@ -321,178 +367,113 @@ const Systems = () => {
         </Box>
       </Box>
 
-      {/* Teams Cards Grid */}
-      {filteredTeams.length === 0 ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <Box sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 4, maxWidth: '700px' }}>
-            <Box
-              component="img"
-              src={alhImg}
-              alt="No data"
-              sx={{
-                width: '300px',
-                height: 'auto',
-                objectFit: 'contain',
-                flexShrink: 0,
-              }}
-            />
-            <Box sx={{ textAlign: 'left', color: '#6c757d' }}>
-              <Typography variant="h6" sx={{ mb: 1, fontWeight: 500 }}>
-                Systems
-              </Typography>
-              <Typography variant="body2">
-                No records found
-              </Typography>
-              <Typography variant="body2">
-                There are no records to display
-              </Typography>
+      {/* USER VIEW - Show only systems from their team */}
+      {isUserRole ? (
+        <>
+          {filteredUserTeamSystems.length === 0 ? (
+            <Box className="systemsEmptyStateContainer">
+              <Box className="systemsEmptyStateBox">
+                <Box><Nodata /></Box>
+                <Box className="systemsEmptyStateContent">
+                  <Typography variant="h6">
+                    Systems
+                  </Typography>
+                  <Typography variant="body2">
+                    No records found
+                  </Typography>
+                  <Typography variant="body2">
+                    There are no records to display
+                  </Typography>
+                </Box>
+              </Box>
             </Box>
-          </Box>
-        </Box>
+          ) : (
+            <Box className="systemsCardsGrid" sx={{ gridTemplateColumns: gridColumns }}>
+              {filteredUserTeamSystems.map((system, idx) => (
+                <Card 
+                  key={`${system.id}-${idx}`}
+                  className="systemsCard"
+                  style={{ backgroundColor: getRandomColor(idx) }}
+                  onClick={() => navigate(`/SystemCategory/${system.systemName}`)}
+                >
+                  <CardContent>
+                    <Typography variant="h6" className="systemsCardTitle">
+                      {system.systemName}
+                    </Typography>
+                    <Typography variant="body2" className="systemsCardDescription">
+                      {system.description || 'No description'}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ))}
+            </Box>
+          )}
+        </>
       ) : (
-        <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: 2, p: 2 }}>
-          {filteredTeams.map(team => {
+        <>
+          {/* ADMIN VIEW - Show all teams, clickable to see systems */}
+          {filteredTeams.length === 0 ? (
+            <Box className="systemsEmptyStateContainer">
+              <Box className="systemsEmptyStateBox">
+                <Box><Nodata /></Box>
+                <Box className="systemsEmptyStateContent">
+                  <Typography variant="h6">
+                    Systems
+                  </Typography>
+                  <Typography variant="body2">
+                    No records found
+                  </Typography>
+                  <Typography variant="body2">
+                    There are no records to display
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          ) : (
+            <Box className="systemsCardsGrid" sx={{ gridTemplateColumns: gridColumns }}>
+              {filteredTeams.map(team => {
             const systemCount = getSystemCountForTeam(team.id)
             return (
               <Card 
                 key={team.id} 
-                sx={{ 
-                  borderRadius: 2, 
-                  border: "1px solid #e0e0e0", 
-                  boxShadow: "none",
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  backgroundColor: teamColorMap[team.id],
-                  '&:hover': {
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                    transform: 'translateY(-2px)',
-                  }
-                }}
+                className="systemsCard"
+                style={{ backgroundColor: teamColorMap[team.id] }}
                 onClick={() => {
                   setSelectedTeam(team)
                   setSystemsDialogOpen(true)
                 }}
               >
                 <CardContent>
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#2c3e50' }}>
+                  <Typography variant="h6" className="systemsCardTitle">
                     {team.name}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" className="systemsCardCount">
                     <strong>{systemCount}</strong> {systemCount === 1 ? 'system' : 'systems'}
                   </Typography>
                 </CardContent>
               </Card>
             )
           })}
-        </Box>
-      )}
-
-      {/* Systems Dialog - Shows systems for selected team */}
-      <Dialog
-        open={systemsDialogOpen}
-        onClose={() => {
-          setSystemsDialogOpen(false)
-          setSystemsSearchQuery('')
-        }}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          Systems for {selectedTeam?.name}
-        </DialogTitle>
-        <DialogContent>
-          {/* Search Bar */}
-          <TextField
-            placeholder="Search systems..."
-            variant="outlined"
-            size="small"
-            value={systemsSearchQuery}
-            onChange={(e) => setSystemsSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: '#9e9e9e' }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={{
-              width: '100%',
-              mb: 2,
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '8px',
-                backgroundColor: '#f5f5f5',
-                '&:hover fieldset': {
-                  borderColor: '#2c3e50',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#2c3e50',
-                },
-              },
-            }}
-          />
-          {selectedTeam ? (
-            <Box sx={{ pt: 2 }}>
-              {teamSystemsLoading || systemsSearchQuery !== debouncedSystemsSearch ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 300, flexDirection: 'column', gap: 2 }}>
-                  <CircularProgress size={40} />
-                  <Typography variant="body2" color="text.secondary">
-                    Searching systems...
-                  </Typography>
-                </Box>
-              ) : (
-                <>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Total Systems: {filteredTeamSystems?.length || 0}
-                  </Typography>
-                  {filteredTeamSystems && filteredTeamSystems.length > 0 ? (
-                    <Box sx={{ 
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(2, 1fr)',
-                      gap: 2,
-                    }}>
-                      {filteredTeamSystems.map((system) => (
-                        <Box
-                          key={system.id}
-                          onClick={() => {
-                            navigate(`/SystemCategory/${system.systemName}`)
-                            setSystemsDialogOpen(false)
-                          }}
-                          sx={{
-                            p: 2,
-                            bgcolor: '#1a1a2e',
-                            borderRadius: 1,
-                            cursor: 'pointer',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                            transition: 'all 0.2s ease',
-                            '&:hover': {
-                              bgcolor: '#252d3d',
-                              border: '1px solid rgba(3, 151, 209, 0.5)',
-                              boxShadow: '0 0 8px rgba(3, 151, 209, 0.2)',
-                            }
-                          }}
-                        >
-                          <Typography variant="body2" sx={{ fontWeight: 500, color: '#fff' }}>
-                            {system.systemName}
-                          </Typography>
-                        </Box>
-                      ))}
-                    </Box>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary" align="center">
-                      No systems found for this team
-                    </Typography>
-                  )}
-                </>
-              )}
             </Box>
-          ) : null}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setSystemsDialogOpen(false)} color="primary">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+          )}
+
+          {/* Systems Dialog - Shows systems for selected team */}
+          <SystemCategoryDialog
+            open={systemsDialogOpen}
+            onClose={() => {
+              setSystemsDialogOpen(false)
+              setSystemsSearchQuery('')
+            }}
+            selectedTeam={selectedTeam}
+            systemsSearchQuery={systemsSearchQuery}
+            setSystemsSearchQuery={setSystemsSearchQuery}
+            debouncedSystemsSearch={debouncedSystemsSearch}
+            teamSystemsLoading={teamSystemsLoading}
+            filteredTeamSystems={filteredTeamSystems}
+            onRefresh={handleDialogRefresh}
+          />
+        </>
+      )}
 
       {/* System Form Dialog (Add/Edit) */}
       <SystemFormDialog
@@ -502,8 +483,6 @@ const Systems = () => {
         onSave={handleSystemsSave}
       />
     </Box>
-      )}
-    </>
   )
 }
 
