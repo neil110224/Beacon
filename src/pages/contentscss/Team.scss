@@ -74,7 +74,8 @@
 
 .teamCardTitle {
   margin-bottom: 0.25rem;
-  font-weight: 600;
+  font-weight: 600; 
+  color: $primary-contrast;
 }
 
 .teamCardActions {
@@ -139,10 +140,12 @@
 
 .teamMemberInfo {
   flex: 1;
+  color: $primary-contrast;
 }
 
 .teamMemberName {
   font-weight: 500;
+  color: $primary-contrast;
 }
 
 .teamEmptyMembersText {

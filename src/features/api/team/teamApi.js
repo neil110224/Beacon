@@ -1,4 +1,4 @@
-import { todoListApi } from "../../api"; // Adjust path to your api.js
+import { todoListApi } from "../../api";
 
 export const teamApi = todoListApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -46,6 +46,19 @@ export const teamApi = todoListApi.injectEndpoints({
       ],
     }),
 
+    // ── PATCH: used for partial updates like add/remove systems ──
+    patchTeam: builder.mutation({
+      query: ({ id, body }) => ({
+        url: `team/${id}`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Teams", id },
+        "Teams",
+      ],
+    }),
+
     restoreTeam: builder.mutation({
       query: ({ id, ...data }) => ({
         url: `team/${id}`,
@@ -67,11 +80,10 @@ export const teamApi = todoListApi.injectEndpoints({
       invalidatesTags: (result, error, { teamId }) => [
         { type: "Teams", id: teamId },
         "Teams",
-        "users", // Invalidate users cache to refresh user's team data
+        "users",
       ],
     }),
 
-    // This removes a user from the team by setting their team_id to NULL
     removeTeamMember: builder.mutation({
       query: ({ teamId, userId }) => ({
         url: `team/${teamId}/remove-member`,
@@ -81,7 +93,7 @@ export const teamApi = todoListApi.injectEndpoints({
       invalidatesTags: (result, error, { teamId }) => [
         { type: "Teams", id: teamId },
         "Teams",
-        "users", // Invalidate users cache to refresh user data after team removal
+        "users",
       ],
     }),
 
@@ -90,7 +102,7 @@ export const teamApi = todoListApi.injectEndpoints({
         url: `team/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Teams", "users"], // Also invalidate users when team is deleted
+      invalidatesTags: ["Teams", "users"],
     }),
   }),
 });
@@ -100,6 +112,7 @@ export const {
   useGetTeamByIdQuery,
   useCreateTeamMutation,
   useUpdateTeamMutation,
+  usePatchTeamMutation, // ← new
   useRestoreTeamMutation,
   useAddTeamMemberMutation,
   useRemoveTeamMemberMutation,

@@ -1,3 +1,6 @@
+@use "../../styles/colors.scss" as *;
+@use "../../styles/mixins.scss" as bp;
+
 .systemsContainer {
   display: flex;
   flex-direction: column;
@@ -10,8 +13,6 @@
   align-items: center;
   padding: 16px;
   gap: 16px;
-  border-bottom: 1px solid #1a1a2e;
-  margin-bottom: 16px;
 }
 
 .systemsTitle {
@@ -51,7 +52,7 @@
   font-weight: 500;
 
   &:hover {
-    background-color: #34495e;
+    background-color: $primary-text-dark;
   }
 }
 
@@ -79,7 +80,7 @@
   color: #6c757d;
 
   h6 {
-    margin-bottom: 8px;
+    margin-bottom: 1px;
     font-weight: 500;
   }
 

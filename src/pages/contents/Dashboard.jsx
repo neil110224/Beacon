@@ -1,4 +1,4 @@
-import { Box, Typography, Paper, IconButton, Button, FormControl, Select, MenuItem, Chip, TextField, Tooltip } from '@mui/material'
+import { Box, Typography, Paper, IconButton, Button, FormControl, Select, MenuItem, Chip, TextField, Tooltip, CircularProgress } from '@mui/material'
 import Loading from '../../component/reuseable/Loading'
 import nodataImg from '../../assets/alh.png'
 import Nodata from '../../component/reuseable/Nodata'
@@ -68,10 +68,9 @@ const SystemProgress = ({ system, onNavigate }) => {
 
   const getStatusColor = (status) => {
     const colors = {
-      pending: '#ff9800',
-      done: '#4caf50',
-      hold: '#2196f3',
-      inprogress: '#9c27b0',
+      pending: '#89D4FF',     
+      done: '#281C59',
+      hold: '#261CC1',
     }
     return colors[status?.toLowerCase()] || '#9e9e9e'
   }
@@ -81,16 +80,16 @@ const SystemProgress = ({ system, onNavigate }) => {
       {/* Progress Percentage Display */}
       <Box className="progressPercentageBox">
         <Box className="progressPercentageCircle">
-          <Typography className="progressPercentageText">
+          <Typography className="progressPercentageText" sx={{fontSize:'0.75rem', fontFamily: '"Oswald", sans-serif'}}>
             {stats.percentage}%
           </Typography>
         </Box>
         <Box className="progressInfoBox">
-          <Typography variant="caption" className="progressLabel">
+          <Typography variant="caption" className="progressLabel" sx={{fontFamily: '"Oswald", sans-serif'}}>
             Progress
           </Typography>
-          <Typography className="progressCompleted">
-            Completed
+          <Typography className="progressCompleted" sx={{fontFamily: '"Oswald", sans-serif'}}>
+            {stats.pending > 0 ? 'On going' : 'Completed'}
           </Typography>
         </Box>
       </Box>
@@ -98,37 +97,37 @@ const SystemProgress = ({ system, onNavigate }) => {
       {/* Stats Grid */}
       <Box className="statsGridContainer">
         <Box className="statItem statItemTotal">
-          <Typography variant="caption" className="statItemLabel">
+          <Typography variant="caption" className="statItemLabel" sx={{fontFamily: '"Oswald", sans-serif'}}>
             Total
           </Typography>
-          <Typography className="statItemValue">
+          <Typography className="statItemValue" sx={{fontFamily: '"Oswald", sans-serif'}}>
             {stats.total}
           </Typography>
         </Box>
 
         <Box className="statItem statItemDone">
-          <Typography variant="caption" className="statItemLabel">
+          <Typography variant="caption" className="statItemLabel" sx={{fontFamily: '"Oswald", sans-serif'}}>
             Done
           </Typography>
-          <Typography className="statItemValue">
+          <Typography className="statItemValue" sx={{fontFamily: '"Oswald", sans-serif'}}>
             {stats.done}
           </Typography>
         </Box>
 
         <Box className="statItem statItemRemaining">
-          <Typography variant="caption" className="statItemLabel">
-            Remaining
+          <Typography variant="caption" className="statItemLabel" sx={{fontFamily: '"Oswald", sans-serif'}}>
+            Pending
           </Typography>
-          <Typography className="statItemValue">
+          <Typography className="statItemValue" sx={{fontFamily: '"Oswald", sans-serif'}}>
             {stats.remaining}
           </Typography>
         </Box>
 
         <Box className="statItem statItemHold">
-          <Typography variant="caption" className="statItemLabel">
+          <Typography variant="caption" className="statItemLabel" sx={{fontFamily: '"Oswald", sans-serif'}}>
             On Hold
           </Typography>
-          <Typography className="statItemValue">
+          <Typography className="statItemValue" sx={{fontFamily: '"Oswald", sans-serif'}}>
             {stats.hold}
           </Typography>
         </Box>
@@ -139,17 +138,17 @@ const SystemProgress = ({ system, onNavigate }) => {
       {/* Recent Items Section */}
       {recentItems.length > 0 && (
         <Box className="pendingTasksSection">
-          <Typography variant="caption" className="pendingTasksTitle">
+          <Typography variant="caption" className="pendingTasksTitle" sx={{fontFamily: '"Oswald", sans-serif'}}>    
             Pending Tasks
           </Typography>
-          <Box component="ul" className="pendingTasksList">
+          <Box component="ul" className="pendingTasksList" sx={{fontSize:'0.55rem', fontFamily: '"Oswald", sans-serif'}}>
             {recentItems.map((item, idx) => (
               <Box
                 key={idx}
                 component="li"
                 className="pendingTaskItem"
               >
-                <Typography className="pendingTaskDescription">
+                <Typography className="pendingTaskDescription" sx={{fontFamily: '"Oswald", sans-serif'}}>
                   {item.description}
                 </Typography>
                 {/* Chip for status */}
@@ -172,7 +171,7 @@ const SystemProgress = ({ system, onNavigate }) => {
               })
             })
             return totalPending > 2 ? (
-              <Typography className="pendingTasksEllipsis">
+              <Typography className="pendingTasksEllipsis" sx={{fontFamily: '"Oswald", sans-serif'}}>
                 ......
               </Typography>
             ) : null
@@ -181,6 +180,7 @@ const SystemProgress = ({ system, onNavigate }) => {
             size="small"
             onClick={onNavigate}
             className="viewAllButton"
+            sx={{fontSize:'10px', fontFamily: '"Oswald", sans-serif'}}
           >
             View All
           </Button>
@@ -224,28 +224,30 @@ const Dashboard = () => {
   const buildQueryParams = () => {
     const isUserRole = user?.role?.name?.toLowerCase() === "user"
     
+    const baseParams = {}
+    
     // If a team is selected, use that team
     if (selectedTeam) {
-      return {
-        status: "active",
-        scope: "per_team",
-        team_id: selectedTeam
-      }
+      baseParams.status = "active"
+      baseParams.scope = "per_team"
+      baseParams.team_id = selectedTeam
+    } else if (isUserRole && user?.team?.id) {
+      // Use user's team
+      baseParams.status = "active"
+      baseParams.scope = "per_team"
+      baseParams.team_id = user.team.id
+    } else {
+      // Global scope
+      baseParams.status = "active"
+      baseParams.scope = "global"
     }
     
-    // Otherwise, use the default logic based on user role
-    if (isUserRole && user?.team?.id) {
-      return {
-        status: "active",
-        scope: "per_team",
-        team_id: user.team.id
-      }
-    } else {
-      return {
-        status: "active",
-        scope: "global"
-      }
+    // Add search query if provided
+    if (debouncedSystemsSearch) {
+      baseParams.search = debouncedSystemsSearch
     }
+    
+    return baseParams
   }
 
   const queryParams = buildQueryParams()
@@ -261,11 +263,9 @@ const Dashboard = () => {
     }
   };
 
-  // Filter systems based on search query
+  // Use systems data directly (backend handles filtering via search parameter)
   const filteredSystems = Array.isArray(systemsData)
-    ? systemsData.filter(system =>
-        system.systemName.toLowerCase().includes(debouncedSystemsSearch.toLowerCase())
-      )
+    ? systemsData
     : []
 
   // Calculate overall stats from filtered systems
@@ -312,10 +312,10 @@ const Dashboard = () => {
           <Icon sx={{ fontSize: 20, color }} />
         </Box>
         <Box className="statCardValue">
-          <Typography variant="h6" className="statCardNumber">
+          <Typography variant="h6" className="statCardNumber" sx={{fontFamily: '"Oswald", sans-serif'}}>
             {count}{isPercentage && '%'}
           </Typography>
-          <Typography variant="body2" className="statCardLabel">
+          <Typography variant="body2" className="statCardLabel" sx={{fontFamily: '"Oswald", sans-serif'}}>
             {title}
           </Typography>
         </Box>
@@ -333,58 +333,19 @@ const Dashboard = () => {
 
   return (
     <Box className="dashboardContainer">
-      {/* Welcome Message */}
-      <Box className="welcomeSection">
+      {/* Welcome Message with Filters on Same Line */}
+      <Box className="welcomeSection" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
         <Typography 
           variant="h6" 
           className="welcomeTitle"
+          sx={{fontFamily: '"Oswald", sans-serif'}}
         >
           Welcome back, {user?.first_name || 'User'}!
         </Typography>
-      </Box>
 
-      {/* Summary Cards */}
-      <Box className="summarySectionWrapper">
-        <Box className="summaryCardBox">
-          <StatCard
-            title="Pending"
-            count={stats.pending}
-            icon={PendingActionsIcon}
-            color="#f59e0b"
-          />
-        </Box>
-        <Box className="summaryCardBox">
-          <StatCard
-            title="Progress"
-            count={parseInt(stats.percentage)}
-            icon={CheckCircleIcon}
-            color="#22c55e"
-            isPercentage={true}
-          />
-        </Box>
-      </Box>
-
-      {/* Team Filter */}
-      {canFilterByTeam && (
-        <Box className="filterSection" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
-          <FormControl className="filterSelect" size="small">
-            <Select
-              value={selectedTeam}
-              onChange={(e) => setSelectedTeam(e.target.value)}
-              displayEmpty
-              className="filterSelectInput"
-            >
-              <MenuItem value="">
-                <Typography className="filterMenuItemText">All Teams</Typography>
-              </MenuItem>
-              {teams.map((team) => (
-                <MenuItem key={team.id} value={team.id}>
-                  {team.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, justifyContent: 'flex-end' }}>
+        {/* Filters on Right Side */}
+        {canFilterByTeam && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Tooltip title="Refresh systems" placement="top">
               <IconButton
                 onClick={handleRefresh}
@@ -397,6 +358,23 @@ const Dashboard = () => {
                 <CachedIcon sx={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none', '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } } }} />
               </IconButton>
             </Tooltip>
+            <FormControl className="filterSelect" size="small">
+              <Select
+                value={selectedTeam}
+                onChange={(e) => setSelectedTeam(e.target.value)}
+                displayEmpty
+                className="filterSelectInput"
+              >
+                <MenuItem value="">
+                  <Typography className="filterMenuItemText" sx={{fontFamily: '"Oswald", sans-serif'}}>All Teams</Typography>
+                </MenuItem>
+                {teams.map((team) => (
+                  <MenuItem key={team.id} value={team.id}>
+                    {team.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
             <TextField
               placeholder="Search systems..."
               value={systemsSearchQuery}
@@ -405,12 +383,36 @@ const Dashboard = () => {
               className="systemsSearchField"
               InputProps={{
                 startAdornment: <SearchIcon className="searchIcon" />,
+                endAdornment: (systemsSearchQuery !== '' && (systemsLoading || systemsSearchQuery !== debouncedSystemsSearch)) ? (
+                  <CircularProgress size={20} sx={{ color: '#03346E', mr: 1 }} />
+                ) : null,
               }}
               sx={{ minWidth: 250 }}
             />
           </Box>
+        )}
+      </Box>
+
+      {/* Summary Cards */}
+      <Box className="summarySectionWrapper">
+        <Box className="summaryCardBox">
+          <StatCard
+            title="Pending"
+            count={stats.pending}
+            icon={PendingActionsIcon}
+            color="#857fe0"
+          />
         </Box>
-      )}
+        <Box className="summaryCardBox">
+          <StatCard
+            title="Progress"
+            count={parseInt(stats.percentage)}
+            icon={CheckCircleIcon}
+            color="#160d92"
+            isPercentage={true}
+          />
+        </Box>
+      </Box>
 
       {/* Systems Grid */}
       {systemsError ? (
@@ -420,10 +422,10 @@ const Dashboard = () => {
               <Nodata />
             </Box>
             <Box className="emptyStateText">
-              <Typography variant="h6" className="emptyStateTitle">
+              <Typography variant="h6" className="emptyStateTitle" sx={{fontFamily: '"Oswald", sans-serif'}}>
                 {user?.team?.name || 'Your Team'}
               </Typography>
-              <Typography variant="body2" className="emptyStateDescription">
+              <Typography variant="body2" className="emptyStateDescription" sx={{fontFamily: '"Oswald", sans-serif'}}>
                 Currently no system
               </Typography>
             </Box>
@@ -439,7 +441,7 @@ const Dashboard = () => {
               className="emptyStateImage"
             />
             <Box className="emptyStateText">
-              <Typography variant="h6" className="emptyStateTitle">
+              <Typography variant="h6" className="emptyStateTitle" sx={{fontFamily: '"Oswald", sans-serif'}}>
                 {user?.team?.name || 'Projects'}
               </Typography>
               <Typography variant="body2" className="emptyStateDescription">
@@ -450,20 +452,19 @@ const Dashboard = () => {
         </Box>
       ) : (
         <Box className="systemsGrid">
-          {filteredSystems.map((system, idx) => (
+          {filteredSystems.map((system, idx) => {
+            return (
           <Box
             key={`${system.systemName}-${idx}`}
             onClick={() => navigate(`/SystemCategory/${system.systemName}`)}
             className="systemCard"
           >
-            <Box className="systemCardHeader">
-              <Typography variant='h6' className="systemCardTitle">
-                {system.systemName}
-              </Typography>
-              <IconButton className="systemCardArrow">
-                <ArrowForwardIosIcon sx={{ fontSize: 18 }} />
-              </IconButton>
-            </Box>
+            {/* Project Name Header */}
+            <Typography variant='h6' className="projectName" sx={{fontFamily: '"Oswald", sans-serif'}}>
+              {system.systemName}
+            </Typography>
+
+            {/* All Stats from SystemProgress */}
             <Box className="systemCardContent">
               <SystemProgress 
                 system={system} 
@@ -471,7 +472,8 @@ const Dashboard = () => {
               />
             </Box>
           </Box>
-        ))}
+            )
+          })}
         </Box>
       )}
     </Box>

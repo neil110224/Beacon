@@ -120,6 +120,7 @@ function DataTable({
                         fontSize: "1.3rem", 
                         color: "#03346E", 
                         fontWeight: 700,
+                        fontFamily: '"Oswald", sans-serif',
                       }}
                     >
                       <Skeleton />
@@ -147,6 +148,7 @@ function DataTable({
                           width: col.width, 
                           maxWidth: "150px",
                           fontSize: "0.85rem",
+                          fontFamily: '"Oswald", sans-serif',
                         }}
                       >
                         <Skeleton />
@@ -188,7 +190,7 @@ function DataTable({
   // If 404 or no rows, show empty state with Nodata animation
   if (isNotFoundError || safeRows.length === 0) {
     return (
-      <Box className="emptyStateContainer" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+              <Box className="emptyStateContainer" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px', fontFamily: '"Oswald", sans-serif' }}>
         <Nodata />
       </Box>
     );
@@ -198,7 +200,7 @@ function DataTable({
     <Paper 
       elevation={0}
       className="dataTablePaper"
-      sx={{ display: "flex", flexDirection: "column", maxHeight: "400px" }}
+      sx={{ display: "flex", flexDirection: "column", maxHeight: "420px" }}
     >
       <TableContainer className="dataTableContainer" sx={{ overflow: "auto", flex: 1 }}>
         <Table className="dataTableBase">
@@ -222,7 +224,8 @@ function DataTable({
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
-                      cursor: "help"
+                      cursor: "help",
+                      fontFamily: '"Oswald", sans-serif',
                     }}
                   >
                     {col.label}
@@ -242,7 +245,7 @@ function DataTable({
                 >
                   <Box className="emptyDataBox">
                     <InboxIcon className="emptyDataIcon" />
-                    <Typography variant="body1" color="text.secondary">
+                    <Typography variant="body1" color="text.secondary" sx={{fontFamily: '"Oswald", sans-serif'}}>
                       {safeRows.length === 0
                         ? "No data available"
                         : "No data on this page"}
@@ -270,7 +273,8 @@ function DataTable({
                         fontSize: "0.85rem",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
-                        whiteSpace: "nowrap"
+                        whiteSpace: "nowrap",
+                        fontFamily: '"Oswald", sans-serif',
                       }}
                     >
                       {col.render ? col.render(row) : row[col.id]}

@@ -237,7 +237,7 @@ const NomBurst = ({ x, y, color, label, onDone }) => {
             stroke={color} strokeWidth={i % 2 === 0 ? '3' : '1.8'} strokeLinecap="round" />
         })}
         <text x="24" y="28" fontSize="9" fontWeight="900"
-          fontFamily="'Arial Black', sans-serif"
+          fontFamily="'Oswald', sans-serif"
           fill="white" stroke={color} strokeWidth="2.5" paintOrder="stroke"
           textAnchor="middle">{label}</text>
         <text x="2"  y="12" fontSize="9"  fill="#ffeb3b">★</text>

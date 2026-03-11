@@ -41,13 +41,14 @@ const MasterlistTab = ({
         value={showArchived ? 1 : 0}
         onChange={onTabChange}
         className="masterlistTabsContainer"
+        sx={{fontFamily: '"Oswald", sans-serif'}}
       >
-        <Tab label="Active" />
-        <Tab label="Archived" />
+        <Tab label="Active" sx={{fontFamily: '"Oswald", sans-serif'}} />
+        <Tab label="Archived" sx={{fontFamily: '"Oswald", sans-serif'}} />
       </Tabs>
 
       <Box className="masterlistActionBar">
-        <Tooltip title="Refresh data" placement="top">
+<Tooltip title="Refresh data" placement="top" sx={{fontFamily: '"Oswald", sans-serif'}}>
           <IconButton
             onClick={handleRefresh}
             disabled={isRefreshing}
@@ -66,7 +67,7 @@ const MasterlistTab = ({
             startIcon={<AddIcon />}
             onClick={onAddClick}
             className="masterlistCreateButton"
-            sx={{bgcolor: '#03346E'}}
+            sx={{bgcolor: '#03346E', fontFamily: '"Oswald", sans-serif'}}
           >
             {addLabel}
           </Button>
@@ -85,6 +86,7 @@ const MasterlistTab = ({
             ),
           }}
           className="masterlistSearchField"
+          sx={{fontFamily: '"Oswald", sans-serif'}}
         />
       </Box>
     </Box>

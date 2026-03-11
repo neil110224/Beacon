@@ -52,7 +52,8 @@ const Role = () => {
     setSelectedRole(null);
   };
 
-  const handleEdit = () => {
+  const handleEdit = (e) => {
+    e.stopPropagation();
     setRoleDialogOpen(true);
     setAnchorEl(null);
   };
@@ -62,7 +63,8 @@ const Role = () => {
     setRoleDialogOpen(true);
   };
 
-  const handleArchiveClick = () => {
+  const handleArchiveClick = (e) => {
+    e.stopPropagation();
     setConfirmDialogOpen(true);
     setAnchorEl(null);
   };
@@ -73,6 +75,7 @@ const Role = () => {
     try {
       await deleteRole(selectedRole.id).unwrap();
       setSelectedRole(null);
+      setConfirmDialogOpen(false);
       setSnackbarMessage(selectedRole.deleted_at ? 'Role restored successfully' : 'Role archived successfully');
       setSnackbarSeverity('success');
       setSnackbarOpen(true);
@@ -81,6 +84,7 @@ const Role = () => {
       setSnackbarMessage(errorMessage);
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
+      setConfirmDialogOpen(false);
     }
   };
 
@@ -135,7 +139,7 @@ const Role = () => {
       render: (row) => (
         <>
           <IconButton 
-            onClick={(e) => handleMenuOpen(e, row)}
+            onClick={(e) => { e.stopPropagation(); handleMenuOpen(e, row); }}
             className="roleActionButton"
           >
             <MoreVertIcon className="roleMenuIcon" />
@@ -150,7 +154,7 @@ const Role = () => {
           >
             {row.deleted_at ? (
               <MenuItem 
-                onClick={handleArchiveClick}
+                onClick={(e) => handleArchiveClick(e)}
                 disabled={isDeleting}
                 className="roleMenuItem"
               >
@@ -158,11 +162,11 @@ const Role = () => {
                 Restore
               </MenuItem>
             ) : [
-              <MenuItem key="edit" onClick={handleEdit} className="roleMenuItem">
+              <MenuItem key="edit" onClick={(e) => handleEdit(e)} className="roleMenuItem">
                 <EditIcon fontSize="small" className="roleEditIcon" />
                 Edit
               </MenuItem>,
-              <MenuItem key="archive" onClick={handleArchiveClick} disabled={isDeleting} className="roleMenuItem">
+              <MenuItem key="archive" onClick={(e) => handleArchiveClick(e)} disabled={isDeleting} className="roleMenuItem">
                 <ArchiveIcon fontSize="small" className="roleArchiveIcon" />
                 Archive
               </MenuItem>

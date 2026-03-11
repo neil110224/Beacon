@@ -39,9 +39,7 @@ const createUserValidationSchema = (isEdit) => {
     last_name: yup.string().required('Last name is required').trim(),
     suffix: yup.string().nullable(),
     username: yup.string().required('Username is required').trim(),
-    password: isEdit
-      ? yup.string().nullable() // Optional in edit mode
-      : yup.string().required('Password is required'), // Required in add mode, no minimum length
+    password: yup.string().nullable(), // Optional for both add and edit modes
     role_id: yup.string().required('Role is required'),
     charging_id: yup.string().required('Charging is required'),
     team_id: yup.string().required('Team is required'),
@@ -153,15 +151,20 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
       setApiLoading(true);
 
       // Prepare payload
-      const payload = {
+      let payload = {
         ...data,
         role_id: data.role_id ? parseInt(data.role_id, 10) : null,
         charging_id: data.charging_id ? parseInt(data.charging_id, 10) : null,
         team_id: data.team_id ? parseInt(data.team_id, 10) : null,
       };
 
+      // For add mode: if password is not provided, use username as password
+      if (!isEdit && !payload.password) {
+        payload.password = payload.username;
+      }
+
       // Remove password if empty (for edit mode)
-      if (!payload.password) delete payload.password;
+      if (isEdit && !payload.password) delete payload.password;
 
       // Call the mutation with the correct format
       // For edit mode, need to pass { id, data }; for create, just payload
@@ -175,6 +178,27 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
         message: isEdit ? 'User updated successfully!' : 'User created successfully!',
         severity: 'success',
       });
+
+      // For new user creation, set flag for force password change on first login
+      // Use user ID (from response) to create a unique flag per user
+      if (!isEdit) {
+        console.log('New user created, result:', result); // Debug log
+        
+        // Try to get user ID from result (could be result.id, result.data.id, etc.)
+        const userId = result?.id || result?.data?.id;
+        const username = result?.username || data?.username;
+        
+        if (userId) {
+          localStorage.setItem(`forceChangePassword_${userId}`, 'true');
+          sessionStorage.setItem(`forceChangePassword_${userId}`, 'true');
+          console.log(`Set password change flag for user ID: ${userId}`);
+        } else if (username) {
+          // Fallback to username if ID isn't available
+          localStorage.setItem(`forceChangePassword_${username}`, 'true');
+          sessionStorage.setItem(`forceChangePassword_${username}`, 'true');
+          console.log(`Set password change flag for username: ${username}`);
+        }
+      }
 
       // Reset form and close
       reset();
@@ -290,7 +314,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
           {!isEdit && (
             <TextField
               {...register('password')}
-              label="Password"
+              label="Password (optional - will use username if empty)"
               type="password"
               fullWidth
               error={!!errors.password}

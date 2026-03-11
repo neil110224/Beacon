@@ -55,10 +55,11 @@ const Category = () => {
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
       } catch (err) {
-        console.error('Failed to archive category:', err);
-        setSnackbarMessage('Failed to archive category. Please try again.');
+        const errorMessage = err?.data?.errors?.[0]?.detail || 'Failed to archive category. Please try again.';
+        setSnackbarMessage(errorMessage);
         setSnackbarSeverity('error');
         setSnackbarOpen(true);
+        setConfirmDialogOpen(false);
       }
     };
 

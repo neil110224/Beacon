@@ -29,6 +29,14 @@ export const progressApi = todoListApi.injectEndpoints({
       }),
       invalidatesTags: ["systems"],
     }),
+    createProgress: builder.mutation({
+      query: (data) => ({
+        url: `progress`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["systems"],
+    }),
   }),
 });
 
@@ -36,4 +44,5 @@ export const {
   useGetSystemProgressQuery,
   useUpdateProgressStatusMutation,
   useUpdateProgressMutation,
+  useCreateProgressMutation,
 } = progressApi;

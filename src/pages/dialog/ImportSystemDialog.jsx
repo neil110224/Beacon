@@ -1,5 +1,5 @@
 import React from 'react'
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Typography, CircularProgress } from '@mui/material'
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Typography, CircularProgress, Link } from '@mui/material'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 
 const ImportSystemDialog = ({ open, onClose, selectedTeam }) => {
@@ -79,6 +79,48 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam }) => {
     onClose()
   }
 
+  const downloadTemplate = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const baseUrl = 'http://10.10.14.61:8000/api'
+      
+      const response = await fetch(`${baseUrl}/export_template`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        }
+      })
+      
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Download failed with status ${response.status}: ${errorText}`)
+      }
+      
+      const blob = await response.blob()
+      
+      if (blob.size === 0) {
+        throw new Error('Empty response received')
+      }
+      
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'Template.xlsx'
+      link.style.display = 'none'
+      document.body.appendChild(link)
+      link.click()
+      
+      setTimeout(() => {
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+      }, 100)
+    } catch (error) {
+      console.error('Error downloading template:', error)
+      alert('Failed to download template')
+    }
+  }
+
   return (
     <Dialog
       open={open}
@@ -144,6 +186,25 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam }) => {
               </Typography>
             </Box>
           )}
+
+          <Box sx={{ mt: 3, textAlign: 'left' }}>
+            <Link
+              component="button"
+              type="button"
+              onClick={downloadTemplate}
+              sx={{
+                color: '#03346E',
+                fontWeight: 500,
+                textDecoration: 'none',
+                cursor: 'pointer',
+                '&:hover': {
+                  textDecoration: 'underline'
+                }
+              }}
+            >
+              Downloadable Template
+            </Link>
+          </Box>
         </Box>
       </DialogContent>
       <DialogActions>

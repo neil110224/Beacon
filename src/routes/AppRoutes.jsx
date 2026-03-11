@@ -19,6 +19,7 @@ import Sidebar from '../component/sidebar'
 import ProtectedRoute from './ProtectedRoute'
 import PublicRoute from './PublicRoute'
 import LighthouseLoader from '../component/reuseable/Loading'
+import Practice from '../pages/contents/Practice'
 
 const AppRoutes = () => {
   return (
@@ -49,7 +50,8 @@ const AppRoutes = () => {
       <Route path='/topnavcontent' element={<ProtectedRoute element={<TopNavContent/>}/>}/>
       <Route path='/datatable' element={<ProtectedRoute element={<DataTable/>}/>}/>
       <Route path='/LighthouseLoader' element={<ProtectedRoute element={<LighthouseLoader/>}/>}/>
-      
+      <Route path='/practice' element={<ProtectedRoute element={<Practice/>}/>}/>
+    
     </Routes>
   )
 }

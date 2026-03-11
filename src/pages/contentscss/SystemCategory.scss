@@ -1,10 +1,16 @@
 @use "../../styles/colors" as *;
 @use "../../styles/mixins" as bp;
 
+// Apply Oswald globally within this component
 .systemCategoryContainer {
   display: flex;
   flex-direction: column;
   height: 100%;
+
+  // Blanket Oswald override for all text inside this component
+  * {
+    font-family: 'Oswald', sans-serif !important;
+  }
 }
 
 .systemCategoryHeader {
@@ -16,17 +22,20 @@
 }
 
 .systemCategoryTitle {
+  font-family: 'Oswald', sans-serif;
   font-weight: 600;
   color: #2c3e50;
   margin-bottom: 4px;
 }
 
 .systemCategoryTeam {
+  font-family: 'Oswald', sans-serif;
   color: #6b7280;
   font-size: 0.875rem;
 }
 
 .systemCategoryAddButton {
+  font-family: 'Oswald', sans-serif;
   background-color: $primary-text-light;
   color: #fff;
   text-transform: none;
@@ -35,7 +44,7 @@
   margin-right: 8px;
 
   &:hover {
-    background-color: #2563eb;
+    background-color: $primary-text-dark;
   }
 }
 
@@ -54,14 +63,26 @@
   }
 
   .MuiAccordionSummary-root {
-    background-color: #1a1a2e;
+    background-color: $primary-text-light;
     color: #f4f4f4;
     border-radius: 5px 5px 0 0;
-    min-height: 26px;
+    min-height: 16px;
+    padding: 8px 16px !important;
+
+    .MuiAccordionSummary-content {
+      padding: 0 !important;
+      margin: 0;
+    }
 
     h6 {
-      font-size: 1.25rem;
+      font-size: 0.95rem;
       font-weight: 600;
+      margin: 0;
+      font-family: 'Oswald', sans-serif;
+    }
+
+    &.Mui-expanded {
+      min-height: 16px;
     }
   }
 
@@ -81,6 +102,11 @@
 
 .systemCategoryTable {
   font-size: 0.875rem;
+  font-family: 'Oswald', sans-serif;
+
+  th, td {
+    font-family: 'Oswald', sans-serif;
+  }
 }
 
 .systemCategoryTableHead {
@@ -88,10 +114,15 @@
 
   th {
     font-weight: bold;
+    font-family: 'Oswald', sans-serif;
   }
 }
 
 .systemCategoryTableRow {
+  td {
+    font-family: 'Oswald', sans-serif;
+  }
+
   &:hover {
     background-color: #fafafa;
   }
@@ -105,6 +136,7 @@
   min-width: 120px;
   font-weight: bold;
   color: #fff;
+  font-family: 'Oswald', sans-serif;
 
   &:disabled {
     opacity: 0.6;
@@ -144,19 +176,29 @@
   max-width: 200px;
   white-space: normal;
   word-wrap: break-word;
+  font-family: 'Oswald', sans-serif;
 }
 
 .systemCategoryEmptyItems {
   padding: 16px;
+
+  p, span {
+    font-family: 'Oswald', sans-serif;
+  }
 }
 
 .systemCategorySnackbar {
   width: 100%;
   font-weight: bold;
   color: #fff;
+  font-family: 'Oswald', sans-serif;
 
   .MuiAlert-icon {
     color: #fff;
+  }
+
+  .MuiAlert-message {
+    font-family: 'Oswald', sans-serif;
   }
 
   &.success {
@@ -179,4 +221,9 @@
   padding: 24px;
   text-align: center;
   color: #6c757d;
+  font-family: 'Oswald', sans-serif;
+
+  p, span, h6 {
+    font-family: 'Oswald', sans-serif;
+  }
 }

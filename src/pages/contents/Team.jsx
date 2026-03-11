@@ -52,8 +52,7 @@ const Team = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const getRandomColor = (seed) => {
-    const colors = ['#FFB6C1', '#87CEEB', '#98FB98', '#FFD700', '#FF6347', '#DDA0DD', '#F0E68C', '#87CEEB', '#FFA07A', '#20B2AA', '#DA70D6', '#F08080', '#B0E0E6', '#FFE4B5', '#F0FFFF'];
-    return colors[seed % colors.length];
+    return '#03346E';
   };
 
   const teamColorMap = useMemo(() => {
@@ -179,10 +178,10 @@ const Team = () => {
               <Nodata />
             </Box>
             <Box className="teamEmptyTextBox">
-              <Typography variant="h6" className="teamEmptyTitle">
+              <Typography variant="h6" className="teamEmptyTitle" sx={{fontFamily: '"Oswald", sans-serif'}}>
                 Teams
               </Typography>
-              <Typography variant="body2">
+              <Typography variant="body2" sx={{fontFamily: '"Oswald", sans-serif'}}>
                 {showArchived
                   ? "Currently no teams in the archive."
                   : "No teams data available."}
@@ -199,8 +198,8 @@ const Team = () => {
               <CardContent>
                 <Box className="teamCardContent">
                   <Box className="teamCardInfo">
-                    <Typography variant="subtitle1" className="teamCardTitle">{team.name}</Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="subtitle1" className="teamCardTitle" sx={{fontFamily: '"Oswald", sans-serif'}}>{team.name}</Typography>
+                    <Typography variant="body2" sx={{ color: '#f4f4f4', fontFamily: '"Oswald", sans-serif' }}>
                       {team.members?.length || 0} {team.members?.length === 1 ? 'member' : 'members'}
                     </Typography>
                   </Box>
@@ -219,8 +218,8 @@ const Team = () => {
               <Nodata />
             </Box>
             <Box className="teamEmptyTextBox">
-              <Typography variant="h6" className="teamEmptyTitle">Teams</Typography>
-              <Typography variant="body2">{showArchived ? "Currently no teams in the archive." : "No teams data available."}</Typography>
+              <Typography variant="h6" className="teamEmptyTitle" sx={{fontFamily: '"Oswald", sans-serif'}}>Teams</Typography>
+              <Typography variant="body2" sx={{fontFamily: '"Oswald", sans-serif'}}>{showArchived ? "Currently no teams in the archive." : "No teams data available."}</Typography>
             </Box>
           </Box>
         </Box>
@@ -247,7 +246,7 @@ const Team = () => {
       </Menu>
 
       <Dialog className="teamMembersDialog" open={memberDialogOpen} onClose={handleCloseMembersDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{selectedTeamForMembers?.name} - Members</DialogTitle>
+        <DialogTitle sx={{fontFamily: '"Oswald", sans-serif'}}>{selectedTeamForMembers?.name} - Members</DialogTitle>
         <DialogContent>
           {selectedTeamForMembers?.members && selectedTeamForMembers.members.length > 0 ? (
             <Box className="teamMembersContentBox">
@@ -257,20 +256,20 @@ const Team = () => {
                     {!member.avatar && member.name.charAt(0)}
                   </Avatar>
                   <Box className="teamMemberInfo">
-                    <Typography variant="body2" className="teamMemberName">{member.name}</Typography>
-                    <Typography variant="caption" color="text.secondary">{member.role}</Typography>
+                    <Typography variant="body2" className="teamMemberName" sx={{ color: '#03346E', fontFamily: '"Oswald", sans-serif' }}>{member.name}</Typography>
+                    <Typography variant="caption" sx={{ color: '#03346E', fontFamily: '"Oswald", sans-serif' }}>{member.role}</Typography>
                   </Box>
                 </Box>
               ))}
             </Box>
           ) : (
-            <Typography variant="body2" color="text.secondary" className="teamEmptyMembersText">
+            <Typography variant="body2" color="text.secondary" className="teamEmptyMembersText" sx={{fontFamily: '"Oswald", sans-serif'}}>
               No members assigned.
             </Typography>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseMembersDialog} variant="contained">
+          <Button onClick={handleCloseMembersDialog} variant="contained" sx={{fontFamily: '"Oswald", sans-serif'}}>
             Close
           </Button>
         </DialogActions>

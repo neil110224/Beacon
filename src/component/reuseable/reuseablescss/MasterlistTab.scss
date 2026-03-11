@@ -1,6 +1,29 @@
 @use "../../../styles/colors.scss" as *;
 @use "../../../styles/mixins.scss" as bp;
 
+// Keyframe animations for tab sliding
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
 .masterlistTabsWrapper {
   border-color: divider;
   margin-bottom: 16px;
@@ -15,15 +38,32 @@
     font-size: 1rem;
     min-height: 42px;
     color: $primary-text-dark;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 8px 8px 0 0;
+    margin-right: 8px;
+    position: relative;
+    background-color: transparent;
 
     &.Mui-selected {
-      color: $primary-text-dark;
+      color: #ffffff;
+      background-color: $primary-text-dark;
+
+      &:nth-of-type(1) {
+        animation: slideInLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      &:nth-of-type(2) {
+        animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+    }
+
+    &:not(.Mui-selected):hover {
+      background-color: rgba(3, 52, 110, 0.08);
     }
   }
 
   & .MuiTabs-indicator {
-    background-color: $primary-text-dark;
-    height: 2px;
+    display: none;
   }
 }
 

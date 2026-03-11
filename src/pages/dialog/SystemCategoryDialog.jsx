@@ -1,11 +1,11 @@
 import React from 'react'
-import { Box, Button, TextField, InputAdornment, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Typography, Menu, MenuItem, IconButton, Tooltip } from '@mui/material'
+import { Box, Button, TextField, InputAdornment, Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Typography, Chip, IconButton, Tooltip } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
-import FileUploadIcon from '@mui/icons-material/FileUpload'
 import CachedIcon from '@mui/icons-material/Cached'
 import { useNavigate } from 'react-router-dom'
-import ImportSystemDialog from './ImportSystemDialog'
-import ExportSystemDialog from './ExportSystemDialog'
+import EditIcon from '@mui/icons-material/Edit';
+import CheckIcon from '@mui/icons-material/Check';
+
 
 const SystemCategoryDialog = ({
   open,
@@ -19,28 +19,7 @@ const SystemCategoryDialog = ({
   onRefresh
 }) => {
   const navigate = useNavigate()
-  const [menuAnchor, setMenuAnchor] = React.useState(null)
-  const [importDialogOpen, setImportDialogOpen] = React.useState(false)
-  const [exportDialogOpen, setExportDialogOpen] = React.useState(false)
   const [isRefreshing, setIsRefreshing] = React.useState(false)
-
-  const handleMenuOpen = (event) => {
-    setMenuAnchor(event.currentTarget)
-  }
-
-  const handleMenuClose = () => {
-    setMenuAnchor(null)
-  }
-
-  const handleImportClick = () => {
-    setImportDialogOpen(true)
-    handleMenuClose()
-  }
-
-  const handleExportClick = () => {
-    setExportDialogOpen(true)
-    handleMenuClose()
-  }
 
   const handleRefresh = async () => {
     if (onRefresh) {
@@ -65,7 +44,7 @@ const SystemCategoryDialog = ({
         Systems for {selectedTeam?.name}
       </DialogTitle>
       <DialogContent>
-        {/* Search Bar and File Menu */}
+        {/* Search Bar */}
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 2 }}>
           <TextField
             placeholder="Search systems..."
@@ -82,7 +61,7 @@ const SystemCategoryDialog = ({
             }}
             sx={{
               flex: 1,
-              maxWidth: '65%',
+              maxWidth: '75%',
               '& .MuiOutlinedInput-root': {
                 borderRadius: '8px',
                 backgroundColor: '#f5f5f5',
@@ -95,14 +74,6 @@ const SystemCategoryDialog = ({
               },
             }}
           />
-          <Button
-            variant="contained"
-            onClick={handleMenuOpen}
-            startIcon={<FileUploadIcon />}
-            sx={{ bgcolor: '#03346E', borderRadius: '20px' }}
-          >
-            File
-          </Button>
           <Tooltip title="Refresh systems" placement="top">
             <IconButton
               onClick={handleRefresh}
@@ -115,18 +86,6 @@ const SystemCategoryDialog = ({
               <CachedIcon sx={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none', '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } } }} />
             </IconButton>
           </Tooltip>
-          <Menu
-            anchorEl={menuAnchor}
-            open={Boolean(menuAnchor)}
-            onClose={handleMenuClose}
-          >
-            <MenuItem onClick={handleImportClick}>
-              <FileUploadIcon sx={{ mr: 1 }} /> Import
-            </MenuItem>
-            <MenuItem onClick={handleExportClick}>
-              Export
-            </MenuItem>
-          </Menu>
         </Box>
         {selectedTeam ? (
           <Box sx={{ pt: 2 }}>
@@ -144,9 +103,9 @@ const SystemCategoryDialog = ({
                 </Typography>
                 {filteredTeamSystems && filteredTeamSystems.length > 0 ? (
                   <Box sx={{ 
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
-                    gap: 2,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1,
                   }}>
                     {filteredTeamSystems.map((system) => (
                       <Box
@@ -156,20 +115,24 @@ const SystemCategoryDialog = ({
                           onClose()
                         }}
                         sx={{
-                          p: 2,
-                          bgcolor: '#03346E',
-                          borderRadius: 1,
+                          padding: '12px 16px',
+                          backgroundColor: '#03346E',
+                          color: '#fff',
+                          borderRadius: '6px',
                           cursor: 'pointer',
-                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                          fontWeight: 500,
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
                           transition: 'all 0.2s ease',
                           '&:hover': {
-                            bgcolor: '#022553',
-                            border: '1px solid rgba(255, 255, 255, 0.3)',
-                            boxShadow: '0 0 8px rgba(3, 52, 110, 0.4)',
+                            backgroundColor: '#022553',
+                            boxShadow: '0 0 12px rgba(3, 52, 110, 0.5)',
+                            transform: 'translateX(4px)',
                           }
                         }}
                       >
-                        <Typography variant="body2" sx={{ fontWeight: 500, color: '#fff' }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
                           {system.systemName}
                         </Typography>
                       </Box>
@@ -191,18 +154,6 @@ const SystemCategoryDialog = ({
         </Button>
       </DialogActions>
     </Dialog>
-
-    <ImportSystemDialog 
-      open={importDialogOpen} 
-      onClose={() => setImportDialogOpen(false)}
-      selectedTeam={selectedTeam}
-    />
-    <ExportSystemDialog 
-      open={exportDialogOpen} 
-      onClose={() => setExportDialogOpen(false)}
-      selectedTeam={selectedTeam}
-      filteredTeamSystems={filteredTeamSystems}
-    />
     </>
   )
 }

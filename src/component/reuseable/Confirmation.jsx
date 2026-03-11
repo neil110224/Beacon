@@ -6,8 +6,10 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
-import { CircularProgress } from '@mui/material';
+import { CircularProgress, Box } from '@mui/material';
 import WarningIcon from '@mui/icons-material/Warning';
+import Exclamation from './exclamation';
+
 
 const Confirmation = ({ open, onClose, onConfirm, title = "Confirm Action", message = "Are you sure?", isLoading = false }) => {
   const [localLoading, setLocalLoading] = useState(false);
@@ -38,36 +40,38 @@ const Confirmation = ({ open, onClose, onConfirm, title = "Confirm Action", mess
     }
   }}
     >
-      <DialogTitle id="confirmation-dialog-title" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <WarningIcon sx={{ color: '#ff9800' }} />
+      <DialogTitle id="confirmation-dialog-title" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, textAlign: 'center', fontFamily: '"Oswald", sans-serif' }}>
+        <Exclamation />
         {title}
       </DialogTitle>
-      <DialogContent>
-        <DialogContentText id="confirmation-dialog-description">
+      <DialogContent sx={{ textAlign: 'center', fontFamily: '"Oswald", sans-serif' }}>
+        <DialogContentText id="confirmation-dialog-description" sx={{fontFamily: '"Oswald", sans-serif'}}>
           {message}
         </DialogContentText>
       </DialogContent>
-      <DialogActions sx={{ justifyContent: 'flex-start',paddingLeft:2}}>
-  <Button onClick={() => {
-        setLocalLoading(false);
-        onClose();
-      }} color="primary" disabled={isLoading || localLoading} sx={{
-      '&:hover': {
-        backgroundColor: '#bde3fd',  // 👈 change hover background
-        color: '#1565c0',            // 👈 change hover text color
-      }
-    }} >
-    Cancel
-  </Button>
-  <Button onClick={handleConfirm} color="primary" autoFocus disabled={isLoading || localLoading} startIcon={(isLoading || localLoading) && <CircularProgress size={20} />} sx={{
-      '&:hover': {
-        backgroundColor: '#bde3fd',  // 👈 change hover background
-        color: '#1565c0',            // 👈 change hover text color
-      }
-    }}>
-    {isLoading || localLoading ? 'Confirming...' : 'Confirm'}
-  </Button>
-</DialogActions>
+      <DialogActions sx={{ justifyContent: 'center', gap: 2, paddingLeft: 2, paddingRight: 2 }}>
+        <Button onClick={() => {
+          setLocalLoading(false);
+          onClose();
+        }} color="primary" disabled={isLoading || localLoading} sx={{
+          fontFamily: '"Oswald", sans-serif',
+          '&:hover': {
+            backgroundColor: '#bde3fd',
+            color: '#1565c0',
+          }
+        }}>
+          Cancel
+        </Button>
+        <Button onClick={handleConfirm} color="primary" autoFocus disabled={isLoading || localLoading} startIcon={(isLoading || localLoading) && <CircularProgress size={20} />} sx={{
+          fontFamily: '"Oswald", sans-serif',
+          '&:hover': {
+            backgroundColor: '#bde3fd',
+            color: '#1565c0',
+          }
+        }}>
+          {isLoading || localLoading ? 'Confirming...' : 'Confirm'}
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 };

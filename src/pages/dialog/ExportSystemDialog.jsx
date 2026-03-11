@@ -37,39 +37,7 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
         Export Systems for {selectedTeam?.name}
       </DialogTitle>
       <DialogContent>
-        <Box sx={{ mt: 2 }}>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={selectedCount === filteredTeamSystems?.length && filteredTeamSystems?.length > 0}
-                indeterminate={selectedCount > 0 && selectedCount < filteredTeamSystems?.length}
-                onChange={(e) => handleSelectAll(e.target.checked)}
-              />
-            }
-            label={`Select All (${filteredTeamSystems?.length || 0})`}
-          />
-          <Box sx={{ mt: 2, maxHeight: 300, overflowY: 'auto' }}>
-            {filteredTeamSystems && filteredTeamSystems.length > 0 ? (
-              filteredTeamSystems.map((system) => (
-                <FormControlLabel
-                  key={system.id}
-                  control={
-                    <Checkbox
-                      checked={selectedSystems[system.id] || false}
-                      onChange={(e) => handleSelectSystem(system.id, e.target.checked)}
-                    />
-                  }
-                  label={system.systemName}
-                  sx={{ display: 'block', mb: 1 }}
-                />
-              ))
-            ) : (
-              <Typography variant="body2" color="text.secondary">
-                No systems to export
-              </Typography>
-            )}
-          </Box>
-        </Box>
+        
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color="primary">

@@ -97,7 +97,7 @@ const Login = () => {
               component="h2"
               sx={{
                 m: 2,
-                fontFamily: 'Montserrat, sans-serif',
+                fontFamily: 'Oswald, sans-serif',
                 fontWeight: 500,
                 letterSpacing: 1,
                 textAlign: 'center',
@@ -120,7 +120,7 @@ const Login = () => {
             sx={{
               mb: 1,
               '& .MuiInputBase-input': {
-                fontFamily: 'Montserrat, sans-serif',
+                fontFamily: 'Oswald, sans-serif',
                 fontWeight: 700,
                 fontSize: { xs: 9, md: 11 },
                 height: 8,
@@ -139,7 +139,7 @@ const Login = () => {
             sx={{
               mb: 1.5,
               '& .MuiInputBase-input': {
-                fontFamily: 'Montserrat, sans-serif',
+                fontFamily: 'Helvetica Neue, sans-serif',
                 fontWeight: 700,
                 fontSize: { xs: 9, md: 11 },
                 height: 8,
@@ -156,7 +156,7 @@ const Login = () => {
               py: { xs: 0.6, md: 0.8 },
               bgcolor: '#0397d1',
               color: '#ffffff',
-              fontFamily: 'Montserrat, sans-serif',
+              fontFamily: 'Oswald, sans-serif',
               fontWeight: 500,
               fontSize: { xs: 12, md: 13 },
               mb: 2,
@@ -177,10 +177,10 @@ const Login = () => {
 
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5, mt: 3 }}>
             <img src={mis} alt="MIS Logo" style={{ width: 50, height: 'auto', objectFit: 'contain' }} />
-            <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 200, fontSize: 9 }}>
+            <div style={{ fontFamily: 'Oswald, sans-serif', fontWeight: 200, fontSize: 9 }}>
               Powered By <strong>MIS</strong>
             </div>
-            <div style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 300, fontSize: 9 }}>
+            <div style={{ fontFamily: 'Oswald, sans-serif', fontWeight: 300, fontSize: 9 }}>
               All rights reserved © 2026
             </div>
           </Box>

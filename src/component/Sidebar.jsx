@@ -38,16 +38,15 @@ const MenuItem_ = ({ item, isActive, isCollapsed, onClick }) => {
         onClick={onClick}
         sx={{ 
           gap: '1rem',
-          backgroundColor: isActive ? 'rgba(82, 152, 114, 0.35)' : 'transparent',
-          '&:hover': {
-            backgroundColor: isActive ? 'rgba(82, 152, 114, 0.45)' : 'rgba(255, 255, 255, 0.1)'
+          backgroundColor: isActive ? '#89D4FF' : 'transparent',          fontSize: 'var(--sidebar-btn-font-size)',          '&:hover': {
+            backgroundColor: isActive ? 'rgba(137, 212, 255, 0.85)' : 'rgba(137, 212, 255, 0.2)'
           }
         }}
       >
-        <ListItemIcon className="listItemIcon" sx={{ minWidth: '0', margin: '0', color: '#03346E' }}>
+        <ListItemIcon className="listItemIcon" sx={{ minWidth: '0', margin: '0', color: 'var(--sidebar-icon-color)', fontSize: 'var(--sidebar-icon-font-size)' }}>
           <Icon />
         </ListItemIcon>
-        {!isCollapsed && <ListItemText primary={item.label} sx={{ '& .MuiTypography-root': { fontSize: '1.05rem', fontWeight: 600, display:'flex', justifyContent:'flex-start', color: '#03346E'  } }} className="listItemText"  />}
+        {!isCollapsed && <ListItemText primary={item.label} sx={{ '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', fontWeight: 500, display:'flex', justifyContent:'flex-start', color: 'var(--sidebar-text-color)', fontFamily: '"Oswald", sans-serif'  } }} className="listItemText"  />}
       </ListItemButton>
     </Tooltip>
   );
@@ -61,8 +60,8 @@ const NavMenuItem = ({ item, isCollapsed, isActive, inMenu = false }) => {
         if (inMenu) {
           return (
             <MenuItem className={`menuItem ${active ? 'menuItem--active' : ''}`}>
-              <ListItemIcon sx={{ color:'#03346E', minWidth: '36px' }}>
-                {item.icon && <item.icon fontSize="large" />}
+              <ListItemIcon sx={{ color:'var(--sidebar-icon-color)', minWidth: '36px', fontSize: 'var(--sidebar-icon-font-size)' }}>
+                {item.icon && <item.icon fontSize="small" />}
               </ListItemIcon>
               {item.label}
             </MenuItem>
@@ -80,6 +79,8 @@ const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false, isMobile =
   const location = useLocation();
   const userPermissions = user?.role?.access_permissions || [];
   const isCollapsed = isSidebarCollapsed;
+  const [sidebarWidth, setSidebarWidth] = useState(300);
+  const [isResizing, setIsResizing] = useState(false);
 
   const [openMasterlist, setOpenMasterlist] = useState(
     MASTERLIST_ITEMS.some(item => 
@@ -100,8 +101,70 @@ const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false, isMobile =
 
   const hasMasterlistAccess = MASTERLIST_ITEMS.some(item => userPermissions.includes(item.permission));
 
+  // Handle sidebar resize
+  const handleMouseDown = () => {
+    setIsResizing(true);
+  };
+
+  React.useEffect(() => {
+    let animationFrameId = null;
+    
+    const handleMouseMove = (e) => {
+      if (!isResizing) return;
+      
+      // Cancel previous animation frame
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      
+      // Schedule update on next animation frame
+      animationFrameId = requestAnimationFrame(() => {
+        const newWidth = e.clientX;
+        if (newWidth > 80 && newWidth < 500) {
+          setSidebarWidth(newWidth);
+        }
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+
+    if (isResizing) {
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'ew-resize';
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.body.style.userSelect = 'auto';
+      document.body.style.cursor = 'auto';
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [isResizing])
+
   return (
-    <Box className={`sidebarWrapper ${isCollapsed ? 'sidebarWrapper--collapsed' : 'sidebarWrapper--expanded'}`}>
+    <Box className={`sidebarWrapper ${isCollapsed ? 'sidebarWrapper--collapsed' : 'sidebarWrapper--expanded'}`} sx={{ width: !isCollapsed ? `${sidebarWidth}px` : '90px', transition: isResizing ? 'none' : 'width 1s ease' }}>
+      {/* Resize Handle */}
+      {!isCollapsed && (
+        <Tooltip title="Drag to resize sidebar" placement="right" arrow>
+          <Box
+            onMouseDown={handleMouseDown}
+            className="sidebarResizeHandle"
+            sx={{
+              zIndex: 1000
+            }}
+          />
+        </Tooltip>
+      )}
       {/* Header with Logo and Title */}
       <Box className="header">
         <Box className="logoBox">
@@ -123,7 +186,7 @@ const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false, isMobile =
               height: '36px'
             }}
           >
-            <ArrowBackIosNewIcon sx={{ fontSize: '1.2rem' }} />
+            <ArrowBackIosNewIcon sx={{ fontSize: '0.9rem' }} />
           </IconButton>
         )}
       </Box>
@@ -151,19 +214,19 @@ const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false, isMobile =
                   gap: '1rem',
                   backgroundColor: openMasterlist && !isCollapsed ? 'transparent' : 'transparent',
                   '&:hover': {
-                    backgroundColor: openMasterlist && !isCollapsed ? 'rgba(82, 152, 114, 0.45)' : 'rgba(255, 255, 255, 0.1)'
+                    backgroundColor: openMasterlist && !isCollapsed ? 'rgba(137, 212, 255, 0.2)' : 'rgba(137, 212, 255, 0.2)'
                   },
-                  '& .MuiTypography-root': { fontSize: '1.05rem',  fontWeight: 600, color: '#03346E' }
+                  '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)',  fontWeight: 500, color: 'var(--sidebar-text-color)' }
                 }}
               >
-                <ListItemIcon className="listItemIcon" sx={{ minWidth: '0', margin: '0', color: '#03346E' }}>
+                <ListItemIcon className="listItemIcon" sx={{ minWidth: '0', margin: '0', color: 'var(--sidebar-icon-color)', fontSize: 'var(--sidebar-icon-font-size)' }}>
                   <LibraryBooksIcon />
                 </ListItemIcon>
                 {!isCollapsed && (
                   <>
-                    <ListItemText primary="Masterlist" className="listItemText" sx={{ '& .MuiTypography-root': { color: '#03346E' } }} />
+                    <ListItemText primary="Masterlist" className="listItemText" sx={{ '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', color: 'var(--sidebar-text-color)', fontFamily: '"Oswald", sans-serif' } }} />
                     <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
-                      {openMasterlist ? <ExpandLess sx={{ color: '#03346E' }} /> : <ExpandMore sx={{ color: '#03346E' }} />}
+                      {openMasterlist ? <ExpandLess sx={{ color: 'var(--sidebar-icon-color)', fontSize: '1.25rem' }} /> : <ExpandMore sx={{ color: 'var(--sidebar-icon-color)',fontSize: '1.25rem'  }} />}
                     </Box>
                   </>
                 )}
@@ -184,17 +247,17 @@ const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false, isMobile =
                           sx={{
                             paddingLeft: '3.5rem',
                             gap: '1rem',
-                            backgroundColor: isActive ? 'rgba(82, 152, 114, 0.35)' : 'transparent',
+                            backgroundColor: isActive ? '#89D4FF' : 'transparent',
                             '&:hover': {
-                              backgroundColor: isActive ? 'rgba(82, 152, 114, 0.45)' : 'rgba(82, 152, 114, 0.1)'
+                              backgroundColor: isActive ? 'rgba(137, 212, 255, 0.85)' : 'rgba(137, 212, 255, 0.2)'
                             },
-                            '& .MuiTypography-root': { fontSize: '1rem' , fontWeight: 600, color: '#03346E' }
+                            '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)' , fontWeight: 500, color: 'var(--sidebar-text-color)' }
                           }}
                         >
-                          <ListItemIcon sx={{ color: '#03346E', minWidth: '0', margin: '0' }}>
+                          <ListItemIcon className="listItemIcon" sx={{ color: 'var(--sidebar-icon-color)', minWidth: '0', margin: '0' }}>
                             <item.icon />
                           </ListItemIcon>
-                          <ListItemText primary={item.label} sx={{ '& .MuiTypography-root': { color: '#03346E' } }} />
+                          <ListItemText primary={item.label} sx={{ '& .MuiTypography-root': { color: 'var(--sidebar-text-color-active)', fontFamily: '"Oswald", sans-serif' } }} />
                         </ListItemButton>
                       )}
                     </NavLink>
@@ -220,7 +283,7 @@ const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false, isMobile =
                         onClick={handleMasterlistMenuClose}
                         className={`menuItem ${isActive ? 'menuItem--active' : ''}`}
                       >
-                        <ListItemIcon sx={{ color: '#03346E', minWidth: '36px' }}>
+                        <ListItemIcon sx={{ color: 'var(--sidebar-icon-color)', minWidth: '36px', fontSize: 'var(--sidebar-icon-font-size)' }}>
                           <item.icon fontSize="small" />
                         </ListItemIcon>
                         {item.label}
@@ -249,10 +312,10 @@ const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false, isMobile =
 
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
         <MenuItem onClick={handleChangeProfile}>
-          <ListItemIcon sx={{ minWidth: '0', margin: '0', mr: 1 }}>
+          <ListItemIcon sx={{ minWidth: '0', margin: '0', mr: 1, fontSize: 'var(--sidebar-icon-font-size)', color: 'var(--sidebar-icon-color)' }}>
             <PersonIcon />
           </ListItemIcon>
-          Change Profile
+          Change Information
         </MenuItem>
       </Menu>
     </Box>
