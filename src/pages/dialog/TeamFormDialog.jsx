@@ -15,6 +15,8 @@ import {
   Alert,
 } from '@mui/material';
 
+const OSWALD = '"Oswald", sans-serif';
+
 // Validation schema
 const teamValidationSchema = yup.object().shape({
   name: yup.string().trim().required('Team name is required'),
@@ -118,7 +120,7 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
 
   return (
     <Dialog open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{isEdit ? 'Edit Team' : 'Add New Team'}</DialogTitle>
+      <DialogTitle sx={{ fontFamily: OSWALD, fontWeight: 600 }}>{isEdit ? 'Edit Team' : 'Add New Team'}</DialogTitle>
 
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
@@ -130,6 +132,7 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
             error={!!errors.code}
             helperText={errors.code?.message}
             disabled={isLoading}
+            sx={{ '& input, & label': { fontFamily: OSWALD } }}
           />
           <TextField
             {...register('name')}
@@ -140,6 +143,7 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
             helperText={errors.name?.message}
             disabled={isLoading}
             autoFocus
+            sx={{ '& input, & label': { fontFamily: OSWALD } }}
           />
 
           
@@ -147,7 +151,7 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleDialogClose} disabled={isLoading}>
+        <Button onClick={handleDialogClose} disabled={isLoading} sx={{ fontFamily: OSWALD }}>
           Cancel
         </Button>
         <Button
@@ -155,6 +159,11 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
           variant="contained"
           disabled={isLoading}
           startIcon={isLoading && <CircularProgress size={20} />}
+          sx={{
+            backgroundColor: '#2c3e50',
+            fontFamily: OSWALD,
+            '&:hover': { backgroundColor: '#34495e' },
+          }}
         >
           {isLoading ? 'Saving...' : isEdit ? 'Update' : 'Save'}
         </Button>
@@ -174,6 +183,7 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
             backgroundColor: snackbar.severity === 'success' ? '#4caf50' : '#f44336',
             color: '#fff',
             fontWeight: 'bold',
+            fontFamily: OSWALD,
             '& .MuiAlert-icon': {
               color: '#fff',
             },

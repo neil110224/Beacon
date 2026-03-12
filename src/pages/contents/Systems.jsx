@@ -10,6 +10,7 @@ import {
   MenuItem,
   IconButton,
   Tooltip,
+  CircularProgress,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import FileUploadIcon from '@mui/icons-material/FileUpload'
@@ -55,8 +56,6 @@ const Systems = () => {
 
   const [searchQuery, setSearchQuery]               = React.useState('')
   const debouncedTeamsSearch                         = useDebounce(searchQuery, 500)
-  const [menuAnchor, setMenuAnchor]                 = React.useState(null)
-  const openMenu                                     = Boolean(menuAnchor)
   const [systemsSearchQuery, setSystemsSearchQuery] = React.useState('')
   const debouncedSystemsSearch                       = useDebounce(systemsSearchQuery, 500)
   const [systemDialogOpen, setSystemDialogOpen]     = React.useState(false)
@@ -70,6 +69,7 @@ const Systems = () => {
   const [exportDialogOpen, setExportDialogOpen]     = React.useState(false)
   const [systemForEdit, setSystemForEdit]           = React.useState(null)
   const [systemEditDialogOpen, setSystemEditDialogOpen] = React.useState(false)
+  const [isDownloadingTemplate, setIsDownloadingTemplate] = React.useState(false)
 
   // ── Fix: store anchor + team together so each card menu is independent ──
   const [menuState, setMenuState] = React.useState({ anchor: null, team: null })
@@ -209,21 +209,19 @@ const Systems = () => {
 
   const handleDialogRefresh = async () => { await refetchTeamSystems() }
 
-  const handleMenuOpen    = e => setMenuAnchor(e.currentTarget)
-  const handleMenuClose   = ()  => setMenuAnchor(null)
   const handleFileMenuOpen  = e => setFileMenuAnchor(e.currentTarget)
   const handleFileMenuClose = ()  => setFileMenuAnchor(null)
 
   const handleAddSystem = () => {
     setSelectedSystem(null)
     setSystemDialogOpen(true)
-    handleMenuClose()
   }
 
   const handleImportSystem = () => { setImportDialogOpen(true);  handleFileMenuClose() }
   const handleExportSystem = () => { setExportDialogOpen(true);  handleFileMenuClose() }
 
   const handleDownloadTemplate = async () => {
+    setIsDownloadingTemplate(true)
     try {
       const token = localStorage.getItem('token')
       const baseUrl = 'http://10.10.14.61:8000/api'
@@ -249,6 +247,8 @@ const Systems = () => {
     } catch (error) {
       console.error('Error downloading template:', error)
       alert('Failed to download template')
+    } finally {
+      setIsDownloadingTemplate(false)
     }
   }
 
@@ -276,7 +276,7 @@ const Systems = () => {
   }
 
   return (
-    <Box className="systemsContainer">
+    <Box className="systemsContainer"> 
       {/* Header */}
       <Box className="systemsHeader" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
         <Typography variant="h5" className="systemsTitle" sx={{ fontFamily: '"Oswald", sans-serif' }}>
@@ -318,15 +318,19 @@ const Systems = () => {
               <Menu anchorEl={fileMenuAnchor} open={fileMenuOpen} onClose={handleFileMenuClose}>
                 <MenuItem onClick={handleImportSystem}><FileUploadIcon className="systemsMenuIcon" /> Import</MenuItem>
                 <MenuItem onClick={handleExportSystem}><ExitToAppIcon className="systemsMenuIcon" /> Export</MenuItem>
-                <MenuItem onClick={handleDownloadTemplate}><DownloadIcon className="systemsMenuIcon" /> Template</MenuItem>
+                <MenuItem onClick={handleDownloadTemplate} disabled={isDownloadingTemplate}>
+                  {isDownloadingTemplate ? (
+                    <CircularProgress size={20} sx={{ mr: 1 }} />
+                  ) : (
+                    <DownloadIcon className="systemsMenuIcon" />
+                  )}
+                  {isDownloadingTemplate ? 'Downloading...' : 'Template'}
+                </MenuItem>
               </Menu>
 
-              <Button variant="contained" startIcon={<AddIcon />} onClick={handleMenuOpen} sx={{ bgcolor: '#03346E' }}>
+              <Button variant="contained" startIcon={<AddIcon />} onClick={handleAddSystem} sx={{ bgcolor: '#03346E' }}>
                 Create
               </Button>
-              <Menu anchorEl={menuAnchor} open={openMenu} onClose={handleMenuClose}>
-                <MenuItem onClick={handleAddSystem}><AddIcon className="systemsMenuIcon" /> Create</MenuItem>
-              </Menu>
             </>
           )}
         </Box>
@@ -455,6 +459,7 @@ const Systems = () => {
         open={importDialogOpen}
         onClose={() => setImportDialogOpen(false)}
         selectedTeam={selectedTeam}
+        onImportSuccess={refetchAllSystems}
       />
 
       <ExportSystemDialog

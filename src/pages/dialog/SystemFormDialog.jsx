@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -46,10 +46,24 @@ export default function SystemFormDialog({
 }) {
   const isEdit = !!system;
 
-  // Fetch teams
-  const { data: teamsData, isLoading: teamsLoading } = useGetTeamsQuery({ status: 'active' });
+  // Fetch teams with pagination disabled to get all teams
+  const { data: teamsData, isLoading: teamsLoading } = useGetTeamsQuery({ 
+    status: 'active',
+    paginate: 'none',
+    pagination: 'none'
+  })
 
-  const teams = Array.isArray(teamsData?.data) ? teamsData.data : Array.isArray(teamsData) ? teamsData : [];
+  // Handle different response structures from the API
+  const teams = React.useMemo(() => {
+    if (!teamsData) return []
+    
+    // Try different possible data structures
+    if (Array.isArray(teamsData)) return teamsData
+    if (Array.isArray(teamsData?.data?.data)) return teamsData.data.data
+    if (Array.isArray(teamsData?.data)) return teamsData.data
+    
+    return []
+  }, [teamsData])
 
   const {
     register,
@@ -80,12 +94,18 @@ export default function SystemFormDialog({
 
   const onSubmit = async (data) => {
     try {
+      // Convert team_id string to array as API expects
+      const formData = {
+        ...data,
+        team_id: [data.team_id]
+      };
+      
       if (isEdit) {
         // For edit mode
-        await onSave({ ...data, id: system.id }).unwrap();
+        await onSave({ ...formData, id: system.id }).unwrap();
       } else {
         // For add mode
-        await onSave(data).unwrap();
+        await onSave(formData).unwrap();
         
         // Call success callback if provided
         if (onSuccess) {

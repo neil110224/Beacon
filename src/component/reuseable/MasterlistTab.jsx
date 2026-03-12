@@ -78,6 +78,7 @@ const MasterlistTab = ({
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
           size="small"
+          fullWidth
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -86,7 +87,13 @@ const MasterlistTab = ({
             ),
           }}
           className="masterlistSearchField"
-          sx={{fontFamily: '"Oswald", sans-serif'}}
+          sx={{
+            fontFamily: '"Oswald", sans-serif',
+            '@media (min-width: 768px)': {
+              maxWidth: '400px',
+              width: 'auto'
+            }
+          }}
         />
       </Box>
     </Box>

@@ -121,6 +121,15 @@ function DataTable({
                         color: "#03346E", 
                         fontWeight: 700,
                         fontFamily: '"Oswald", sans-serif',
+                        '@media (max-width: 768px)': {
+                          fontSize: '1rem',
+                          padding: '8px 4px'
+                        },
+                        '@media (max-width: 575.98px)': {
+                          fontSize: '0.85rem',
+                          maxWidth: '100px',
+                          padding: '6px 2px'
+                        }
                       }}
                     >
                       <Skeleton />
@@ -149,6 +158,15 @@ function DataTable({
                           maxWidth: "150px",
                           fontSize: "0.85rem",
                           fontFamily: '"Oswald", sans-serif',
+                          '@media (max-width: 768px)': {
+                            fontSize: '0.875rem',
+                            padding: '8px 4px'
+                          },
+                          '@media (max-width: 575.98px)': {
+                            fontSize: '0.75rem',
+                            maxWidth: '100px',
+                            padding: '6px 2px'
+                          }
                         }}
                       >
                         <Skeleton />
@@ -200,9 +218,21 @@ function DataTable({
     <Paper 
       elevation={0}
       className="dataTablePaper"
-      sx={{ display: "flex", flexDirection: "column", maxHeight: "420px" }}
+      sx={{ 
+        display: "flex", 
+        flexDirection: "column", 
+        height: "420px",
+        '@media (max-width: 768px)': {
+          height: 'auto',
+          maxHeight: '500px'
+        },
+        '@media (max-width: 575.98px)': {
+          height: 'auto',
+          maxHeight: '400px'
+        }
+      }}
     >
-      <TableContainer className="dataTableContainer" sx={{ overflow: "auto", flex: 1 }}>
+      <TableContainer className="dataTableContainer" sx={{ overflow: "auto", flex: 1, minHeight: 0 }}>
         <Table className="dataTableBase">
           <TableHead className="dataTableHead" sx={{ position: "sticky", top: 0, zIndex: 1 }}>
             <TableRow>
@@ -226,6 +256,15 @@ function DataTable({
                       whiteSpace: "nowrap",
                       cursor: "help",
                       fontFamily: '"Oswald", sans-serif',
+                      '@media (max-width: 768px)': {
+                        fontSize: '1rem',
+                        padding: '8px 4px'
+                      },
+                      '@media (max-width: 575.98px)': {
+                        fontSize: '0.85rem',
+                        maxWidth: '100px',
+                        padding: '6px 2px'
+                      }
                     }}
                   >
                     {col.label}
@@ -275,6 +314,15 @@ function DataTable({
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
                         fontFamily: '"Oswald", sans-serif',
+                        '@media (max-width: 768px)': {
+                          fontSize: '0.875rem',
+                          padding: '8px 4px'
+                        },
+                        '@media (max-width: 575.98px)': {
+                          fontSize: '0.75rem',
+                          maxWidth: '100px',
+                          padding: '6px 2px'
+                        }
                       }}
                     >
                       {col.render ? col.render(row) : row[col.id]}
@@ -299,7 +347,20 @@ function DataTable({
           setPage(0);
         }}
         ActionsComponent={TablePaginationActions}
-        sx={{ color: "#03346E" }}
+        sx={{ 
+          color: "#03346E",
+          '@media (max-width: 768px)': {
+            fontSize: '0.875rem',
+            padding: '8px'
+          },
+          '@media (max-width: 575.98px)': {
+            fontSize: '0.75rem',
+            padding: '4px',
+            '& .MuiToolbar-root': {
+              padding: '4px 8px'
+            }
+          }
+        }}
       />
     </Paper>
   );

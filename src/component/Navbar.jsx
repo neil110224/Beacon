@@ -48,17 +48,9 @@ const Navbar = () => {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
-  const [dateTime, setDateTime] = useState(new Date());
   const navigate = useNavigate();
 
   const theme = useTheme();
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setDateTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   const isDashboard = location.pathname.toLowerCase() === '/dashboard';
 

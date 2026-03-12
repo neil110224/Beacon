@@ -14,7 +14,7 @@ export const todoListApi = createApi({
     },
   }),
   keepUnusedDataFor: 300,
-  refetchOnMountOrArgChange: 30,
+  refetchOnMountOrArgChange: false,
   tagTypes: ["Users", "Roles"], // Add 'Roles' here
   endpoints: () => ({}),
 });

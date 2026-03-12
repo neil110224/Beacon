@@ -50,6 +50,7 @@ const Team = () => {
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
   const [selectedTeamForMembers, setSelectedTeamForMembers] = useState(null);
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  
 
   const getRandomColor = (seed) => {
     return '#03346E';
@@ -168,7 +169,7 @@ const Team = () => {
   searchPlaceholder="Search Team..."
   canAdd={canAddTeam}
   onAddClick={() => setTeamDialogOpen(true)}
-  addLabel="Add Team"
+  addLabel="CREATE"
 />
 
       {!isLoading && filteredTeams.length === 0 && (

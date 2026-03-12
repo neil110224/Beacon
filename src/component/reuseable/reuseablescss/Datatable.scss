@@ -5,6 +5,15 @@
 .paginationActionsWrapper {
   flex-shrink: 0;
   margin-left: 20px;
+
+  @include bp.sm {
+    margin-left: 10px;
+  }
+
+  @include bp.xs {
+    margin-left: 0;
+    margin-top: 8px;
+  }
 }
 
 // Loading Container
@@ -88,6 +97,18 @@
   & .MuiTableCell-root {
     padding: 8px;
   }
+
+  @include bp.md {
+    min-width: 900px;
+  }
+
+  @include bp.sm {
+    min-width: 600px;
+  }
+
+  @include bp.xs {
+    min-width: 500px;
+  }
 }
 
 // Table Head styles
@@ -107,6 +128,16 @@
   &:hover {
     background-color: rgba(0, 0, 0, 0.1);
     cursor: help;
+  }
+
+  @include bp.sm {
+    font-size: 1rem;
+    padding: 8px 4px;
+  }
+
+  @include bp.xs {
+    font-size: 0.85rem;
+    padding: 6px 2px;
   }
 }
 
@@ -137,6 +168,16 @@
     text-overflow: initial;
     white-space: normal;
     word-break: break-word;
+  }
+
+  @include bp.sm {
+    font-size: 0.875rem;
+    padding: 8px 4px;
+  }
+
+  @include bp.xs {
+    font-size: 0.75rem;
+    padding: 6px 2px;
   }
 }
 

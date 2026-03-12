@@ -14,6 +14,8 @@ import {
 } from '@mui/material';
 import Snackbar from '../../component/reuseable/Snackbar';
 
+const OSWALD = '"Oswald", sans-serif';
+
 // Validation schema
 const categoryValidationSchema = yup.object().shape({
   name: yup.string().required('Category name is required').trim(),
@@ -100,7 +102,7 @@ export default function CategoryFormDialog({ open, onClose, category = null, onS
 
   return (
     <Dialog open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{isEdit ? 'Edit Category' : 'Add New Category'}</DialogTitle>
+      <DialogTitle sx={{ fontFamily: OSWALD, fontWeight: 600 }}>{isEdit ? 'Edit Category' : 'Add New Category'}</DialogTitle>
 
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
@@ -113,12 +115,13 @@ export default function CategoryFormDialog({ open, onClose, category = null, onS
             helperText={errors.name?.message}
             disabled={isLoading}
             autoFocus
+            sx={{ '& input, & label': { fontFamily: OSWALD } }}
           />
         </Box>
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleDialogClose} disabled={isLoading}>
+        <Button onClick={handleDialogClose} disabled={isLoading} sx={{ fontFamily: OSWALD }}>
           Cancel
         </Button>
         <Button
@@ -128,6 +131,7 @@ export default function CategoryFormDialog({ open, onClose, category = null, onS
           startIcon={isLoading && <CircularProgress size={20} />}
           sx={{
             backgroundColor: '#2c3e50',
+            fontFamily: OSWALD,
             '&:hover': { backgroundColor: '#34495e' },
           }}
         >

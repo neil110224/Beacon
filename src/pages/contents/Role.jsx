@@ -33,6 +33,7 @@ const Role = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [isTabSwitching, setIsTabSwitching] = useState(false) // ← add this
 
   const { data, isLoading, isError, error, refetch } = useGetRolesQuery({
     status: showArchived ? 'inactive' : 'active',
@@ -205,12 +206,12 @@ const Role = () => {
         </Box>
       )}
 
-      {!isError && (
+      {!isError && filteredRoles.length > 0 && (
         <DataTable
           columns={columns}
           rows={filteredRoles}
           totalCount={filteredRoles.length}
-          isLoading={isLoading || searchTerm !== debouncedSearchTerm}
+          isLoading={isLoading || searchTerm !== debouncedSearchTerm || isTabSwitching}
           isError={isError}
           error={error}
           onRowClick={handleRowClick}

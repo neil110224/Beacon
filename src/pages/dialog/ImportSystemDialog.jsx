@@ -1,12 +1,34 @@
 import React from 'react'
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Typography, CircularProgress, Link } from '@mui/material'
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Typography, CircularProgress, Alert } from '@mui/material'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
+import { useGetSystemsListQuery } from '../../features/api/system/systemApi'
+import Snackbar from '../../component/reuseable/Snackbar'
 
-const ImportSystemDialog = ({ open, onClose, selectedTeam }) => {
+const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) => {
   const [selectedFile, setSelectedFile] = React.useState(null)
   const [isUploading, setIsUploading] = React.useState(false)
   const [isDragging, setIsDragging] = React.useState(false)
+  const [errorMessage, setErrorMessage] = React.useState(null)
+  const [successMessage, setSuccessMessage] = React.useState(null)
+  const [snackbarOpen, setSnackbarOpen] = React.useState(false)
+  const [snackbarMessage, setSnackbarMessage] = React.useState('')
+  const [snackbarSeverity, setSnackbarSeverity] = React.useState('success')
   const fileInputRef = React.useRef(null)
+
+  const { data: systemsData, refetch: refetchSystems } = useGetSystemsListQuery({ status: 'active', paginate: 'none' })
+
+  const showSnackbar = (message, severity = 'success') => {
+    setSnackbarMessage(message)
+    setSnackbarSeverity(severity)
+    setSnackbarOpen(true)
+  }
+
+  // Refetch systems when dialog opens
+  React.useEffect(() => {
+    if (open) {
+      refetchSystems()
+    }
+  }, [open, refetchSystems])
 
   const handleFileSelect = (event) => {
     const file = event.target.files?.[0]
@@ -22,6 +44,7 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam }) => {
     if (validExtensions.includes(fileExtension)) {
       setSelectedFile(file)
       setIsDragging(false)
+      setErrorMessage(null)
     } else {
       alert('Only .xls, .xlsx, and .csv files are allowed')
       setSelectedFile(null)
@@ -53,22 +76,138 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam }) => {
 
   const handleUploadClick = async () => {
     if (!selectedFile) {
-      alert('Please select a file first')
+      setErrorMessage('Please select a file first')
       return
     }
 
     setIsUploading(true)
+    setErrorMessage(null)
+    setSuccessMessage(null)
+
     try {
-      // TODO: Implement file upload logic here
-      console.log('Uploading file:', selectedFile.name)
-      // Simulate upload
-      setTimeout(() => {
+      // Create FormData and append the file
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+
+      console.log('📤 SENDING FILE TO IMPORT ENDPOINT:', {
+        fileName: selectedFile.name,
+        fileSize: selectedFile.size,
+        fileType: selectedFile.type
+      })
+
+      const token = localStorage.getItem('token')
+      const baseUrl = 'http://10.10.14.61:8000/api'
+
+      const response = await fetch(`${baseUrl}/import`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+          // DO NOT set Content-Type: application/json for form-data
+          // The browser will set it automatically with boundary
+        },
+        body: formData
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        console.error('❌ Import API Error:', {
+          status: response.status,
+          data: result
+        })
+        
+        // Extract main message and detailed errors
+        let mainMessage = result?.message || 'Import failed'
+        let detailedErrors = []
+
+        // Handle errors array with row information
+        if (Array.isArray(result?.errors)) {
+          result.errors.forEach(error => {
+            if (error.errors && typeof error.errors === 'object') {
+              // Parse field-specific errors within the row
+              Object.entries(error.errors).forEach(([field, messages]) => {
+                if (Array.isArray(messages)) {
+                  messages.forEach(msg => {
+                    detailedErrors.push(`Row ${error.row} - ${field}: ${typeof msg === 'string' ? msg : msg.message || msg}`)
+                  })
+                } else if (typeof messages === 'string') {
+                  detailedErrors.push(`Row ${error.row} - ${field}: ${messages}`)
+                }
+              })
+              
+              // If duplicate error, show the actual values
+              if (error.errors.description?.some(msg => typeof msg === 'string' && msg.includes('duplicate'))) {
+                if (error.values) {
+                  detailedErrors.push('')
+                  detailedErrors.push(`⚠️  Row ${error.row} - Duplicate Entry`)
+                  detailedErrors.push(`System: "${error.values.system_name}" | Description: "${error.values.description}" | Raised Date: ${error.values.raised_date}`)
+                  detailedErrors.push(`An entry with this System Name, Description, and Raised Date already exists.`)
+                  detailedErrors.push('')
+                }
+              }
+            }
+          })
+        } else if (result?.errors && typeof result.errors === 'object') {
+          // Handle flat errors object
+          Object.entries(result.errors).forEach(([field, messages]) => {
+            if (Array.isArray(messages)) {
+              messages.forEach(msg => {
+                detailedErrors.push(`${field}: ${typeof msg === 'string' ? msg : msg.message || msg}`)
+              })
+            } else if (typeof messages === 'string') {
+              detailedErrors.push(`${field}: ${messages}`)
+            }
+          })
+        }
+
+        console.error('❌ Import failed:', { message: mainMessage, errors: detailedErrors })
+
+        // Show main message + detailed errors
+        const finalError = (
+          <Box>
+            {mainMessage && (
+              <Typography variant="body2" sx={{ fontWeight: 500, mb: 2, color: '#d32f2f' }}>
+                {mainMessage}
+              </Typography>
+            )}
+            {detailedErrors.length > 0 && (
+              <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
+                {detailedErrors.map((error, idx) => (
+                  <Typography key={idx} variant="body2" display="block" sx={{ mb: 1, color: '#d32f2f' }}>
+                    • {error}
+                  </Typography>
+                ))}
+              </Box>
+            )}
+          </Box>
+        )
+
+        setErrorMessage(finalError)
         setIsUploading(false)
+        return
+      }
+
+      console.log('✅ Import successful:', result)
+
+      showSnackbar(`Successfully imported systems and progress items!`, 'success')
+      await refetchSystems()
+      
+      // Call parent callback to refetch the systems list for team counts
+      if (onImportSuccess) {
+        await onImportSuccess()
+      }
+      
+      setTimeout(() => {
         setSelectedFile(null)
+        setSuccessMessage(null)
         onClose()
       }, 1500)
+
     } catch (error) {
-      console.error('Upload error:', error)
+      console.error('❌ Upload error:', error)
+      setErrorMessage('Network error uploading file. Please try again.')
+    } finally {
       setIsUploading(false)
     }
   }
@@ -76,52 +215,13 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam }) => {
   const handleDialogClose = () => {
     setSelectedFile(null)
     setIsDragging(false)
+    setErrorMessage(null)
+    setSuccessMessage(null)
     onClose()
   }
 
-  const downloadTemplate = async () => {
-    try {
-      const token = localStorage.getItem('token')
-      const baseUrl = 'http://10.10.14.61:8000/api'
-      
-      const response = await fetch(`${baseUrl}/export_template`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        }
-      })
-      
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`Download failed with status ${response.status}: ${errorText}`)
-      }
-      
-      const blob = await response.blob()
-      
-      if (blob.size === 0) {
-        throw new Error('Empty response received')
-      }
-      
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = 'Template.xlsx'
-      link.style.display = 'none'
-      document.body.appendChild(link)
-      link.click()
-      
-      setTimeout(() => {
-        document.body.removeChild(link)
-        window.URL.revokeObjectURL(url)
-      }, 100)
-    } catch (error) {
-      console.error('Error downloading template:', error)
-      alert('Failed to download template')
-    }
-  }
-
   return (
+    <>
     <Dialog
       open={open}
       onClose={handleDialogClose}
@@ -133,6 +233,18 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam }) => {
       </DialogTitle>
       <DialogContent>
         <Box sx={{ pt: 2 }}>
+          {errorMessage && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {errorMessage}
+            </Alert>
+          )}
+
+          {successMessage && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              {successMessage}
+            </Alert>
+          )}
+
           <input
             ref={fileInputRef}
             type="file"
@@ -187,23 +299,13 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam }) => {
             </Box>
           )}
 
-          <Box sx={{ mt: 3, textAlign: 'left' }}>
-            <Link
-              component="button"
-              type="button"
-              onClick={downloadTemplate}
-              sx={{
-                color: '#03346E',
-                fontWeight: 500,
-                textDecoration: 'none',
-                cursor: 'pointer',
-                '&:hover': {
-                  textDecoration: 'underline'
-                }
-              }}
-            >
-              Downloadable Template
-            </Link>
+          <Box sx={{ mt: 2, p: 2, bgcolor: '#f9f9f9', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+            <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+              Required File Format:
+            </Typography>
+            <Typography variant="caption" color="text.secondary" component="div">
+              System Name, Team, Category, description, Raised Date, Target Date, End Date, Status, Remarks
+            </Typography>
           </Box>
         </Box>
       </DialogContent>
@@ -223,6 +325,15 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam }) => {
         </Button>
       </DialogActions>
     </Dialog>
+
+    {/* Snackbar for notifications */}
+    <Snackbar
+      open={snackbarOpen}
+      message={snackbarMessage}
+      severity={snackbarSeverity}
+      onClose={() => setSnackbarOpen(false)}
+    />
+    </>
   )
 }
 

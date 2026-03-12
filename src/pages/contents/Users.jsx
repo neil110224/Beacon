@@ -39,6 +39,7 @@ const Users = () => {
   const [selectedUser, setSelectedUser] = useState(null)
   const [userDialogOpen, setUserDialogOpen] = useState(false)
   const [showArchived, setShowArchived] = useState(false)
+  const [isTabSwitching, setIsTabSwitching] = useState(false) // ← add this
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
@@ -78,7 +79,11 @@ const Users = () => {
     }
   }
   const handleCancelConfirm = () => { setConfirmDialogOpen(false); setSelectedUser(null); }
-  const handleTabChange = (event, newValue) => { setShowArchived(newValue === 1); }
+  const handleTabChange = (event, newValue) => {
+  setIsTabSwitching(true)           // ← add this
+  setShowArchived(newValue === 1)
+  setTimeout(() => setIsTabSwitching(false), 600)  // ← add this
+}
 
   const columns = [
     { id: 'id', label: 'ID', align: 'center' },
@@ -152,7 +157,7 @@ const Users = () => {
           searchPlaceholder="Search users..."
           canAdd={canAddUser}
           onAddClick={() => setUserDialogOpen(true)}
-          addLabel="Add User"
+          addLabel="CREATE"
           onRefresh={refetch}
         />
 
@@ -175,7 +180,7 @@ const Users = () => {
               columns={columns}
               rows={users}
               totalCount={data?.data?.total}
-              isLoading={isLoading || searchTerm !== debouncedSearchTerm}
+              isLoading={isLoading || searchTerm !== debouncedSearchTerm ||isTabSwitching}
               isError={isError}
               error={error}
               tableSx={{ 

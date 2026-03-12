@@ -31,6 +31,8 @@ import { useGetRolesQuery, useUpdateRoleMutation } from '../../features/api/role
 import { useDebounce } from '../../hooks/useDebounce';
 import RoleFormDialog from './RoleFormDialog';
 
+const OSWALD = '"Oswald", sans-serif';
+
 // Validation schema factory function
 const createUserValidationSchema = (isEdit) => {
   return yup.object().shape({
@@ -260,7 +262,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
 
   return (
     <Dialog key={user ? `edit-${user.id}` : 'add'} open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{user ? 'Edit User' : 'Add New User'}</DialogTitle>
+      <DialogTitle sx={{ fontFamily: OSWALD, fontWeight: 600 }}>{user ? 'Edit User' : 'Add New User'}</DialogTitle>
 
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
@@ -272,6 +274,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
             error={!!errors.first_name}
             helperText={errors.first_name?.message}
             disabled={apiLoading || isLoading}
+            sx={{ '& input, & label': { fontFamily: OSWALD } }}
           />
 
           {/* Middle Name */}
@@ -280,6 +283,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
             label="Middle Name"
             fullWidth
             disabled={apiLoading || isLoading}
+            sx={{ '& input, & label': { fontFamily: OSWALD } }}
           />
 
           {/* Last Name */}
@@ -290,6 +294,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
             error={!!errors.last_name}
             helperText={errors.last_name?.message}
             disabled={apiLoading || isLoading}
+            sx={{ '& input, & label': { fontFamily: OSWALD } }}
           />
 
           {/* Suffix */}
@@ -298,6 +303,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
             label="Suffix (optional)"
             fullWidth
             disabled={apiLoading || isLoading}
+            sx={{ '& input, & label': { fontFamily: OSWALD } }}
           />
 
           {/* Username */}
@@ -308,6 +314,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
             error={!!errors.username}
             helperText={errors.username?.message}
             disabled={apiLoading || isLoading}
+            sx={{ '& input, & label': { fontFamily: OSWALD } }}
           />
 
           {/* Password - Only show in Add mode */}
@@ -320,84 +327,38 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
               error={!!errors.password}
               helperText={errors.password?.message}
               disabled={apiLoading || isLoading}
+              sx={{ '& input, & label': { fontFamily: OSWALD } }}
             />
           )}
 
-          {/* Role Select - Dropdown in Add mode, Read-only display in Edit mode */}
-          {!isEdit ? (
-            <Controller
-              name="role_id"
-              control={control}
-              render={({ field }) => (
-                <FormControl fullWidth error={!!errors.role_id} disabled={rolesLoading || apiLoading || isLoading}>
-                  <InputLabel>Role</InputLabel>
-                  <Select
-                    {...field}
-                    label="Role"
-                  >
-                    {rolesLoading ? (
-                      <MenuItem value="">
-                        <CircularProgress size={20} />
+          {/* Role Select - Dropdown for both Add and Edit modes */}
+          <Controller
+            name="role_id"
+            control={control}
+            render={({ field }) => (
+              <FormControl fullWidth error={!!errors.role_id} disabled={rolesLoading || apiLoading || isLoading}>
+                <InputLabel sx={{ fontFamily: OSWALD }}>Role</InputLabel>
+                <Select
+                  {...field}
+                  label="Role"
+                  sx={{ fontFamily: OSWALD }}
+                >
+                  {rolesLoading ? (
+                    <MenuItem value="" sx={{ fontFamily: OSWALD }}>
+                      <CircularProgress size={20} />
+                    </MenuItem>
+                  ) : (
+                    roles.map((role) => (
+                      <MenuItem key={role.id} value={String(role.id)} sx={{ fontFamily: OSWALD }}>
+                        {role.name}
                       </MenuItem>
-                    ) : (
-                      roles.map((role) => (
-                        <MenuItem key={role.id} value={String(role.id)}>
-                          {role.name}
-                        </MenuItem>
-                      ))
-                    )}
-                  </Select>
-                </FormControl>
-              )}
-            />
-          ) : (
-            <>
-              {/* Edit Mode: Show Role Name and Permissions with Edit Button */}
-              <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography sx={{ fontWeight: 600, mb: 1, color: '#2c3e50' }}>
-                  Role: {user?.role?.name || 'N/A'}
-                </Typography>
-                {user?.role && (
-                  <IconButton
-                    size="small"
-                    onClick={handleEditRole}
-                    sx={{
-                      color: '#2c3e50',
-                      '&:hover': {
-                        backgroundColor: 'rgba(44, 62, 80, 0.1)',
-                      },
-                    }}
-                    title="Edit role"
-                  >
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                )}
-              </Box>
-              {/* Show Role Permissions */}
-              {user?.role?.access_permissions && user.role.access_permissions.length > 0 && (
-                <Paper sx={{ p: 2, bgcolor: '#f5f5f5', mb: 2 }}>
-                  <Typography sx={{ fontWeight: 600, mb: 1.5, fontSize: '0.95rem', color: '#2c3e50' }}>
-                    Permissions:
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                    {user.role.access_permissions.map((permission) => (
-                      <Chip
-                        key={permission}
-                        label={permission}
-                        color="primary"
-                        variant="outlined"
-                        sx={{
-                          borderColor: '#2c3e50',
-                          color: '#2c3e50',
-                        }}
-                      />
-                    ))}
-                  </Box>
-                </Paper>
-              )}
-            </>
-          )}
-          {errors.role_id && <span style={{ color: 'red', fontSize: '0.75rem' }}>{errors.role_id.message}</span>}
+                    ))
+                  )}
+                </Select>
+              </FormControl>
+            )}
+          />
+          {errors.role_id && <span style={{ color: 'red', fontSize: '0.75rem', fontFamily: OSWALD }}>{errors.role_id.message}</span>}
 
           {/* Charging Autocomplete */}
           <Controller
@@ -427,6 +388,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
                       error={!!errors.charging_id}
                       helperText={errors.charging_id?.message}
                       placeholder="Search by name or code..."
+                      sx={{ '& input, & label': { fontFamily: OSWALD } }}
                     />
                   )}
                 />
@@ -440,18 +402,19 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
             control={control}
             render={({ field }) => (
               <FormControl fullWidth error={!!errors.team_id} disabled={teamsLoading || apiLoading || isLoading}>
-                <InputLabel>Team</InputLabel>
+                <InputLabel sx={{ fontFamily: OSWALD }}>Team</InputLabel>
                 <Select
                   {...field}
                   label="Team"
+                  sx={{ fontFamily: OSWALD }}
                 >
                   {teamsLoading ? (
-                    <MenuItem value="">
+                    <MenuItem value="" sx={{ fontFamily: OSWALD }}>
                       <CircularProgress size={20} />
                     </MenuItem>
                   ) : (
                     teams.map((team) => (
-                      <MenuItem key={team.id} value={String(team.id)}>
+                      <MenuItem key={team.id} value={String(team.id)} sx={{ fontFamily: OSWALD }}>
                         {team.name}
                       </MenuItem>
                     ))
@@ -460,12 +423,12 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
               </FormControl>
             )}
           />
-          {errors.team_id && <span style={{ color: 'red', fontSize: '0.75rem' }}>{errors.team_id.message}</span>}
+          {errors.team_id && <span style={{ color: 'red', fontSize: '0.75rem', fontFamily: OSWALD }}>{errors.team_id.message}</span>}
         </Box>
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleDialogClose} disabled={apiLoading || isLoading}>
+        <Button onClick={handleDialogClose} disabled={apiLoading || isLoading} sx={{ fontFamily: OSWALD }}>
           Cancel
         </Button>
         <Button
@@ -473,6 +436,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
           variant="contained"
           disabled={apiLoading || isLoading}
           startIcon={(apiLoading || isLoading) && <CircularProgress size={20} />}
+          sx={{ fontFamily: OSWALD }}
         >
           {apiLoading || isLoading ? 'Saving...' : isEdit ? 'Update' : 'Save'}
         </Button>
@@ -485,7 +449,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert severity={snackbar.severity} variant="filled" onClose={handleCloseSnackbar}>
+        <Alert severity={snackbar.severity} variant="filled" onClose={handleCloseSnackbar} sx={{ fontFamily: OSWALD }}>
           {snackbar.message}
         </Alert>
       </Snackbar>

@@ -152,7 +152,7 @@ const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false, isMobile =
   }, [isResizing])
 
   return (
-    <Box className={`sidebarWrapper ${isCollapsed ? 'sidebarWrapper--collapsed' : 'sidebarWrapper--expanded'}`} sx={{ width: !isCollapsed ? `${sidebarWidth}px` : '90px', transition: isResizing ? 'none' : 'width 1s ease' }}>
+    <Box className={`sidebarWrapper ${isCollapsed ? 'sidebarWrapper--collapsed' : 'sidebarWrapper--expanded'}`} sx={{ width: !isCollapsed ? `${sidebarWidth}px` : '90px', transition: isResizing ? 'none' : 'all 0.3s ease' }}>
       {/* Resize Handle */}
       {!isCollapsed && (
         <Tooltip title="Drag to resize sidebar" placement="right" arrow>

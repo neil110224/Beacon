@@ -31,6 +31,8 @@ const Charging = () => {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [chargingDialogOpen, setChargingDialogOpen] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+     const [isTabSwitching, setIsTabSwitching] = useState(false) // ← add this
+  
 
   const open = Boolean(anchorEl);
 
@@ -57,7 +59,11 @@ const Charging = () => {
 
   const handleMenuClick = (event, row) => { setAnchorEl(event.currentTarget); setSelectedRow(row); };
   const handleClose = () => { setAnchorEl(null); };
-  const handleTabChange = (event, newValue) => { setShowArchived(newValue === 1); };
+  const handleTabChange = (event, newValue) => {
+  setIsTabSwitching(true)           // ← add this
+  setShowArchived(newValue === 1)
+  setTimeout(() => setIsTabSwitching(false), 600)  // ← add this
+}
   const handleArchiveClick = () => { if (!selectedRow) return; setConfirmDialogOpen(true); setAnchorEl(null); };
 
   const handleConfirmArchive = async () => {
@@ -123,7 +129,7 @@ const Charging = () => {
   searchPlaceholder="Search Charging..."
   canAdd={canAddCharging}
   onAddClick={() => setChargingDialogOpen(true)}
-  addLabel="Add Charging"
+  addLabel="CREATE"
   onRefresh={refetch}
 />
 
@@ -152,7 +158,7 @@ const Charging = () => {
           columns={columns}
           rows={filteredData}
           totalCount={filteredData.length}
-          isLoading={isLoading || searchTerm !== debouncedSearchTerm}
+          isLoading={isLoading || searchTerm !== debouncedSearchTerm || isTabSwitching}
           isError={isError}
           tableSx={{
             minWidth: 800,

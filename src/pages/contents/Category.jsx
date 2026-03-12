@@ -30,6 +30,7 @@ const Category = () => {
     const [snackbarMessage, setSnackbarMessage] = useState('')
     const [snackbarSeverity, setSnackbarSeverity] = useState('success')
     const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
+    const [isTabSwitching, setIsTabSwitching] = useState(false) // ← add this
 
     const { data, isLoading, isError, error, refetch } = useGetCategoriesListQuery({
       status: showArchived ? 'inactive' : 'active',
@@ -43,7 +44,11 @@ const Category = () => {
     const handleMenuClose = () => { setAnchorEl(null); setSelectedCategory(null); };
     const handleArchive = () => { setConfirmDialogOpen(true); };
     const handleCancelConfirm = () => { setConfirmDialogOpen(false); handleMenuClose(); };
-    const handleTabChange = (event, newValue) => { setShowArchived(newValue === 1); };
+    const handleTabChange = (event, newValue) => {
+  setIsTabSwitching(true)           // ← add this
+  setShowArchived(newValue === 1)
+  setTimeout(() => setIsTabSwitching(false), 600)  // ← add this
+}
 
     const handleConfirmArchive = async () => {
       if (!selectedCategory) return;
@@ -87,7 +92,7 @@ const Category = () => {
   searchPlaceholder="Search categories..."
   canAdd={canAddCategory}
   onAddClick={() => setCategoryDialogOpen(true)}
-  addLabel="Add categories"
+  addLabel="CREATE"
   onRefresh={refetch}
 />
 
@@ -116,7 +121,7 @@ const Category = () => {
             columns={columns}
             rows={filteredCategories}
             totalCount={filteredCategories.length}
-            isLoading={isLoading || searchTerm !== debouncedSearchTerm}
+            isLoading={isLoading || searchTerm !== debouncedSearchTerm || isTabSwitching}
             isError={isError}
             error={error}
             tableSx={{ minWidth: 1200, '& .MuiTableCell-root': { padding: '14px 16px', fontSize: '0.875rem', color: '#2c3e50' }, '& .MuiTableBody-root .MuiTableRow-root': { cursor: 'default' } }}

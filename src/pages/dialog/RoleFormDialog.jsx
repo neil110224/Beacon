@@ -23,6 +23,8 @@ import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 
+const OSWALD = '"Oswald", sans-serif';
+
 /**
  * RoleFormDialog Component
  * 
@@ -241,12 +243,12 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
           },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 600, fontSize: '1.25rem', color: '#2c3e50' }}>
+        <DialogTitle sx={{ fontWeight: 600, fontSize: '1.25rem', color: '#2c3e50', fontFamily: OSWALD }}>
           {isEdit ? 'Edit Role' : 'Add New Role'}
         </DialogTitle>
 
         <DialogContent sx={{ pt: 2 }}>
-          <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt:1 }}>
             {/* Role Name Input */}
             <TextField
               label="Role Name"
@@ -256,6 +258,8 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
               helperText={errors.name?.message}
               {...register('name')}
               sx={{
+                mt:1,
+                '& input, & label': { fontFamily: OSWALD },
                 '& .MuiOutlinedInput-root': {
                   borderRadius: '8px',
                   '&:hover fieldset': {
@@ -270,7 +274,7 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
 
             {/* Permissions Section */}
             <Box sx={{ mt: 1 }}>
-              <Typography sx={{ fontWeight: 600, marginBottom: 1.5, color: '#2c3e50' }}>
+              <Typography sx={{ fontWeight: 600, marginBottom: 1.5, color: '#2c3e50', fontFamily: OSWALD }}>
                 Permissions:
               </Typography>
               <FormGroup sx={{ gap: 1 }}>
@@ -296,6 +300,7 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
                         '& .MuiFormControlLabel-label': {
                           fontSize: '0.95rem',
                           fontWeight: 500,
+                          fontFamily: OSWALD,
                         },
                       }}
                     />
@@ -335,6 +340,7 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
                             marginBottom: 0,
                             '& .MuiFormControlLabel-label': {
                               fontSize: '0.9rem',
+                              fontFamily: OSWALD,
                             },
                           }}
                         />
@@ -365,6 +371,7 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
                         '& .MuiFormControlLabel-label': {
                           fontSize: '0.95rem',
                           fontWeight: 500,
+                          fontFamily: OSWALD,
                         },
                       }}
                     />
@@ -404,6 +411,7 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
                             marginBottom: 0,
                             '& .MuiFormControlLabel-label': {
                               fontSize: '0.9rem',
+                              fontFamily: OSWALD,
                             },
                           }}
                         />
@@ -435,6 +443,7 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
                         '& .MuiFormControlLabel-label': {
                           fontSize: '0.95rem',
                           fontWeight: 500,
+                          fontFamily: OSWALD,
                         },
                       }}
                     />
@@ -475,6 +484,7 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
                                 marginBottom: 0.5,
                                 '& .MuiFormControlLabel-label': {
                                   fontSize: '0.9rem',
+                                  fontFamily: OSWALD,
                                 },
                               }}
                             />
@@ -514,6 +524,7 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
                                     marginBottom: 0.5,
                                     '& .MuiFormControlLabel-label': {
                                       fontSize: '0.85rem',
+                                      fontFamily: OSWALD,
                                     },
                                   }}
                                 />
@@ -527,7 +538,7 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
                 </Box>
               </FormGroup>
               {errors.permissions && (
-                <Typography sx={{ color: '#d32f2f', fontSize: '0.75rem', mt: 1 }}>
+                <Typography sx={{ color: '#d32f2f', fontSize: '0.75rem', mt: 1, fontFamily: OSWALD }}>
                   {errors.permissions.message}
                 </Typography>
               )}
@@ -542,6 +553,7 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
             sx={{
               textTransform: 'none',
               color: '#666',
+              fontFamily: OSWALD,
               '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' },
             }}
           >
@@ -555,6 +567,7 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
             sx={{
               textTransform: 'none',
               backgroundColor: '#2c3e50',
+              fontFamily: OSWALD,
               '&:hover': { backgroundColor: '#34495e' },
               '&:disabled': { backgroundColor: '#ccc' },
             }}
@@ -571,7 +584,7 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%', fontFamily: OSWALD }}>
           {snackbar.message}
         </Alert>
       </Snackbar>

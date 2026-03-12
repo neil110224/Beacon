@@ -127,14 +127,16 @@ export default function ChargingFormDialog({ open, onClose, charging = null, onS
     setSnackbar(prev => ({ ...prev, open: false }));
   };
 
+  const OSWALD = '"Oswald", sans-serif';
+
   return (
     <Dialog open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ fontWeight: 600, color: '#2c3e50' }}>
+      <DialogTitle sx={{ fontWeight: 600, color: '#2c3e50', fontFamily: OSWALD }}>
         {isEdit ? 'Edit Charging' : 'Add New Charging'}
       </DialogTitle>
 
       <DialogContent>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1, fontFamily: OSWALD }}>
           <TextField
             {...register('code')}
             label="Code"
@@ -143,6 +145,7 @@ export default function ChargingFormDialog({ open, onClose, charging = null, onS
             error={!!errors.code}
             helperText={errors.code?.message}
             disabled={isLoading}
+            sx={{ '& input, & label': { fontFamily: OSWALD } }}
           />
 
           <TextField
@@ -154,6 +157,7 @@ export default function ChargingFormDialog({ open, onClose, charging = null, onS
             helperText={errors.name?.message}
             disabled={isLoading}
             autoFocus
+            sx={{ '& input, & label': { fontFamily: OSWALD } }}
           />
 
           
@@ -161,7 +165,7 @@ export default function ChargingFormDialog({ open, onClose, charging = null, onS
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleDialogClose} disabled={isLoading || localLoading}>
+        <Button onClick={handleDialogClose} disabled={isLoading || localLoading} sx={{ fontFamily: OSWALD }}>
           Cancel
         </Button>
         <Button
@@ -171,6 +175,7 @@ export default function ChargingFormDialog({ open, onClose, charging = null, onS
           startIcon={(isLoading || localLoading) && <CircularProgress size={20} />}
           sx={{
             backgroundColor: '#2c3e50',
+            fontFamily: OSWALD,
             '&:hover': { backgroundColor: '#34495e' },
           }}
         >
@@ -185,7 +190,7 @@ export default function ChargingFormDialog({ open, onClose, charging = null, onS
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert severity={snackbar.severity} variant="filled" onClose={handleCloseSnackbar}>
+        <Alert severity={snackbar.severity} variant="filled" onClose={handleCloseSnackbar} sx={{ fontFamily: OSWALD }}>
           {snackbar.message}
         </Alert>
       </Snackbar>

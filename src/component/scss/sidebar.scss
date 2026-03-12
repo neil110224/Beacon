@@ -48,7 +48,7 @@ $sidebar-text-color-active: #001835;
   height: 100vh;
   color: $nav-text;
   overflow: hidden;
-  transition: width 1s ease, min-width 1s ease, max-width 1s ease;
+  transition: width 0.5s ease, min-width 0.5s ease, max-width 0.5s ease;
   display: flex;
   flex-direction: column;
   box-shadow: 4px 0 12px rgba(0, 0, 0, 0.1);
@@ -157,7 +157,7 @@ $sidebar-text-color-active: #001835;
   margin-left: 0;
   margin-right: 0;
   border: none;
-  transition: all 1s ease;
+  transition: all 0.5s ease;
   height: 48px;
   min-height: 48px;
   max-height: 48px;
@@ -235,7 +235,7 @@ $sidebar-text-color-active: #001835;
   background-color: transparent;
   color: $primary-text-dark;
   padding-left: 3.5rem;
-  transition: all 1s ease;
+  transition: all 0.5s ease;
   position: relative;
   font-size: $sidebar-button-font-size;
 
@@ -262,7 +262,7 @@ $sidebar-text-color-active: #001835;
 .menuItem {
   background-color: transparent;
   color: $primary-text-dark;
-  transition: all 1s ease;
+  transition: all 0.5s ease;
   font-size: $sidebar-button-font-size;
 
   &:hover {
@@ -297,7 +297,7 @@ $sidebar-text-color-active: #001835;
   bottom: 0;
   width: 8px;
   cursor: ew-resize;
-  transition: all 0.3s ease;
+  transition: all 0.5s ease;
   background: linear-gradient(90deg, rgba(82, 152, 114, 0.2) 0%, rgba(82, 152, 114, 0.4) 50%, rgba(82, 152, 114, 0.2) 100%);
 
   &::before {
@@ -316,7 +316,7 @@ $sidebar-text-color-active: #001835;
       transparent 4px
     );
     border-radius: 2px;
-    transition: all 0.3s ease;
+    transition: all 0.5s ease;
   }
 
   &:hover {

@@ -14,8 +14,6 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import dayjs from 'dayjs'
-import Lottie from 'lottie-react'
-import Confetti from '../../assets/Confetti.json'
 import '../contentscss/SystemCategory.scss'
 import Confirmation from '../../component/reuseable/Confirmation'
 
@@ -66,7 +64,6 @@ const SystemCategory = () => {
   const [createLoading, setCreateLoading] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState(null)
   const [editDialog, setEditDialog] = useState({ open: false, item: null, remarks: '' })
-  const [showDoneAnimation, setShowDoneAnimation] = useState(false)
 
   const currentSystem = useMemo(() => {
     if (!systemsData || !Array.isArray(systemsData)) return null
@@ -85,20 +82,6 @@ const SystemCategory = () => {
     if (Array.isArray(categoriesData.categories)) return categoriesData.categories
     return []
   }, [categoriesData])
-
-  React.useEffect(() => {
-    if (showDoneAnimation) {
-      document.documentElement.style.overflow = 'hidden'
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.documentElement.style.overflow = ''
-      document.body.style.overflow = ''
-    }
-    return () => {
-      document.documentElement.style.overflow = ''
-      document.body.style.overflow = ''
-    }
-  }, [showDoneAnimation])
 
   const getStatusColor = useCallback((status) => {
     const statusColors = {
@@ -377,10 +360,8 @@ const SystemCategory = () => {
       try {
         await updateProgress(updatePayload).unwrap()
         await refetch()
-        setShowDoneAnimation(true)
         setSnackbar({ open: true, message: 'Marked as done successfully!', severity: 'success' })
         handleCloseDateEditDialog()
-        setTimeout(() => { setShowDoneAnimation(false) }, 3000)
       } catch (err) {
         let errorMessage = 'Failed to mark as done'
         if (err?.data?.errors?.length > 0) errorMessage = err.data.errors[0]?.detail || err.data.errors[0]?.message || errorMessage
@@ -763,7 +744,7 @@ const SystemCategory = () => {
                 sx={{ fontFamily: OSWALD }}
               >
                 {allCategories && allCategories.map((cat) => (
-                  <MenuItem key={cat.id} value={cat.id} sx={{ fontFamily: OSWALD }}>
+                  <MenuItem key={cat.id} value={cat.id} sx={{ fontFamily: OSWALD, fontWeight: 300 }}>
                     {cat.categoryName || cat.name}
                   </MenuItem>
                 ))}
@@ -841,56 +822,6 @@ const SystemCategory = () => {
             ) : 'Create'}
           </Button>
         </DialogActions>
-      </Dialog>
-
-      {/* Done Animation Dialog */}
-      <Dialog
-        open={showDoneAnimation}
-        onClose={() => setShowDoneAnimation(false)}
-        fullScreen
-        PaperProps={{
-          sx: {
-            backgroundColor: 'transparent',
-            boxShadow: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            animation: 'fadeIn 0.8s ease-in-out',
-            '@keyframes fadeIn': { '0%': { opacity: 0 }, '100%': { opacity: 1 } }
-          }
-        }}
-      >
-        <DialogContent sx={{
-          textAlign: 'center',
-          position: 'relative',
-          background: 'transparent',
-          border: 'none',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '100%',
-          height: '100%',
-          padding: 0,
-          margin: 0,
-          maxWidth: '100%',
-          maxHeight: '100%',
-          animation: 'slideUp 0.5s ease-out',
-          '@keyframes slideUp': {
-            '0%': { transform: 'translateY(100px)', opacity: 0 },
-            '100%': { transform: 'translateY(0)', opacity: 1 }
-          }
-        }}>
-          <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-            <Lottie animationData={Confetti} loop={false} />
-            <Typography variant="h3" sx={{ fontWeight: 700, color: '#03346E', fontFamily: OSWALD, textShadow: '2px 2px 4px rgba(0,0,0,0.1)' }}>
-              Great Job!
-            </Typography>
-            <Typography variant="h6" sx={{ color: '#555', fontFamily: OSWALD, textShadow: '1px 1px 2px rgba(0,0,0,0.1)' }}>
-              Task marked as done
-            </Typography>
-          </Box>
-        </DialogContent>
       </Dialog>
     </Box>
   )
