@@ -19,22 +19,31 @@ import {
   Divider,
   Card,
   CardContent,
+  TextField,
 } from '@mui/material'
 import { useGetSystemsListQuery } from '../../features/api/system/systemApi'
+import { useGetCategoriesListQuery } from '../../features/api/category/categoryApi'
 
 const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }) => {
   const OSWALD = '"Oswald", sans-serif'
   const [selectedSystems, setSelectedSystems] = React.useState({})
-  const [selectedTeamId, setSelectedTeamId] = React.useState(selectedTeam?.id || '')
+  const [selectedTeamId, setSelectedTeamId] = React.useState('all')
   const [statusFilter, setStatusFilter] = React.useState('all')
+  const [selectedCategories, setSelectedCategories] = React.useState([])
+  const [startDate, setStartDate] = React.useState('')
+  const [endDate, setEndDate] = React.useState('')
   const [isLoading, setIsLoading] = React.useState(false)
   const [snackbar, setSnackbar] = React.useState({ open: false, message: '', severity: 'success' })
 
-  // Fetch all systems if not provided
   const { data: allSystemsData, isLoading: allSystemsLoading } = useGetSystemsListQuery({
     status: 'active',
     scope: 'global',
     paginate: 'none',
+    pagination: 'none',
+  })
+
+  const { data: categories = [], isLoading: loadingCategories } = useGetCategoriesListQuery({
+    status: 'active',
     pagination: 'none',
   })
 
@@ -45,262 +54,378 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
     { value: 'done', label: 'Done' },
   ]
 
-  // Get systems data from prop or fetched data
   const systemsData = React.useMemo(() => {
-    if (filteredTeamSystems && filteredTeamSystems.length > 0) {
-      return filteredTeamSystems
-    }
-
     if (!Array.isArray(allSystemsData)) {
-      if (allSystemsData?.data?.data && Array.isArray(allSystemsData.data.data)) {
-        return allSystemsData.data.data
-      }
-      if (allSystemsData?.data && Array.isArray(allSystemsData.data)) {
-        return allSystemsData.data
-      }
+      if (allSystemsData?.data?.data && Array.isArray(allSystemsData.data.data)) return allSystemsData.data.data
+      if (allSystemsData?.data && Array.isArray(allSystemsData.data)) return allSystemsData.data
       return []
     }
     return allSystemsData || []
-  }, [filteredTeamSystems, allSystemsData])
+  }, [allSystemsData])
 
-  // Extract unique teams from systems
+  React.useEffect(() => {
+    if (categories.length > 0 && selectedCategories.length === 0) {
+      setSelectedCategories(categories.map((cat) => cat.id))
+    }
+  }, [categories])
+
   const allTeams = React.useMemo(() => {
     const teamsMap = new Map()
     systemsData?.forEach((system) => {
       system.team?.forEach((team) => {
-        if (!teamsMap.has(team.id)) {
-          teamsMap.set(team.id, team)
-        }
+        if (!teamsMap.has(team.id)) teamsMap.set(team.id, team)
       })
     })
     return Array.from(teamsMap.values())
   }, [systemsData])
 
-  // Initialize selected team on dialog open
   React.useEffect(() => {
-    if (open && allTeams.length > 0) {
-      if (selectedTeam?.id) {
+    if (open) {
+      if (selectedTeam?.id && filteredTeamSystems && filteredTeamSystems.length > 0) {
         setSelectedTeamId(selectedTeam.id)
-      } else if (!selectedTeamId && allTeams.length > 0) {
-        setSelectedTeamId(allTeams[0].id)
+      } else {
+        setSelectedTeamId('all')
       }
     }
-  }, [open, allTeams, selectedTeam?.id])
+  }, [open, selectedTeam?.id, filteredTeamSystems])
 
-  // Filter systems by selected team
+  const selectedCategoriesKey = selectedCategories.join(',')
+  const isAllCategories = selectedCategories.length === categories.length || selectedCategories.length === 0
+
+  const systemCategoryMatches = React.useCallback(
+    (sysCat) => {
+      const selectedIds = selectedCategoriesKey.split(',').map(Number)
+      const selectedNames = categories
+        .filter((c) => selectedIds.includes(c.id))
+        .map((c) => c.name?.toLowerCase())
+      return selectedNames.includes(sysCat.categoryName?.toLowerCase())
+    },
+    [selectedCategoriesKey, categories]
+  )
+
+  // Check if a progress item's raised_date falls within the date range
+  const isWithinDateRange = React.useCallback(
+    (raisedDate) => {
+      if (!startDate && !endDate) return true
+      const d = new Date(raisedDate)
+      if (startDate && d < new Date(startDate)) return false
+      if (endDate && d > new Date(endDate)) return false
+      return true
+    },
+    [startDate, endDate]
+  )
+
+  // Filter systems based on team, category, status, and raised_date range
   const systemsForSelectedTeam = React.useMemo(() => {
-    if (!selectedTeamId || !systemsData) return []
-    return systemsData.filter((system) =>
-      system.team.some((team) => team.id === parseInt(selectedTeamId))
-    )
+    if (!systemsData || systemsData.length === 0) return []
+    return systemsData.filter((system) => {
+      // Team filter
+      if (selectedTeamId !== 'all' && selectedTeamId !== '') {
+        const hasTeam = system.team.some((team) => team.id === parseInt(selectedTeamId))
+        if (!hasTeam) return false
+      }
+      return true
+    })
   }, [selectedTeamId, systemsData])
 
-  // Helper function to check if system has items matching status filter
-  const hasMatchingStatusItems = React.useCallback((system) => {
-    if (statusFilter === 'all') return true
-    return system.categories?.some((category) =>
-      category.progress?.some((item) => item.status.toLowerCase() === statusFilter.toLowerCase())
-    )
-  }, [statusFilter])
-
-  // Filter systems based on status filter
   const filteredSystemsByStatus = React.useMemo(() => {
-    if (statusFilter === 'all') {
-      return systemsForSelectedTeam
-    }
-    return systemsForSelectedTeam.filter((system) => hasMatchingStatusItems(system))
-  }, [systemsForSelectedTeam, statusFilter, hasMatchingStatusItems])
+    return systemsForSelectedTeam.filter((system) => {
+      // Category filter
+      const relevantCats = isAllCategories
+        ? system.categories
+        : system.categories?.filter((cat) => systemCategoryMatches(cat))
 
-  // Validate if system has at least one category to export
-  const canExportSystem = React.useCallback((system) => {
-    if (!system.categories || system.categories.length === 0) {
-      return false
-    }
-    
-    if (statusFilter === 'all') {
-      return system.categories.some((cat) => cat.progress && cat.progress.length > 0)
-    }
-    
-    return system.categories.some((category) =>
-      category.progress?.some((item) => item.status.toLowerCase() === statusFilter.toLowerCase())
-    )
-  }, [statusFilter])
+      if (!relevantCats || relevantCats.length === 0) return false
+
+      // Check if any progress item passes status + date filters
+      const hasMatchingProgress = relevantCats.some((cat) =>
+        cat.progress?.some((item) => {
+          if (statusFilter !== 'all' && item.status.toLowerCase() !== statusFilter.toLowerCase()) return false
+          if (!isWithinDateRange(item.raised_date)) return false
+          return true
+        })
+      )
+
+      return hasMatchingProgress
+    })
+  }, [systemsForSelectedTeam, statusFilter, selectedCategoriesKey, isAllCategories, systemCategoryMatches, isWithinDateRange])
+
+  const canExportSystem = React.useCallback(
+    (system) => {
+      if (!system.categories || system.categories.length === 0) return false
+      const relevantCategories = isAllCategories
+        ? system.categories
+        : system.categories.filter((cat) => systemCategoryMatches(cat))
+      if (relevantCategories.length === 0) return false
+
+      return relevantCategories.some((cat) =>
+        cat.progress?.some((item) => {
+          if (statusFilter !== 'all' && item.status.toLowerCase() !== statusFilter.toLowerCase()) return false
+          if (!isWithinDateRange(item.raised_date)) return false
+          return true
+        })
+      )
+    },
+    [statusFilter, isAllCategories, systemCategoryMatches, isWithinDateRange]
+  )
 
   const handleSelectAll = (checked) => {
     const newSelection = {}
     filteredSystemsByStatus?.forEach((system) => {
-      if (canExportSystem(system)) {
-        newSelection[system.id] = checked
-      }
+      if (canExportSystem(system)) newSelection[system.id] = checked
     })
     setSelectedSystems(newSelection)
   }
 
   const handleSelectSystem = (systemId, checked) => {
-    setSelectedSystems((prev) => ({
-      ...prev,
-      [systemId]: checked,
-    }))
+    setSelectedSystems((prev) => ({ ...prev, [systemId]: checked }))
   }
+
+  // ─── Export helpers ────────────────────────────────────────────────────────
+
+  const buildParams = (system) => {
+    const params = new URLSearchParams()
+    params.append('system_id', system.id)
+    system.team?.forEach((team) => params.append('team_id', team.id))
+    if (isAllCategories) {
+      system.categories?.forEach((sysCat) => {
+        const match = categories.find((c) => c.name?.toLowerCase() === sysCat.categoryName?.toLowerCase())
+        if (match) params.append('category_id', match.id)
+      })
+    } else {
+      selectedCategories.forEach((id) => params.append('category_id', id))
+    }
+    params.append('year', new Date().getFullYear().toString())
+    if (statusFilter !== 'all') params.append('status', statusFilter)
+    // Send raised_date range to backend
+    if (startDate) params.append('start_date', startDate)
+    if (endDate) params.append('end_date', endDate)
+    return params
+  }
+
+  const fetchBlob = async (system, token) => {
+    const url = `http://10.10.14.61:8000/api/export?${buildParams(system).toString()}`
+    console.log(`🔍 [${system.systemName}] Export URL:`, url)
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      },
+    })
+    if (!res.ok) throw new Error(`Export failed for ${system.systemName} (status ${res.status})`)
+    const blob = await res.blob()
+    if (blob.size === 0) throw new Error(`Empty response for ${system.systemName}`)
+    return blob
+  }
+
+  const mergeXlsxBlobs = async (blobs) => {
+    const JSZip = (await import('jszip')).default
+
+    const zips = await Promise.all(
+      blobs.map(async (blob) => JSZip.loadAsync(await blob.arrayBuffer()))
+    )
+
+    const baseZip = zips[0]
+    let baseSheetXml = await baseZip.file('xl/worksheets/sheet1.xml').async('string')
+    let baseSSXml = await baseZip.file('xl/sharedStrings.xml').async('string')
+
+    const parseSharedStrings = (xml) => {
+      const matches = [...xml.matchAll(/<si>([\s\S]*?)<\/si>/g)]
+      return matches.map((m) => m[0])
+    }
+
+    const mergedStrings = parseSharedStrings(baseSSXml)
+
+    const rowNums = [...baseSheetXml.matchAll(/<row\b[^>]*\br="(\d+)"/g)].map((m) => parseInt(m[1]))
+    let maxRow = rowNums.length ? Math.max(...rowNums) : 1
+
+    for (let i = 1; i < zips.length; i++) {
+      const sheetXml = await zips[i].file('xl/worksheets/sheet1.xml').async('string')
+      const ssXml = await zips[i].file('xl/sharedStrings.xml').async('string')
+
+      const zipStrings = parseSharedStrings(ssXml)
+
+      const remap = {}
+      zipStrings.forEach((si, oldIdx) => {
+        const existingIdx = mergedStrings.findIndex((s) => s === si)
+        if (existingIdx !== -1) {
+          remap[oldIdx] = existingIdx
+        } else {
+          remap[oldIdx] = mergedStrings.length
+          mergedStrings.push(si)
+        }
+      })
+
+      const sdMatch = sheetXml.match(/<sheetData[^>]*>([\s\S]*?)<\/sheetData>/)
+      if (!sdMatch || !sdMatch[1].trim()) continue
+
+      const rowRegex = /<row\b[^>]*\br="(\d+)"[^>]*>[\s\S]*?<\/row>/g
+      const allMatches = [...sdMatch[1].matchAll(rowRegex)]
+      const dataRows = allMatches.filter((m) => parseInt(m[1]) >= 2)
+
+      for (const match of dataRows) {
+        maxRow++
+        const newR = maxRow
+        let row = match[0]
+
+        row = row.replace(/^(<row\b[^>]*\b)r="\d+"/, `$1r="${newR}"`)
+        row = row.replace(/(<c\b[^>]*\b)r="([A-Z]+)\d+"/g, `$1r="$2${newR}"`)
+        row = row.replace(/(<c\b[^>]*\bt="s"[^>]*>[\s\S]*?<v>)(\d+)(<\/v>)/g, (_, pre, idx, post) => {
+          const newIdx = remap[parseInt(idx)] ?? parseInt(idx)
+          return `${pre}${newIdx}${post}`
+        })
+
+        baseSheetXml = baseSheetXml.replace('</sheetData>', `${row}</sheetData>`)
+      }
+    }
+
+    const totalCount = mergedStrings.length
+    const newSSXml = baseSSXml
+      .replace(/count="\d+"/, `count="${totalCount}"`)
+      .replace(/uniqueCount="\d+"/, `uniqueCount="${totalCount}"`)
+      .replace(/<si>[\s\S]*?<\/si>/g, '')
+      .replace('</sst>', `${mergedStrings.join('')}</sst>`)
+
+    baseZip.file('xl/worksheets/sheet1.xml', baseSheetXml)
+    baseZip.file('xl/sharedStrings.xml', newSSXml)
+
+    return baseZip.generateAsync({
+      type: 'blob',
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    })
+  }
+
+  // ─── Main export handler ───────────────────────────────────────────────────
 
   const handleExport = async () => {
     const selectedSystemIds = Object.keys(selectedSystems).filter((id) => selectedSystems[id])
-    const systemsToExport = filteredSystemsByStatus?.filter((system) =>
-      selectedSystemIds.includes(system.id.toString()) && canExportSystem(system)
+    const systemsToExport = filteredSystemsByStatus?.filter(
+      (system) => selectedSystemIds.includes(system.id.toString()) && canExportSystem(system)
     )
 
     if (systemsToExport.length === 0) {
-      setSnackbar({
-        open: true,
-        message: 'Please select at least one system with items to export',
-        severity: 'error',
-      })
+      setSnackbar({ open: true, message: 'Please select at least one system with items to export', severity: 'error' })
+      return
+    }
+    if (selectedCategories.length === 0) {
+      setSnackbar({ open: true, message: 'Please select at least one category to export', severity: 'error' })
       return
     }
 
     try {
       setIsLoading(true)
+      const token = localStorage.getItem('token')
 
-      // Collect all unique categories with their filtered progress
-      const categoriesToExport = []
-      systemsToExport.forEach((system) => {
-        system.categories?.forEach((category) => {
-          const filteredProgress = category.progress.filter((item) => {
-            if (statusFilter === 'all') return true
-            return item.status.toLowerCase() === statusFilter.toLowerCase()
-          })
+      const blobs = await Promise.all(systemsToExport.map((s) => fetchBlob(s, token)))
 
-          if (filteredProgress.length > 0) {
-            categoriesToExport.push({
-              categoryName: category.categoryName,
-              items: filteredProgress,
-              system: system.systemName,
-            })
-          }
-        })
-      })
+      const teamNameSuffix = selectedTeamId === 'all'
+        ? 'all-teams'
+        : allTeams.find((t) => t.id === parseInt(selectedTeamId))?.name || 'export'
+      const statusSuffix = statusFilter === 'all' ? '' : `-${statusFilter}`
+      const dateSuffix = startDate || endDate ? `-${startDate || 'start'}_to_${endDate || 'end'}` : ''
+      const fileName = `systems-export-${teamNameSuffix}${statusSuffix}${dateSuffix}.xlsx`
 
-      if (categoriesToExport.length === 0) {
-        setSnackbar({
-          open: true,
-          message: 'No items to export',
-          severity: 'error',
-        })
-        setIsLoading(false)
-        return
-      }
+      const finalBlob = blobs.length === 1 ? blobs[0] : await mergeXlsxBlobs(blobs)
 
-      // Prepare data for API
-      const exportPayload = {
-        systems: systemsToExport.map((system) => ({
-          id: system.id,
-          systemName: system.systemName,
-          created_at: system.created_at,
-          updated_at: system.updated_at,
-          team: system.team,
-          categories: system.categories
-            .map((category) => ({
-              categoryName: category.categoryName,
-              progress: category.progress.filter((item) => {
-                if (statusFilter === 'all') return true
-                return item.status.toLowerCase() === statusFilter.toLowerCase()
-              }),
-            }))
-            .filter((cat) => cat.progress.length > 0),
-        })),
-        status: statusFilter === 'all' ? null : statusFilter,
-        exportDate: new Date().toISOString(),
-      }
-
-      const queryString = new URLSearchParams(
-        Object.entries(exportPayload).map(([key, value]) => [key, JSON.stringify(value)])
-      ).toString()
-      
-      const response = await fetch(`http://10.10.14.61:8000/api/export_template?${queryString}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error(`Export failed with status ${response.status}`)
-      }
-
-      // Get the Excel file from response
-      const blob = await response.blob()
-      const url = URL.createObjectURL(blob)
+      const url_obj = URL.createObjectURL(finalBlob)
       const link = document.createElement('a')
-      link.href = url
-      const selectedTeamName = allTeams.find((t) => t.id === parseInt(selectedTeamId))?.name || 'export'
-      const statusSuffix = statusFilter === 'all' ? 'all' : statusFilter
-      link.download = `systems-export-${selectedTeamName}-${statusSuffix}-${new Date().toISOString().split('T')[0]}.xlsx`
+      link.href = url_obj
+      link.download = fileName
       link.click()
-      URL.revokeObjectURL(url)
+      URL.revokeObjectURL(url_obj)
 
-      setSnackbar({
-        open: true,
-        message: `Successfully exported ${selectedSystemIds.length} system(s) to Excel`,
-        severity: 'success',
-      })
+      setSnackbar({ open: true, message: `Successfully exported ${systemsToExport.length} system(s) to Excel`, severity: 'success' })
       onClose()
     } catch (error) {
       console.error('Export error:', error)
-      setSnackbar({
-        open: true,
-        message: error.message || 'Failed to export systems to Excel',
-        severity: 'error',
-      })
+      setSnackbar({ open: true, message: error.message || 'Failed to export systems to Excel', severity: 'error' })
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleCloseSnackbar = () => {
-    setSnackbar((prev) => ({ ...prev, open: false }))
+  const handleCloseSnackbar = () => setSnackbar((prev) => ({ ...prev, open: false }))
+  const selectedCount = Object.values(selectedSystems).filter(Boolean).length
+
+  React.useEffect(() => { setSelectedSystems({}) }, [selectedTeamId])
+  React.useEffect(() => { setSelectedSystems({}) }, [selectedCategories])
+  React.useEffect(() => { setSelectedSystems({}) }, [startDate, endDate])
+
+  // Reset form state
+  const resetForm = React.useCallback(() => {
+    setSelectedSystems({})
+    setSelectedTeamId('all')
+    setStatusFilter('all')
+    setSelectedCategories(categories.map((cat) => cat.id))
+    setStartDate('')
+    setEndDate('')
+    setIsLoading(false)
+    setSnackbar({ open: false, message: '', severity: 'success' })
+  }, [categories])
+
+  // Reset form when dialog is opened
+  React.useEffect(() => {
+    if (open) {
+      resetForm()
+    }
+  }, [open, resetForm])
+
+  // Modified onClose to reset form as well
+  const handleClose = () => {
+    resetForm()
+    onClose()
   }
 
-  const selectedCount = Object.values(selectedSystems).filter(Boolean).length
-  const totalSystems = filteredSystemsByStatus?.filter(s => canExportSystem(s))?.length || 0
-
-  React.useEffect(() => {
-    // Reset selections when changing teams
-    setSelectedSystems({})
-  }, [selectedTeamId])
+  // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
       <DialogTitle sx={{ fontFamily: OSWALD, fontWeight: 600, color: '#2c3e50' }}>
         Export Systems
       </DialogTitle>
 
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+
           {/* Team Selector */}
           <FormControl fullWidth>
             <InputLabel sx={{ fontFamily: OSWALD }}>Select Team</InputLabel>
             <Select
               value={selectedTeamId}
               label="Select Team"
-              onChange={(e) => {
-                setSelectedTeamId(e.target.value)
-                setSelectedSystems({})
-              }}
-              disabled={allSystemsLoading || allTeams.length === 0}
+              onChange={(e) => { setSelectedTeamId(e.target.value); setSelectedSystems({}) }}
+              disabled={allSystemsLoading || (allTeams.length === 0 && selectedTeamId !== 'all')}
               sx={{ fontFamily: OSWALD }}
             >
-              {allTeams.length > 0 ? (
-                allTeams.map((team) => (
-                  <MenuItem key={team.id} value={team.id} sx={{ fontFamily: OSWALD }}>
-                    {team.name} ({team.code})
-                  </MenuItem>
-                ))
-              ) : (
-                <MenuItem disabled sx={{ fontFamily: OSWALD }}>
-                  {allSystemsLoading ? 'Loading teams...' : 'No teams available'}
+              <MenuItem value="all" sx={{ fontFamily: OSWALD }}>All Teams</MenuItem>
+              {allTeams.map((team) => (
+                <MenuItem key={team.id} value={team.id} sx={{ fontFamily: OSWALD }}>
+                  {team.name} ({team.code})
                 </MenuItem>
-              )}
+              ))}
+            </Select>
+          </FormControl>
+
+          {/* Category Selector */}
+          <FormControl fullWidth>
+            <InputLabel sx={{ fontFamily: OSWALD }}>Select Category</InputLabel>
+            <Select
+              value={isAllCategories ? 'all' : selectedCategories[0]}
+              label="Select Category"
+              onChange={(e) => {
+                const val = e.target.value
+                setSelectedCategories(val === 'all' ? categories.map((c) => c.id) : [val])
+              }}
+              disabled={isLoading || loadingCategories}
+              sx={{ fontFamily: OSWALD }}
+            >
+              <MenuItem value="all" sx={{ fontFamily: OSWALD }}>All Categories</MenuItem>
+              {categories.map((category) => (
+                <MenuItem key={category.id} value={category.id} sx={{ fontFamily: OSWALD }}>
+                  {category.name}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
 
@@ -322,20 +447,62 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
             </Select>
           </FormControl>
 
+          {/* Date Range — filters by raised_date */}
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <TextField
+              label="Raised Date From"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              disabled={isLoading}
+              InputLabelProps={{ shrink: true }}
+              sx={{ flex: 1 }}
+            />
+            <Typography sx={{ fontFamily: OSWALD, color: '#666' }}>to</Typography>
+            <TextField
+              label="Raised Date To"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              disabled={isLoading}
+              InputLabelProps={{ shrink: true }}
+              sx={{ flex: 1 }}
+            />
+          </Box>
+
+          {(startDate || endDate) && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography sx={{ fontFamily: OSWALD, fontSize: '0.8rem', color: '#666' }}>
+                Filtering by raised date: {startDate || '...'} → {endDate || '...'}
+              </Typography>
+              <Button
+                size="small"
+                onClick={() => { setStartDate(''); setEndDate('') }}
+                sx={{ fontFamily: OSWALD, fontSize: '0.75rem', minWidth: 'auto', color: '#e74c3c' }}
+              >
+                Clear
+              </Button>
+            </Box>
+          )}
+
           <Divider />
 
           {/* Select All */}
           <FormControlLabel
             control={
               <Checkbox
-                checked={filteredSystemsByStatus.length > 0 && selectedCount === filteredSystemsByStatus.filter(s => canExportSystem(s)).length && selectedCount > 0}
+                checked={
+                  filteredSystemsByStatus.length > 0 &&
+                  selectedCount === filteredSystemsByStatus.filter((s) => canExportSystem(s)).length &&
+                  selectedCount > 0
+                }
                 onChange={(e) => handleSelectAll(e.target.checked)}
                 disabled={isLoading || filteredSystemsByStatus.length === 0}
               />
             }
             label={
               <Typography sx={{ fontFamily: OSWALD }}>
-                Select All ({selectedCount}/{filteredSystemsByStatus.filter(s => canExportSystem(s)).length})
+                Select All ({selectedCount}/{filteredSystemsByStatus.filter((s) => canExportSystem(s)).length})
               </Typography>
             }
           />
@@ -348,7 +515,14 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
               </Box>
             ) : filteredSystemsByStatus && filteredSystemsByStatus.length > 0 ? (
               filteredSystemsByStatus.map((system) => (
-                <Card key={system.id} sx={{ mb: 2, backgroundColor: canExportSystem(system) ? '#f8f9fa' : '#f5f5f5', opacity: canExportSystem(system) ? 1 : 0.6 }}>
+                <Card
+                  key={system.id}
+                  sx={{
+                    mb: 2,
+                    backgroundColor: canExportSystem(system) ? '#f8f9fa' : '#f5f5f5',
+                    opacity: canExportSystem(system) ? 1 : 0.6,
+                  }}
+                >
                   <CardContent sx={{ pb: 2 }}>
                     <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
                       <Checkbox
@@ -359,29 +533,10 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
                       <Box sx={{ flex: 1 }}>
                         <Typography sx={{ fontFamily: OSWALD, fontWeight: 600, fontSize: '1rem', color: !canExportSystem(system) ? '#999' : '#000' }}>
                           {system.systemName}
-                          {!canExportSystem(system) && <span style={{ fontSize: '0.8rem', marginLeft: '8px', color: '#d32f2f' }}>(No matching items)</span>}
                         </Typography>
                         <Typography sx={{ fontFamily: OSWALD, fontSize: '0.85rem', color: '#666', mt: 0.5 }}>
                           Teams: {system.team.map((t) => t.name).join(', ')}
                         </Typography>
-                        <Typography sx={{ fontFamily: OSWALD, fontSize: '0.85rem', color: '#666', mt: 0.5 }}>
-                          Categories: {system.categories.length}
-                        </Typography>
-                        {system.categories.length > 0 && (
-                          <Box sx={{ mt: 1, ml: 1 }}>
-                            {system.categories.map((category, idx) => {
-                              const filteredProgress = category.progress.filter((item) => {
-                                if (statusFilter === 'all') return true
-                                return item.status.toLowerCase() === statusFilter.toLowerCase()
-                              })
-                              return (
-                                <Typography key={idx} sx={{ fontFamily: OSWALD, fontSize: '0.8rem', color: filteredProgress.length > 0 ? '#555' : '#ccc' }}>
-                                  • {category.categoryName}: {filteredProgress.length} item(s)
-                                </Typography>
-                              )
-                            })}
-                          </Box>
-                        )}
                       </Box>
                     </Box>
                   </CardContent>
@@ -389,7 +544,9 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
               ))
             ) : (
               <Typography sx={{ fontFamily: OSWALD, textAlign: 'center', color: '#999', py: 3 }}>
-                {!selectedTeamId ? 'Please select a team first' : systemsForSelectedTeam.length === 0 ? 'No systems available for this team' : `No systems with ${statusFilter === 'all' ? 'items' : statusFilter} status in selected team`}
+                {systemsForSelectedTeam.length === 0
+                  ? 'No systems available for this team'
+                  : 'No systems match the selected filters'}
               </Typography>
             )}
           </Box>
@@ -403,19 +560,14 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
         <Button
           onClick={handleExport}
           variant="contained"
-          disabled={selectedCount === 0 || isLoading}
+          disabled={selectedCount === 0 || isLoading || selectedCategories.length === 0}
           startIcon={isLoading && <CircularProgress size={20} />}
-          sx={{
-            backgroundColor: '#2c3e50',
-            fontFamily: OSWALD,
-            '&:hover': { backgroundColor: '#34495e' },
-          }}
+          sx={{ backgroundColor: '#2c3e50', fontFamily: OSWALD, '&:hover': { backgroundColor: '#34495e' } }}
         >
           {isLoading ? 'Exporting...' : `Export (${selectedCount})`}
         </Button>
       </DialogActions>
 
-      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}

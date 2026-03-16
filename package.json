@@ -19,6 +19,7 @@
     "@reduxjs/toolkit": "^2.11.2",
     "dayjs": "^1.11.19",
     "exceljs": "^4.4.0",
+    "jszip": "^3.10.1",
     "lottie-react": "^2.4.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
