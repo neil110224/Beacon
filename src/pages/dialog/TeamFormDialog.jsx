@@ -39,18 +39,15 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm({
-    resolver: yupResolver(teamValidationSchema),
-    mode: 'onTouched',
-    defaultValues: {
-      name: '',
-      code: '',
-    },
-  });
+  register,
+  handleSubmit,
+  formState: { errors, isSubmitted }, // ✅
+  reset,
+} = useForm({
+  resolver: yupResolver(teamValidationSchema),
+  mode: 'onSubmit', // ✅
+  defaultValues: { name: '', code: '' },
+});
 
   // Populate form when team is provided (edit mode)
   useEffect(() => {
@@ -129,8 +126,8 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
             label="Team Code"
             fullWidth
             placeholder="e.g., FE-001"
-            error={!!errors.code}
-            helperText={errors.code?.message}
+            error={isSubmitted && !!errors.name}
+  helperText={isSubmitted ? errors.name?.message : ''}
             disabled={isLoading}
             sx={{ '& input, & label': { fontFamily: OSWALD } }}
           />
@@ -139,8 +136,8 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
             label="Team Name"
             fullWidth
             placeholder="e.g., Frontend Team"
-            error={!!errors.name}
-            helperText={errors.name?.message}
+            error={isSubmitted && !!errors.name}
+  helperText={isSubmitted ? errors.name?.message : ''}
             disabled={isLoading}
             autoFocus
             sx={{ '& input, & label': { fontFamily: OSWALD } }}
@@ -173,7 +170,7 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
         open={snackbar.open}
         autoHideDuration={4000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <Alert
           onClose={handleCloseSnackbar}

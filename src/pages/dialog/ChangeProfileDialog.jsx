@@ -9,6 +9,7 @@ import {
   Avatar,
   Box,
   Typography,
+  CircularProgress,
 } from '@mui/material';
 import { useDispatch } from 'react-redux';
 import { updateUser } from '../../features/api/slice/authSlice'; // Your authSlice action
@@ -21,8 +22,7 @@ const ChangeProfileDialog = ({ open, onClose, user }) => {
   const [middleName, setMiddleName] = useState(user?.middle_name || '');
   const [lastName, setLastName] = useState(user?.last_name || '');
   const [suffix, setSuffix] = useState(user?.suffix || '');
-  const [profilePicture, setProfilePicture] = useState(user?.profile_picture || null);
-  const [selectedFile, setSelectedFile] = useState(null);
+  // Remove profile picture logic
 
   useEffect(() => {
     if (user) {
@@ -30,39 +30,19 @@ const ChangeProfileDialog = ({ open, onClose, user }) => {
       setMiddleName(user.middle_name || '');
       setLastName(user.last_name || '');
       setSuffix(user.suffix || '');
-      setProfilePicture(user.profile_picture || null);
     }
   }, [user]);
 
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => setProfilePicture(e.target.result);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleRemovePicture = () => {
-    setProfilePicture(null);
-    setSelectedFile(null);
-  };
+  // Removed handleFileChange and handleRemovePicture
 
 const handleSave = async () => {
-  // Send as regular JSON object, not FormData
+  // Only send text fields
   const userData = {
     first_name: firstName,
     middle_name: middleName,
     last_name: lastName,
     suffix: suffix,
   };
-
-  // If you need to send the image, convert to base64
-  if (selectedFile) {
-    userData.profile_picture = profilePicture; // This is the base64 string
-  }
-
   try {
     const result = await updateUserMutation({ id: user.id, data: userData }).unwrap();
     dispatch(updateUser(result.data));
@@ -78,36 +58,15 @@ const handleSave = async () => {
     setMiddleName(user?.middle_name || '');
     setLastName(user?.last_name || '');
     setSuffix(user?.suffix || '');
-    setProfilePicture(user?.profile_picture || null);
-    setSelectedFile(null);
     onClose();
   };
 
   return (
     <Dialog open={open} onClose={handleCancel} maxWidth="sm" fullWidth>
-      <DialogTitle>Change Profile</DialogTitle>
+      <DialogTitle>Change Information</DialogTitle>
       <DialogContent>
         {error && <Typography color="error">Error: {error.data?.message || 'Update failed'}</Typography>}
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
-          <Avatar
-            src={profilePicture}
-            sx={{ width: 100, height: 100, mb: 1 }}
-          />
-          <Box>
-            <Button variant="outlined" component="label" sx={{ mr: 1 }} disabled={isLoading}>
-              Change Picture
-              <input
-                type="file"
-                hidden
-                accept="image/*"
-                onChange={handleFileChange}
-              />
-            </Button>
-            <Button variant="outlined" onClick={handleRemovePicture} disabled={isLoading}>
-              Remove
-            </Button>
-          </Box>
-        </Box>
+        {/* Avatar and picture controls removed */}
         <TextField
           label="First Name"
           value={firstName}
@@ -115,6 +74,14 @@ const handleSave = async () => {
           fullWidth
           margin="normal"
           disabled={isLoading}
+          sx={{
+    // Optional: add more top padding to prevent label overlap
+    '& .MuiInputLabel-root': {
+      top: '2px',
+      background: '#fff',
+      padding: '0 4px',
+    },
+  }}
         />
         <TextField
           label="Middle Name"
@@ -123,6 +90,14 @@ const handleSave = async () => {
           fullWidth
           margin="normal"
           disabled={isLoading}
+          sx={{
+    // Optional: add more top padding to prevent label overlap
+    '& .MuiInputLabel-root': {
+      top: '2px',
+      background: '#fff',
+      padding: '0 4px',
+    },
+  }}
         />
         <TextField
           label="Last Name"
@@ -131,6 +106,14 @@ const handleSave = async () => {
           fullWidth
           margin="normal"
           disabled={isLoading}
+          sx={{
+    // Optional: add more top padding to prevent label overlap
+    '& .MuiInputLabel-root': {
+      top: '2px',
+      background: '#fff',
+      padding: '0 4px',
+    },
+  }}
         />
         <TextField
           label="Suffix"
@@ -143,7 +126,7 @@ const handleSave = async () => {
       </DialogContent>
       <DialogActions>
         <Button onClick={handleCancel} disabled={isLoading}>Cancel</Button>
-        <Button onClick={handleSave} variant="contained" disabled={isLoading}>
+        <Button onClick={handleSave} variant="contained" disabled={isLoading} startIcon={isLoading ? <Box sx={{ display: 'flex', alignItems: 'center' }}><CircularProgress size={20} sx={{ color: 'white' }} /></Box> : null}>
           {isLoading ? 'Saving...' : 'Save'}
         </Button>
       </DialogActions>

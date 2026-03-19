@@ -98,6 +98,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
     reset,
     control,
     watch,
+    setValue,
   } = useForm({
     resolver: yupResolver(createUserValidationSchema(isEdit)),
     mode: 'onBlur',
@@ -113,6 +114,30 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
       team_id: '',
     },
   });
+
+  // Auto-generate username for new user
+  useEffect(() => {
+    if (!isEdit) {
+      const firstName = watch('first_name') || '';
+      const lastName = watch('last_name') || '';
+      let username = '';
+      if (firstName) {
+        // Get initials from all words in first name
+        const initials = firstName
+          .split(' ')
+          .filter(Boolean)
+          .map(word => word.charAt(0).toUpperCase())
+          .join('');
+        if (lastName) {
+          username = `${initials}${lastName.replace(/\s/g, '')}`;
+        } else {
+          username = initials;
+        }
+      }
+      setValue('username', username);
+    }
+    // eslint-disable-next-line
+  }, [watch('first_name'), watch('last_name')]);
 
   // Watch role_id to get selected role data
   const selectedRoleId = watch('role_id');
@@ -315,6 +340,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
             helperText={errors.username?.message}
             disabled={apiLoading || isLoading}
             sx={{ '& input, & label': { fontFamily: OSWALD } }}
+            InputLabelProps={{ shrink: true }}
           />
 
           {/* Password - Only show in Add mode */}
@@ -447,7 +473,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
         open={snackbar.open}
         autoHideDuration={3000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <Alert severity={snackbar.severity} variant="filled" onClose={handleCloseSnackbar} sx={{ fontFamily: OSWALD }}>
           {snackbar.message}

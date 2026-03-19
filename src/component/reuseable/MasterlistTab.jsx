@@ -9,6 +9,7 @@ const MasterlistTab = ({
   // Tabs
   showArchived,
   onTabChange,
+  hideTabs = false,
 
   // Search
   searchTerm,
@@ -37,16 +38,17 @@ const MasterlistTab = ({
   };
   return (
     <Box className="masterlistTabsWrapper">
-      <Tabs
-        value={showArchived ? 1 : 0}
-        onChange={onTabChange}
-        className="masterlistTabsContainer"
-        sx={{fontFamily: '"Oswald", sans-serif'}}
-      >
-        <Tab label="Active" sx={{fontFamily: '"Oswald", sans-serif'}} />
-        <Tab label="Archived" sx={{fontFamily: '"Oswald", sans-serif'}} />
-      </Tabs>
-
+      {!hideTabs && (
+        <Tabs
+          value={showArchived ? 1 : 0}
+          onChange={onTabChange}
+          className="masterlistTabsContainer"
+          sx={{fontFamily: '"Oswald", sans-serif'}}
+        >
+          <Tab label="Active" sx={{fontFamily: '"Oswald", sans-serif'}} />
+          <Tab label="Archived" sx={{fontFamily: '"Oswald", sans-serif'}} />
+        </Tabs>
+      )}
       <Box className="masterlistActionBar">
 <Tooltip title="Refresh data" placement="top" sx={{fontFamily: '"Oswald", sans-serif'}}>
           <IconButton

@@ -1,6 +1,14 @@
 @use "../../styles/mixins.scss" as bp;
 @use "../../styles/colors.scss" as *;
 
+// Dashboard Loading Container (match Systems)
+.dashboardLoadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 500px;
+}
+
 // Main Dashboard Container
 .dashboardContainer {
   padding: 1rem;

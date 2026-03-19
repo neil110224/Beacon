@@ -21,7 +21,6 @@ import '../contentscss/Role.scss';
 const Role = () => {
   const currentUser = useSelector(selectCurrentUser);
   const userPermissions = currentUser?.role?.access_permissions || [];
-  const canAddRole = userPermissions.includes('Role.Add');
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRole, setSelectedRole] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -186,16 +185,16 @@ const Role = () => {
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         searchPlaceholder="Search roles..."
-        canAdd={canAddRole}
+        canAdd={true}
         onAddClick={() => { setSelectedRole(null); setRoleDialogOpen(true); }}
         addLabel="Create"
         onRefresh={refetch}
       />
 
-      {!isLoading && filteredRoles.length === 0 && (
+      {((!isLoading && filteredRoles.length === 0 && !isError) || (isError && showArchived)) && (
         <Box className="roleEmptyStateWrapper">
           <Box className="roleEmptyStateBox">
-            <Box>
+            <Box style={{ width: 300, margin: '0 auto' }}>
               <Nodata />
             </Box>
             <Box className="roleEmptyTextBox">
@@ -262,7 +261,7 @@ const Role = () => {
         message={snackbarMessage}
         severity={snackbarSeverity}
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       />
     </Box>
   );

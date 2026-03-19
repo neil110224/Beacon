@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -15,118 +15,121 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Chip,
+  Paper,
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import Snackbar from '../../component/reuseable/Snackbar';
+
+const ListItem = styled('li')(({ theme }) => ({
+  margin: theme.spacing(0.5),
+}));
+
 import { useGetTeamsQuery } from '../../features/api/team/teamApi';
 
-// Validation schema
 const systemValidationSchema = yup.object().shape({
   system_name: yup.string().required('System name is required').trim(),
-  team_id: yup.string().required('Team is required'),
+  team_id: yup.array().min(1, 'At least one team is required'),
 });
 
-/**
- * Unified System Dialog Component
- * Handles both Create and Edit modes
- * 
- * @param {Object} props
- * @param {boolean} props.open - Dialog visibility
- * @param {function} props.onClose - Close handler
- * @param {Object} props.system - System data (for edit mode, null for add mode)
- * @param {function} props.onSave - Save mutation function
- * @param {boolean} props.isLoading - Loading state
- * @param {function} props.onSuccess - Success callback (for add mode)
- */
 export default function SystemFormDialog({
-  open, 
-  onClose, 
-  system = null, 
-  onSave, 
+  open,
+  onClose,
+  system = null,
+  onSave,
   isLoading = false,
-  onSuccess = null 
+  onSuccess = null
 }) {
   const isEdit = !!system;
+  const [submitting, setSubmitting] = React.useState(false);
+  const [snackbar, setSnackbar] = React.useState({ open: false, message: '', severity: 'success' });
 
-  // Fetch teams with pagination disabled to get all teams
-  const { data: teamsData, isLoading: teamsLoading } = useGetTeamsQuery({ 
+  const { data: teamsData, isLoading: teamsLoading } = useGetTeamsQuery({
     status: 'active',
     paginate: 'none',
     pagination: 'none'
   })
 
-  // Handle different response structures from the API
   const teams = React.useMemo(() => {
     if (!teamsData) return []
-    
-    // Try different possible data structures
     if (Array.isArray(teamsData)) return teamsData
     if (Array.isArray(teamsData?.data?.data)) return teamsData.data.data
     if (Array.isArray(teamsData?.data)) return teamsData.data
-    
     return []
   }, [teamsData])
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitted },
     reset,
     control,
   } = useForm({
     resolver: yupResolver(systemValidationSchema),
-    mode: 'onBlur',
-    defaultValues: {
-      system_name: '',
-      team_id: '',
-    },
+    mode: 'onSubmit',
+    defaultValues: { system_name: '', team_id: [] },
   });
 
-  // Populate form when system is provided (edit mode)
   useEffect(() => {
     if (isEdit && system) {
       reset({
         system_name: system.system_name || '',
-        team_id: String(system.team_id || ''),
+        team_id: Array.isArray(system.team_id)
+          ? system.team_id.map(id => String(id))
+          : system.team_id
+            ? [String(system.team_id)]
+            : [],
       });
     } else {
-      reset({ system_name: '', team_id: '' });
+      reset({ system_name: '', team_id: [] });
     }
   }, [open, system, isEdit, reset]);
 
+  // Reset submitting when dialog closes
+  useEffect(() => {
+    if (!open) setSubmitting(false);
+  }, [open]);
+
   const onSubmit = async (data) => {
+    setSubmitting(true);
     try {
-      // Convert team_id string to array as API expects
       const formData = {
         ...data,
-        team_id: [data.team_id]
+        team_id: data.team_id.map(id => String(id)),
       };
-      
       if (isEdit) {
-        // For edit mode
-        await onSave({ ...formData, id: system.id }).unwrap();
+        await onSave({ ...formData, id: system.id });
+        setSnackbar({ open: true, message: 'System updated successfully!', severity: 'success' });
       } else {
-        // For add mode
-        await onSave(formData).unwrap();
-        
-        // Call success callback if provided
-        if (onSuccess) {
-          onSuccess();
-        }
+        await onSave(formData);
+        setSnackbar({ open: true, message: 'System added successfully!', severity: 'success' });
+        if (onSuccess) onSuccess();
       }
-
       reset();
-      onClose();
+      setTimeout(() => {
+        setSnackbar(s => ({ ...s, open: false }));
+        onClose();
+      }, 1200);
     } catch (error) {
       console.error('Error saving system:', error);
+      setSnackbar({ open: true, message: 'Failed to save system', severity: 'error' });
+      setTimeout(() => setSnackbar(s => ({ ...s, open: false })), 1800);
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleDialogClose = () => {
+    if (submitting) return; // ✅ prevent close while saving
     reset();
     onClose();
   };
 
+  const busy = submitting || isLoading; // ✅ combined loading state
+
   return (
-    <Dialog open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth>
+    <>
+      <Dialog open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth>
       <DialogTitle>{isEdit ? 'Edit System' : 'Add New System'}</DialogTitle>
 
       <DialogContent>
@@ -135,30 +138,84 @@ export default function SystemFormDialog({
             {...register('system_name')}
             label="System Name"
             fullWidth
-            error={!!errors.system_name}
-            helperText={errors.system_name?.message}
-            disabled={isLoading}
+            error={isSubmitted && !!errors.system_name}
+            helperText={isSubmitted ? errors.system_name?.message : ''}
+            disabled={busy}
             required
             autoFocus
           />
 
-          {/* Team Select */}
+          {/* Team Multi-Select */}
           <Controller
             name="team_id"
             control={control}
             render={({ field }) => (
-              <FormControl fullWidth error={!!errors.team_id} disabled={teamsLoading || isLoading} required>
+              <FormControl
+                fullWidth
+                error={isSubmitted && !!errors.team_id}
+                disabled={teamsLoading || busy}
+                required
+              >
                 <InputLabel>Team</InputLabel>
                 <Select
                   {...field}
                   label="Team"
+                  multiple
+                  value={field.value || []}
+                  onChange={e => field.onChange(e.target.value)}
+                  renderValue={selected => (
+                    <Paper
+                      sx={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        listStyle: 'none',
+                        p: 0.5,
+                        m: 0,
+                        minHeight: 40,
+                        boxShadow: 'none',
+                        background: 'transparent',
+                      }}
+                      component="ul"
+                    >
+                      {Array.isArray(selected) && selected.map(id => {
+                        const team = teams.find(t => String(t.id) === String(id));
+                        return team ? (
+                          <ListItem key={id}>
+                            <Chip
+                              label={team.name}
+                              onMouseDown={e => {
+                                e.stopPropagation()
+                                e.preventDefault()
+                              }}
+                              onDelete={e => {
+                                e.stopPropagation()
+                                e.preventDefault()
+                                const newSelected = (field.value || []).filter(
+                                  selId => String(selId) !== String(id)
+                                )
+                                field.onChange(newSelected)
+                              }}
+                              sx={{
+                                color: '#03346E',
+                                borderColor: '#03346E',
+                                fontWeight: 600,
+                                fontFamily: 'Oswald, sans-serif',
+                                backgroundColor: '#eaf4ff'
+                              }}
+                              variant="outlined"
+                            />
+                          </ListItem>
+                        ) : null;
+                      })}
+                    </Paper>
+                  )}
                 >
                   {teamsLoading ? (
                     <MenuItem value="">
                       <CircularProgress size={20} />
                     </MenuItem>
                   ) : (
-                    teams.map((team) => (
+                    teams.map(team => (
                       <MenuItem key={team.id} value={String(team.id)}>
                         {team.name}
                       </MenuItem>
@@ -168,23 +225,34 @@ export default function SystemFormDialog({
               </FormControl>
             )}
           />
-          {errors.team_id && <span style={{ color: 'red', fontSize: '0.75rem' }}>{errors.team_id.message}</span>}
+          {isSubmitted && errors.team_id && (
+            <span style={{ color: 'red', fontSize: '0.75rem' }}>{errors.team_id.message}</span>
+          )}
         </Box>
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleDialogClose} disabled={isLoading}>
+        {/* ✅ Cancel disabled while saving */}
+        <Button onClick={handleDialogClose} disabled={busy}>
           Cancel
         </Button>
+        {/* ✅ Save shows spinner while saving */}
         <Button
           onClick={handleSubmit(onSubmit)}
           variant="contained"
-          disabled={isLoading}
-          startIcon={isLoading && <CircularProgress size={20} />}
+          disabled={busy}
+          startIcon={busy ? <CircularProgress size={20} color="inherit" /> : null}
         >
-          {isLoading ? 'Saving...' : isEdit ? 'Update' : 'Save'}
+          {busy ? 'Saving...' : isEdit ? 'Update' : 'Save'}
         </Button>
       </DialogActions>
-    </Dialog>
+      </Dialog>
+      <Snackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={() => setSnackbar(s => ({ ...s, open: false }))}
+      />
+    </>
   );
 }

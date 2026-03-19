@@ -1,6 +1,7 @@
 import React from 'react'
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Typography, CircularProgress, Alert } from '@mui/material'
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Box, Typography, CircularProgress, Alert, IconButton } from '@mui/material'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload'
+import CloseIcon from '@mui/icons-material/Close'
 import { useGetSystemsListQuery } from '../../features/api/system/systemApi'
 import Snackbar from '../../component/reuseable/Snackbar'
 
@@ -74,6 +75,13 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
     }
   }
 
+  const handleRemoveFile = (e) => {
+    e.stopPropagation()
+    setSelectedFile(null)
+    setErrorMessage(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
   const handleUploadClick = async () => {
     if (!selectedFile) {
       setErrorMessage('Please select a file first')
@@ -85,7 +93,6 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
     setSuccessMessage(null)
 
     try {
-      // Create FormData and append the file
       const formData = new FormData()
       formData.append('file', selectedFile)
 
@@ -103,8 +110,6 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
-          // DO NOT set Content-Type: application/json for form-data
-          // The browser will set it automatically with boundary
         },
         body: formData
       })
@@ -117,15 +122,12 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
           data: result
         })
         
-        // Extract main message and detailed errors
         let mainMessage = result?.message || 'Import failed'
         let detailedErrors = []
 
-        // Handle errors array with row information
         if (Array.isArray(result?.errors)) {
           result.errors.forEach(error => {
             if (error.errors && typeof error.errors === 'object') {
-              // Parse field-specific errors within the row
               Object.entries(error.errors).forEach(([field, messages]) => {
                 if (Array.isArray(messages)) {
                   messages.forEach(msg => {
@@ -136,7 +138,6 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
                 }
               })
               
-              // If duplicate error, show the actual values
               if (error.errors.description?.some(msg => typeof msg === 'string' && msg.includes('duplicate'))) {
                 if (error.values) {
                   detailedErrors.push('')
@@ -149,7 +150,6 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
             }
           })
         } else if (result?.errors && typeof result.errors === 'object') {
-          // Handle flat errors object
           Object.entries(result.errors).forEach(([field, messages]) => {
             if (Array.isArray(messages)) {
               messages.forEach(msg => {
@@ -163,7 +163,6 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
 
         console.error('❌ Import failed:', { message: mainMessage, errors: detailedErrors })
 
-        // Show main message + detailed errors
         const finalError = (
           <Box>
             {mainMessage && (
@@ -193,7 +192,6 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
       showSnackbar(`Successfully imported systems and progress items!`, 'success')
       await refetchSystems()
       
-      // Call parent callback to refetch the systems list for team counts
       if (onImportSuccess) {
         await onImportSuccess()
       }
@@ -217,122 +215,128 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
     setIsDragging(false)
     setErrorMessage(null)
     setSuccessMessage(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
     onClose()
   }
 
   return (
     <>
-    <Dialog
-      open={open}
-      onClose={handleDialogClose}
-      maxWidth="sm"
-      fullWidth
-    >
-      <DialogTitle>
-        Import Systems for {selectedTeam?.name}
-      </DialogTitle>
-      <DialogContent>
-        <Box sx={{ pt: 2 }}>
-          {errorMessage && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {errorMessage}
-            </Alert>
-          )}
+      <Dialog open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          Import Systems for {selectedTeam?.name}
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 2 }}>
+            {errorMessage && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {errorMessage}
+              </Alert>
+            )}
 
-          {successMessage && (
-            <Alert severity="success" sx={{ mb: 2 }}>
-              {successMessage}
-            </Alert>
-          )}
+            {successMessage && (
+              <Alert severity="success" sx={{ mb: 2 }}>
+                {successMessage}
+              </Alert>
+            )}
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".xls,.xlsx,.csv"
-            onChange={handleFileSelect}
-            style={{ display: 'none' }}
-          />
-          
-          <Box
-            onClick={() => fileInputRef.current?.click()}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            sx={{
-              border: '2px dashed #03346E',
-              borderRadius: '8px',
-              padding: '20px',
-              textAlign: 'center',
-              cursor: 'pointer',
-              backgroundColor: isDragging ? '#e3f2fd' : '#f5f5f5',
-              transition: 'all 0.3s ease',
-              borderColor: isDragging ? '#022553' : '#03346E',
-              '&:hover': {
-                backgroundColor: '#f0f7ff',
-                borderColor: '#022553',
-              }
-            }}
-          >
-            <CloudUploadIcon sx={{ fontSize: 40, color: '#03346E', mb: 1 }} />
-            <Typography variant="h6" sx={{ color: '#03346E', mb: 1 }}>
-              {isDragging ? 'Paste file' : (selectedFile ? 'File Selected' : 'Click to Select File')}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              {isDragging ? 'Release to upload' : 'or drag and drop here'}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Supported formats: .xls, .xlsx, .csv
-            </Typography>
-          </Box>
-
-          {selectedFile && (
-            <Box sx={{ mt: 2, p: 2, bgcolor: '#f0f7ff', borderRadius: '8px' }}>
-              <Typography variant="body2" sx={{ fontWeight: 500, color: '#03346E' }}>
-                Selected File:
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xls,.xlsx,.csv"
+              onChange={handleFileSelect}
+              style={{ display: 'none' }}
+            />
+            
+            <Box
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              sx={{
+                border: '2px dashed #03346E',
+                borderRadius: '8px',
+                padding: '20px',
+                textAlign: 'center',
+                cursor: 'pointer',
+                backgroundColor: isDragging ? '#e3f2fd' : '#f5f5f5',
+                transition: 'all 0.3s ease',
+                borderColor: isDragging ? '#022553' : '#03346E',
+                '&:hover': {
+                  backgroundColor: '#f0f7ff',
+                  borderColor: '#022553',
+                }
+              }}
+            >
+              <CloudUploadIcon sx={{ fontSize: 40, color: '#03346E', mb: 1 }} />
+              <Typography variant="h6" sx={{ color: '#03346E', mb: 1 }}>
+                {isDragging ? 'Paste file' : (selectedFile ? 'File Selected' : 'Click to Select File')}
               </Typography>
-              <Typography variant="body2" sx={{ mt: 1 }}>
-                {selectedFile.name}
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                {isDragging ? 'Release to upload' : 'or drag and drop here'}
               </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                Size: {(selectedFile.size / 1024).toFixed(2)} KB
+              <Typography variant="caption" color="text.secondary">
+                Supported formats: .xls, .xlsx, .csv
               </Typography>
             </Box>
-          )}
 
-          <Box sx={{ mt: 2, p: 2, bgcolor: '#f9f9f9', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
-            <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-              Required File Format:
-            </Typography>
-            <Typography variant="caption" color="text.secondary" component="div">
-              System Name, Team, Category, description, Raised Date, Target Date, End Date, Status, Remarks
-            </Typography>
+            {/* ✅ Selected file info with X remove button */}
+            {selectedFile && (
+              <Box sx={{ mt: 2, p: 2, bgcolor: '#f0f7ff', borderRadius: '8px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 500, color: '#03346E' }}>
+                    Selected File:
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    {selectedFile.name}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                    Size: {(selectedFile.size / 1024).toFixed(2)} KB
+                  </Typography>
+                </Box>
+
+                <IconButton
+                  size="small"
+                  onClick={handleRemoveFile}
+                  sx={{ color: '#d32f2f', ml: 1, mt: -0.5 }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            )}
+
+            <Box sx={{ mt: 2, p: 2, bgcolor: '#f9f9f9', borderRadius: '8px', border: '1px solid #e0e0e0' }}>
+              <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+                Required File Format:
+              </Typography>
+              <Typography variant="caption" color="text.secondary" component="div">
+                System Name, Team, Category, description, Raised Date, Target Date, End Date, Status, Remarks
+              </Typography>
+            </Box>
           </Box>
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleDialogClose} color="primary" disabled={isUploading}>
-          Cancel
-        </Button>
-        <Button 
-          onClick={handleUploadClick} 
-          color="primary" 
-          variant="contained"
-          sx={{ bgcolor: '#03346E' }}
-          disabled={!selectedFile || isUploading}
-          startIcon={isUploading ? <CircularProgress size={20} /> : <CloudUploadIcon />}
-        >
-          {isUploading ? 'Uploading...' : 'Upload'}
-        </Button>
-      </DialogActions>
-    </Dialog>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose} color="primary" disabled={isUploading}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleUploadClick}
+            color="primary"
+            variant="contained"
+            sx={{ bgcolor: '#03346E' }}
+            disabled={!selectedFile || isUploading}
+            startIcon={isUploading ? <CircularProgress size={20} /> : <CloudUploadIcon />}
+          >
+            {isUploading ? 'Uploading...' : 'Upload'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-    {/* Snackbar for notifications */}
-    <Snackbar
-      open={snackbarOpen}
-      message={snackbarMessage}
-      severity={snackbarSeverity}
-      onClose={() => setSnackbarOpen(false)}
-    />
+      <Snackbar
+        open={snackbarOpen}
+        message={snackbarMessage}
+        severity={snackbarSeverity}
+        onClose={() => setSnackbarOpen(false)}
+      />
     </>
   )
 }

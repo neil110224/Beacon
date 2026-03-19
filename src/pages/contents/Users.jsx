@@ -161,10 +161,10 @@ const Users = () => {
           onRefresh={refetch}
         />
 
-          {!isLoading && users.length === 0 && (
+          {(!isLoading && users.length === 0 && !isError) || (isError && showArchived) ? (
             <Box className="usersEmptyStateWrapper">
               <Box className="usersEmptyStateBox">
-                <Box>
+                <Box style={{ width: 300, margin: '0 auto' }}>
                   <Nodata />
                 </Box>
                 <Box className="usersEmptyTextBox">
@@ -173,14 +173,14 @@ const Users = () => {
                 </Box>
               </Box>
             </Box>
-          )}
+          ) : null}
 
           {!isError && (
             <DataTable
               columns={columns}
               rows={users}
               totalCount={data?.data?.total}
-              isLoading={isLoading || searchTerm !== debouncedSearchTerm ||isTabSwitching}
+              isLoading={isLoading || searchTerm !== debouncedSearchTerm || isTabSwitching}
               isError={isError}
               error={error}
               tableSx={{ 

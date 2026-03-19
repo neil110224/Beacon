@@ -1,5 +1,5 @@
 import { Box, TextField, Button, Slide, CircularProgress } from '@mui/material';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import reindeer from "../../assets/reindeer.jpg";
 import mis from "../../assets/mis.png";
@@ -15,6 +15,37 @@ function SlideTransition(props) {
   return <Slide {...props} direction="left" />;
 }
 
+const fieldSx = {
+  mb: 1,
+  '& .MuiInputLabel-root': {
+    color: 'rgba(244,244,244,0.6)',
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: '#0397d1',
+  },
+  // ✅ When label floats up, give it the same bg as the panel so it masks the border cleanly
+  '& .MuiInputLabel-shrink': {
+    backgroundColor: '#1a1a2e',
+    px: 0.5,
+    borderRadius: '2px',
+  },
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderColor: 'rgba(244,244,244,0.3)',
+  },
+  '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': {
+    borderColor: 'rgba(244,244,244,0.6)',
+  },
+  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+    borderColor: '#0397d1',
+  },
+  '& .MuiInputBase-input': {
+    fontFamily: 'Oswald, sans-serif',
+    fontWeight: 700,
+    fontSize: { xs: 9, md: 11 },
+    color: '#f4f4f4',
+  },
+}
+
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -25,7 +56,7 @@ const Login = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [isLoading, setIsLoading] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const { control, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(schema),
     defaultValues: { username: '', password: '' }
   });
@@ -43,7 +74,10 @@ const Login = () => {
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("loginSuccess", "true");
 
-      // Navigate immediately
+      if (data.username === data.password) {
+        localStorage.setItem("forceChangePassword", "true");
+      }
+
       navigate("/Dashboard");
 
     } catch (error) {
@@ -80,7 +114,7 @@ const Login = () => {
           color: '#f4f4f4'
         }}
       >
-        {/* LEFT PANEL - Form */}
+        {/* LEFT PANEL */}
         <Box
           component="form"
           onSubmit={handleSubmit(onSubmit)}
@@ -111,41 +145,39 @@ const Login = () => {
             </Box>
           </Box>
 
-          <TextField
-            {...register('username')}
-            placeholder="Username"
-            fullWidth
-            error={!!errors.username}
-            helperText={errors.username?.message}
-            sx={{
-              mb: 1,
-              '& .MuiInputBase-input': {
-                fontFamily: 'Oswald, sans-serif',
-                fontWeight: 700,
-                fontSize: { xs: 9, md: 11 },
-                height: 8,
-                color: '#f4f4f4'
-              }
-            }}
+          <Controller
+            name="username"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Username"
+                variant="outlined"
+                fullWidth
+                error={!!errors.username}
+                helperText={errors.username?.message}
+                disabled={isLoading}
+                sx={fieldSx}
+              />
+            )}
           />
 
-          <TextField
-            {...register('password')}
-            placeholder="Password"
-            type="password"
-            fullWidth
-            error={!!errors.password}
-            helperText={errors.password?.message}
-            sx={{
-              mb: 1.5,
-              '& .MuiInputBase-input': {
-                fontFamily: 'Helvetica Neue, sans-serif',
-                fontWeight: 700,
-                fontSize: { xs: 9, md: 11 },
-                height: 8,
-                color: '#f4f4f4'
-              }
-            }}
+          <Controller
+            name="password"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Password"
+                type="password"
+                variant="outlined"
+                fullWidth
+                error={!!errors.password}
+                helperText={errors.password?.message}
+                disabled={isLoading}
+                sx={{ ...fieldSx, mb: 1.5 }}
+              />
+            )}
           />
 
           <Button
@@ -200,21 +232,6 @@ const Login = () => {
             src={reindeer}
             alt="Work Illustration"
             style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
-          />
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: 16,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 1,
-              textAlign: 'center',
-              color: '#fff',
-              textShadow: '0 0 5px rgba(0,0,0,0.5)',
-            }}
           />
         </Box>
       </Box>

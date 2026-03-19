@@ -1,4 +1,4 @@
-import { Box, CircularProgress, Accordion, AccordionSummary, AccordionDetails, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Select, MenuItem, Snackbar, Alert, TextField, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Menu, Tabs, Tab, FormControl, InputLabel } from '@mui/material'
+import { Box, CircularProgress, Accordion, AccordionSummary, AccordionDetails, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Select, MenuItem, Snackbar, Alert, TextField, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Menu, Tabs, Tab, FormControl, InputLabel, Tooltip } from '@mui/material'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import AddIcon from '@mui/icons-material/Add'
@@ -13,18 +13,20 @@ import { useGetCategoriesListQuery } from '../../features/api/category/categoryA
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
 import '../contentscss/SystemCategory.scss'
 import Confirmation from '../../component/reuseable/Confirmation'
+import SettingsSystemDaydreamIcon from '@mui/icons-material/SettingsSystemDaydream';
 
 const OSWALD = '"Oswald", sans-serif'
-
 const SystemCategory = () => {
+  const navigate = useNavigate();
   const { systemName } = useParams()
   const user = useSelector(selectCurrentUser)
-  
+
   console.log('URL systemName:', systemName)
-  
+
   const buildQueryParams = () => {
     const isUserRole = user?.role?.name?.toLowerCase() === "user"
     if (isUserRole && user?.team?.id) {
@@ -53,13 +55,13 @@ const SystemCategory = () => {
   const [markAsDoneDialog, setMarkAsDoneDialog] = useState({ open: false, item: null, action: null })
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('pending')
   const [dateEditDialog, setDateEditDialog] = useState({ open: false, item: null, raised_date: null, target_date: null, end_date: null })
-  const [createDialog, setCreateDialog] = useState({ 
-    open: false, 
-    selectedCategory: '', 
-    description: '', 
-    raisedDate: null, 
-    targetDate: null, 
-    remarks: '' 
+  const [createDialog, setCreateDialog] = useState({
+    open: false,
+    selectedCategory: '',
+    description: '',
+    raisedDate: null,
+    targetDate: null,
+    remarks: ''
   })
   const [createLoading, setCreateLoading] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState(null)
@@ -107,6 +109,24 @@ const SystemCategory = () => {
       'inprogress': 'In Progress'
     }
     return statusMap[status?.toLowerCase()] || status || '-'
+  }, [])
+
+  const getUpdatedBy = useCallback((item) => {
+    const updatedBy = item?.updated_by;
+    if (updatedBy) {
+      // Prefer first_name + last_name if available
+      const first = updatedBy.first_name || '';
+      const last = updatedBy.last_name || '';
+      const fullName = `${first} ${last}`.trim();
+      if (fullName !== '') return fullName;
+      // Fallback to username if present
+      if (updatedBy.username) return updatedBy.username;
+      // Fallback to name property if present
+      if (updatedBy.name) return updatedBy.name;
+      // Fallback to stringified object if nothing else
+      return typeof updatedBy === 'string' ? updatedBy : '-';
+    }
+    return '-';
   }, [])
 
   const handleStatusChange = useCallback(async (itemId, newStatus) => {
@@ -355,6 +375,10 @@ const SystemCategory = () => {
 
   const handleConfirmDateEdit = useCallback(async () => {
     if (dateEditDialog.item && dateEditDialog.end_date) {
+      if (dateEditDialog.raised_date && dateEditDialog.end_date.startOf('day').isBefore(dateEditDialog.raised_date.startOf('day'))) {
+        setSnackbar({ open: true, message: 'End date cannot be before raised date.', severity: 'error' })
+        return
+      }
       const updatePayload = { progressId: dateEditDialog.item.id, status: 'done', end_date: dateEditDialog.end_date.format('YYYY-MM-DD') }
       setLoadingStatusId(dateEditDialog.item.id)
       try {
@@ -374,7 +398,6 @@ const SystemCategory = () => {
     }
   }, [dateEditDialog, updateProgress, refetch])
 
-  // Shared sx for all text inputs / labels
   const oswaldInputSx = {
     '& input, & textarea, & .MuiSelect-select': { fontFamily: OSWALD },
     '& .MuiInputLabel-root': { fontFamily: OSWALD },
@@ -403,27 +426,41 @@ const SystemCategory = () => {
     )
   }
 
+  const isDoneTab = selectedStatusFilter === 'done'
+
+  // Columns where we want center alignment
+  const centeredColumns = ['Status']
+
   return (
     <Box className="systemCategoryContainer">
       {/* Header */}
-      <Box className="systemCategoryHeader">
+      <Box className="systemCategoryHeader" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
         <Box>
-          <Typography variant="h5" className="systemCategoryTitle">{currentSystem.systemName}</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="h5" className="systemCategoryTitle">{currentSystem.systemName}</Typography>
+          </Box>
           <Typography variant="body2" className="systemCategoryTeam">
             Teams: {Array.isArray(currentSystem.team)
               ? currentSystem.team.map(t => t.name).join(', ')
               : currentSystem.team?.name}
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          className="systemCategoryAddButton"
-          onClick={handleOpenCreateDialog}
-          sx={{ bgcolor: '#03346E', fontFamily: OSWALD }}
-        >
-          Create
-        </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Tooltip title="Back to System page" arrow>
+            <IconButton aria-label="Go to System List" onClick={() => navigate('/systems')} sx={{ color: '#03346E' }}>
+              <SettingsSystemDaydreamIcon />
+            </IconButton>
+          </Tooltip>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            className="systemCategoryAddButton"
+            onClick={handleOpenCreateDialog}
+            sx={{ bgcolor: '#03346E', fontFamily: OSWALD }}
+          >
+            Create
+          </Button>
+        </Box>
       </Box>
 
       {/* Content */}
@@ -458,7 +495,7 @@ const SystemCategory = () => {
               >
                 <AccordionSummary expandIcon={<ExpandMoreIcon className="systemCategoryExpandIcon" />}>
                   <Typography variant="h6" sx={{ fontFamily: OSWALD }}>
-                    {category.categoryName} ({filteredProgress?.length || 0} items)
+                    {category.categoryName}
                   </Typography>
                 </AccordionSummary>
                 <AccordionDetails>
@@ -468,8 +505,17 @@ const SystemCategory = () => {
                         <Table size="small" className="systemCategoryTable">
                           <TableHead>
                             <TableRow className="systemCategoryTableHead">
-                              {['ID', 'Description', 'Raised Date', 'Target Date', 'End Date', 'Status', 'Remarks', 'Action'].map(h => (
-                                <TableCell key={h} sx={{ fontWeight: 'bold', fontFamily: OSWALD }}>{h}</TableCell>
+                              {(isDoneTab
+                                ? ['ID', 'Description', 'Remarks', 'Raised Date', 'Target Date', 'End Date', 'Updated By', 'Status']
+                                : ['ID', 'Description', 'Remarks', 'Raised Date', 'Target Date', 'End Date', 'Updated By', 'Status', 'Action']
+                              ).map(h => (
+                                <TableCell
+                                  key={h}
+                                  align={centeredColumns.includes(h) ? 'center' : 'left'}
+                                  sx={{ fontWeight: 'bold', fontFamily: OSWALD }}
+                                >
+                                  {h}
+                                </TableCell>
                               ))}
                             </TableRow>
                           </TableHead>
@@ -488,23 +534,8 @@ const SystemCategory = () => {
                                 >
                                   <TableCell sx={{ fontFamily: OSWALD }}>{item.id}</TableCell>
                                   <TableCell sx={{ fontFamily: OSWALD }}>{item.description}</TableCell>
-                                  <TableCell sx={{ fontFamily: OSWALD }}>{item.raised_date}</TableCell>
-                                  <TableCell sx={{ fontFamily: OSWALD }}>{item.target_date || item.start_date || '-'}</TableCell>
-                                  <TableCell sx={{ fontFamily: OSWALD }}>{item.end_date || '-'}</TableCell>
-                                  <TableCell>
-                                    <Chip
-                                      label={getStatusLabel(item.status)}
-                                      size="small"
-                                      sx={{
-                                        backgroundColor: getStatusColor(item.status),
-                                        color: '#fff',
-                                        fontWeight: 500,
-                                        fontFamily: OSWALD,
-                                        minWidth: '80px',
-                                        justifyContent: 'center'
-                                      }}
-                                    />
-                                  </TableCell>
+
+                                  {/* Remarks */}
                                   <TableCell className="systemCategoryRemarks">
                                     {editingRemarksMode[item.id] ? (
                                       <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
@@ -557,29 +588,57 @@ const SystemCategory = () => {
                                       </Typography>
                                     )}
                                   </TableCell>
-                                  <TableCell>
-                                    <IconButton
-                                      size="small"
-                                      onClick={(e) => { e.stopPropagation(); handleActionMenuOpen(e, item) }}
-                                      sx={{ color: '#03346E' }}
-                                    >
-                                      <MoreVertIcon fontSize="small" />
-                                    </IconButton>
-                                    <Menu
-                                      anchorEl={anchorEl}
-                                      open={!!anchorEl && selectedItem?.id === item.id}
-                                      onClose={handleActionMenuClose}
-                                      MenuListProps={{ sx: { fontFamily: OSWALD } }}
-                                    >
-                                      <MenuItem onClick={(e) => { e.stopPropagation(); handleEditAction() }} sx={{ fontFamily: OSWALD }}>Edit</MenuItem>
-                                      {item.status?.toLowerCase() !== 'hold' && (
-                                        <MenuItem onClick={(e) => { e.stopPropagation(); handleMarkAsDone() }} sx={{ fontFamily: OSWALD }}>Mark as On Hold</MenuItem>
-                                      )}
-                                      {item.status?.toLowerCase() === 'hold' && (
-                                        <MenuItem onClick={(e) => { e.stopPropagation(); handleMarkAsPending() }} sx={{ fontFamily: OSWALD }}>Mark as Pending</MenuItem>
-                                      )}
-                                    </Menu>
+
+                                  <TableCell sx={{ fontFamily: OSWALD }}>{item.raised_date}</TableCell>
+                                  <TableCell sx={{ fontFamily: OSWALD }}>{item.target_date || item.start_date || '-'}</TableCell>
+
+                                  <TableCell sx={{ fontFamily: OSWALD }}>{item.end_date || '-'}</TableCell>
+                                  {/* Updated By (moved) */}
+                                  <TableCell sx={{ fontFamily: OSWALD, color: '#555' }}>
+                                    {getUpdatedBy(item)}
                                   </TableCell>
+                                  {/* Status — centered */}
+                                  <TableCell align="center">
+                                    <Chip
+                                      label={getStatusLabel(item.status)}
+                                      size="small"
+                                      sx={{
+                                        backgroundColor: getStatusColor(item.status),
+                                        color: '#fff',
+                                        fontWeight: 500,
+                                        fontFamily: OSWALD,
+                                        minWidth: '80px',
+                                        justifyContent: 'center'
+                                      }}
+                                    />
+                                  </TableCell>
+
+                                  {/* Action — hidden on Done tab */}
+                                  {!isDoneTab && (
+                                    <TableCell>
+                                      <IconButton
+                                        size="small"
+                                        onClick={(e) => { e.stopPropagation(); handleActionMenuOpen(e, item) }}
+                                        sx={{ color: '#03346E' }}
+                                      >
+                                        <MoreVertIcon fontSize="small" />
+                                      </IconButton>
+                                      <Menu
+                                        anchorEl={anchorEl}
+                                        open={!!anchorEl && selectedItem?.id === item.id}
+                                        onClose={handleActionMenuClose}
+                                        MenuListProps={{ sx: { fontFamily: OSWALD } }}
+                                      >
+                                        <MenuItem onClick={(e) => { e.stopPropagation(); handleEditAction() }} sx={{ fontFamily: OSWALD }}>Edit</MenuItem>
+                                        {item.status?.toLowerCase() !== 'hold' && (
+                                          <MenuItem onClick={(e) => { e.stopPropagation(); handleMarkAsDone() }} sx={{ fontFamily: OSWALD }}>Mark as On Hold</MenuItem>
+                                        )}
+                                        {item.status?.toLowerCase() === 'hold' && (
+                                          <MenuItem onClick={(e) => { e.stopPropagation(); handleMarkAsPending() }} sx={{ fontFamily: OSWALD }}>Mark as Pending</MenuItem>
+                                        )}
+                                      </Menu>
+                                    </TableCell>
+                                  )}
                                 </TableRow>
                               )
                             })}
@@ -606,7 +665,7 @@ const SystemCategory = () => {
         open={snackbar.open}
         autoHideDuration={4000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <Alert
           onClose={() => setSnackbar({ ...snackbar, open: false })}
@@ -651,13 +710,8 @@ const SystemCategory = () => {
                 <DatePicker
                   value={dateEditDialog.end_date}
                   onChange={(newDate) => setDateEditDialog(prev => ({ ...prev, end_date: newDate }))}
-                  slotProps={{
-                    textField: {
-                      size: "small",
-                      fullWidth: true,
-                      sx: oswaldInputSx
-                    }
-                  }}
+                  slotProps={{ textField: { size: "small", fullWidth: true, sx: oswaldInputSx } }}
+                  minDate={dateEditDialog.raised_date}
                 />
               </Box>
             </LocalizationProvider>
@@ -771,6 +825,7 @@ const SystemCategory = () => {
                   onChange={(newDate) => setCreateDialog(prev => ({ ...prev, raisedDate: newDate }))}
                   slotProps={{ textField: { size: "small", fullWidth: true, sx: oswaldInputSx } }}
                   disabled={createLoading}
+                  disablePast
                 />
               </Box>
               <Box>
@@ -780,6 +835,7 @@ const SystemCategory = () => {
                   onChange={(newDate) => setCreateDialog(prev => ({ ...prev, targetDate: newDate }))}
                   slotProps={{ textField: { size: "small", fullWidth: true, sx: oswaldInputSx } }}
                   disabled={createLoading}
+                  minDate={createDialog.raisedDate}
                 />
               </Box>
             </LocalizationProvider>

@@ -13,7 +13,6 @@ import {
   CircularProgress,
 } from '@mui/material';
 import Snackbar from '../../component/reuseable/Snackbar';
-
 const OSWALD = '"Oswald", sans-serif';
 
 // Validation schema
@@ -35,20 +34,20 @@ const categoryValidationSchema = yup.object().shape({
 export default function CategoryFormDialog({ open, onClose, category = null, onSave, isLoading = false }) {
   const isEdit = !!category;
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [localLoading, setLocalLoading] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm({
-    resolver: yupResolver(categoryValidationSchema),
-    mode: 'onBlur',
-    defaultValues: {
-      name: '',
-    },
-  });
-
+ const {
+  register,
+  handleSubmit,
+  formState: { errors, isSubmitted },
+  reset,
+} = useForm({
+  resolver: yupResolver(categoryValidationSchema),
+  mode: 'onSubmit', // ✅ only validates after submit attempt
+  defaultValues: {
+    name: '',
+  },
+});
   // Populate form when category is provided (edit mode)
   useEffect(() => {
     if (isEdit && category) {
@@ -65,6 +64,7 @@ export default function CategoryFormDialog({ open, onClose, category = null, onS
   };
 
   const onSubmit = async (data) => {
+    setLocalLoading(true);
     try {
       if (isEdit) {
         // For edit mode
@@ -82,6 +82,7 @@ export default function CategoryFormDialog({ open, onClose, category = null, onS
 
       reset();
       setTimeout(() => {
+        setLocalLoading(false);
         onClose();
       }, 500);
     } catch (error) {
@@ -92,50 +93,52 @@ export default function CategoryFormDialog({ open, onClose, category = null, onS
         message: errorMessage,
         severity: 'error',
       });
+      setLocalLoading(false);
     }
   };
 
   const handleDialogClose = () => {
+    if (localLoading || isLoading) return;
     reset();
     onClose();
   };
 
   return (
     <Dialog open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ fontFamily: OSWALD, fontWeight: 600 }}>{isEdit ? 'Edit Category' : 'Add New Category'}</DialogTitle>
+      <DialogTitle sx={{ fontFamily: OSWALD, fontWeight: 600 }}>{isEdit ? 'Edit Category' : 'Create Category'}</DialogTitle>
 
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-          <TextField
-            {...register('name')}
-            label="Category Name"
-            fullWidth
-            placeholder="e.g., Bug, Enhancement, Feature"
-            error={!!errors.name}
-            helperText={errors.name?.message}
-            disabled={isLoading}
-            autoFocus
-            sx={{ '& input, & label': { fontFamily: OSWALD } }}
-          />
+<TextField
+  {...register('name')}
+  label="Category Name"
+  fullWidth
+  placeholder="e.g., Bug, Enhancement, Feature"
+  error={isSubmitted && !!errors.name}        // ✅ only show after submit
+  helperText={isSubmitted ? errors.name?.message : ''}  // ✅ same
+  disabled={isLoading}
+  autoFocus
+  sx={{ '& input, & label': { fontFamily: OSWALD } }}
+/>
         </Box>
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleDialogClose} disabled={isLoading} sx={{ fontFamily: OSWALD }}>
+        <Button onClick={handleDialogClose} disabled={isLoading || localLoading} sx={{ fontFamily: OSWALD }}>
           Cancel
         </Button>
         <Button
           onClick={handleSubmit(onSubmit)}
           variant="contained"
-          disabled={isLoading}
-          startIcon={isLoading && <CircularProgress size={20} />}
+          disabled={isLoading || localLoading}
+          startIcon={(isLoading || localLoading) && <CircularProgress size={20} />}
           sx={{
             backgroundColor: '#2c3e50',
             fontFamily: OSWALD,
             '&:hover': { backgroundColor: '#34495e' },
           }}
         >
-          {isLoading ? 'Saving...' : isEdit ? 'Update' : 'Save'}
+          {(isLoading || localLoading) ? 'Saving...' : isEdit ? 'Update' : 'Create'}
         </Button>
       </DialogActions>
 

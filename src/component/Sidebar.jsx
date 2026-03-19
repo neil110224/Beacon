@@ -16,7 +16,6 @@ import logo from "../assets/logo.png";
 import plogo from "../assets/pl.png";
 import "./scss/sidebar.scss";
 
-// Menu items configuration
 const MENU_ITEMS = [
   { key: 'dashboard', path: '/Dashboard', label: 'Dashboard', icon: HomeIcon, permission: 'Dashboard', isMasterlist: false },
   { key: 'users', path: '/users', label: 'Users', icon: PeopleIcon, permission: 'Users', isMasterlist: true },
@@ -29,6 +28,9 @@ const MENU_ITEMS = [
 
 const MASTERLIST_ITEMS = MENU_ITEMS.filter(item => item.isMasterlist === true);
 
+// ✅ Threshold: auto-collapse when dragged below this width
+const COLLAPSE_THRESHOLD = 220;
+
 const MenuItem_ = ({ item, isActive, isCollapsed, onClick }) => {
   const Icon = item.icon;
   return (
@@ -36,9 +38,11 @@ const MenuItem_ = ({ item, isActive, isCollapsed, onClick }) => {
       <ListItemButton
         className={`listItemButton ${isActive ? 'listItemButton--active' : ''} ${isCollapsed ? 'listItemButton--collapsed' : ''}`}
         onClick={onClick}
-        sx={{ 
+        sx={{
           gap: '1rem',
-          backgroundColor: isActive ? '#89D4FF' : 'transparent',          fontSize: 'var(--sidebar-btn-font-size)',          '&:hover': {
+          backgroundColor: isActive ? '#89D4FF' : 'transparent',
+          fontSize: 'var(--sidebar-btn-font-size)',
+          '&:hover': {
             backgroundColor: isActive ? 'rgba(137, 212, 255, 0.85)' : 'rgba(137, 212, 255, 0.2)'
           }
         }}
@@ -46,44 +50,34 @@ const MenuItem_ = ({ item, isActive, isCollapsed, onClick }) => {
         <ListItemIcon className="listItemIcon" sx={{ minWidth: '0', margin: '0', color: 'var(--sidebar-icon-color)', fontSize: 'var(--sidebar-icon-font-size)' }}>
           <Icon />
         </ListItemIcon>
-        {!isCollapsed && <ListItemText primary={item.label} sx={{ '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', fontWeight: 500, display:'flex', justifyContent:'flex-start', color: 'var(--sidebar-text-color)', fontFamily: '"Oswald", sans-serif'  } }} className="listItemText"  />}
+        {!isCollapsed && (
+          <ListItemText
+            primary={item.label}
+            sx={{ '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', fontWeight: 500, display: 'flex', justifyContent: 'flex-start', color: 'var(--sidebar-text-color)', fontFamily: '"Oswald", sans-serif' } }}
+            className="listItemText"
+          />
+        )}
       </ListItemButton>
     </Tooltip>
   );
 };
 
-const NavMenuItem = ({ item, isCollapsed, isActive, inMenu = false }) => {
-  return (
-    <NavLink to={item.path} style={{ textDecoration: 'none', color: 'inherit' }}>
-      {({ isActive: isNavActive }) => {
-        const active = inMenu ? isActive : isNavActive;
-        if (inMenu) {
-          return (
-            <MenuItem className={`menuItem ${active ? 'menuItem--active' : ''}`}>
-              <ListItemIcon sx={{ color:'var(--sidebar-icon-color)', minWidth: '36px', fontSize: 'var(--sidebar-icon-font-size)' }}>
-                {item.icon && <item.icon fontSize="small" />}
-              </ListItemIcon>
-              {item.label}
-            </MenuItem>
-          );
-        }
-        return (
-          <MenuItem_ item={item} isActive={active} isCollapsed={isCollapsed} />
-        );
-      }}
-    </NavLink>
-  );
-};
-
-const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false, isMobile = false, mobileDrawerOpen = false, onCloseMobileDrawer = null }) => {
+const Sidebar = ({
+  user,
+  onChangeProfile,
+  isSidebarCollapsed = false,
+  onCollapse,           // ✅ callback from Navbar to set collapsed state
+  isMobile = false,
+  mobileDrawerOpen = false,
+  onCloseMobileDrawer = null
+}) => {
   const location = useLocation();
   const userPermissions = user?.role?.access_permissions || [];
-  const isCollapsed = isSidebarCollapsed;
   const [sidebarWidth, setSidebarWidth] = useState(300);
   const [isResizing, setIsResizing] = useState(false);
 
   const [openMasterlist, setOpenMasterlist] = useState(
-    MASTERLIST_ITEMS.some(item => 
+    MASTERLIST_ITEMS.some(item =>
       userPermissions.includes(item.permission) && location.pathname.startsWith(item.path)
     )
   );
@@ -91,46 +85,49 @@ const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false, isMobile =
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleClose = () => setAnchorEl(null);
-  const handleChangeProfile = () => {
-    onChangeProfile?.();
-    handleClose();
-  };
+  const handleChangeProfile = () => { onChangeProfile?.(); handleClose(); };
   const handleMasterlistToggle = () => setOpenMasterlist(!openMasterlist);
+
+  // Close Masterlist when another parent is clicked
+  const handleParentMenuClick = (parentKey) => {
+    if (openMasterlist && parentKey !== 'masterlist') {
+      setOpenMasterlist(false);
+    }
+  };
   const handleMasterlistMenuClick = (e) => setMasterlistMenuAnchor(e.currentTarget);
   const handleMasterlistMenuClose = () => setMasterlistMenuAnchor(null);
 
   const hasMasterlistAccess = MASTERLIST_ITEMS.some(item => userPermissions.includes(item.permission));
 
-  // Handle sidebar resize
-  const handleMouseDown = () => {
-    setIsResizing(true);
-  };
+  // isSidebarCollapsed is the single source of truth from parent (Navbar)
+  const isCollapsed = isSidebarCollapsed;
+
+  const handleMouseDown = () => setIsResizing(true);
 
   React.useEffect(() => {
     let animationFrameId = null;
-    
+
     const handleMouseMove = (e) => {
       if (!isResizing) return;
-      
-      // Cancel previous animation frame
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
-      
-      // Schedule update on next animation frame
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
       animationFrameId = requestAnimationFrame(() => {
         const newWidth = e.clientX;
-        if (newWidth > 80 && newWidth < 500) {
-          setSidebarWidth(newWidth);
+
+        if (newWidth < COLLAPSE_THRESHOLD) {
+          // ✅ Auto-collapse: tell parent to collapse
+          onCollapse?.(true)
+        } else if (newWidth >= COLLAPSE_THRESHOLD && newWidth < 500) {
+          // Ensure it's expanded when dragging back above threshold
+          onCollapse?.(false)
+          setSidebarWidth(newWidth)
         }
       });
     };
 
     const handleMouseUp = () => {
       setIsResizing(false);
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
     };
 
     if (isResizing) {
@@ -145,27 +142,39 @@ const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false, isMobile =
       document.body.style.cursor = 'auto';
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-      }
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
     };
-  }, [isResizing])
+  }, [isResizing, onCollapse]);
+
+  // Close Masterlist when sidebar is collapsed
+  React.useEffect(() => {
+    if (isCollapsed && openMasterlist) {
+      setOpenMasterlist(false);
+    }
+    // Do not auto-open when expanding
+    // eslint-disable-next-line
+  }, [isCollapsed]);
 
   return (
-    <Box className={`sidebarWrapper ${isCollapsed ? 'sidebarWrapper--collapsed' : 'sidebarWrapper--expanded'}`} sx={{ width: !isCollapsed ? `${sidebarWidth}px` : '90px', transition: isResizing ? 'none' : 'all 0.3s ease' }}>
-      {/* Resize Handle */}
+    <Box
+      className={`sidebarWrapper ${isCollapsed ? 'sidebarWrapper--collapsed' : 'sidebarWrapper--expanded'}`}
+      sx={{
+        width: isCollapsed ? '90px' : `${sidebarWidth}px`,
+        transition: isResizing ? 'none' : 'all 0.3s ease'
+      }}
+    >
+      {/* Resize Handle — only shown when expanded */}
       {!isCollapsed && (
         <Tooltip title="Drag to resize sidebar" placement="right" arrow>
           <Box
             onMouseDown={handleMouseDown}
             className="sidebarResizeHandle"
-            sx={{
-              zIndex: 1000
-            }}
+            sx={{ zIndex: 1000 }}
           />
         </Tooltip>
       )}
-      {/* Header with Logo and Title */}
+
+      {/* Header */}
       <Box className="header">
         <Box className="logoBox">
           <Link to="/dashboard">
@@ -177,14 +186,7 @@ const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false, isMobile =
           <IconButton
             onClick={onCloseMobileDrawer}
             className="mobileCloseButton"
-            sx={{
-              position: 'absolute',
-              top: '1px',
-              right: '10px',
-              color: '#03346E',
-              width: '36px',
-              height: '36px'
-            }}
+            sx={{ position: 'absolute', top: '20px', right: '1px', color: '#03346E', width: '36px', height: '36px' }}
           >
             <ArrowBackIosNewIcon sx={{ fontSize: '0.9rem' }} />
           </IconButton>
@@ -193,12 +195,14 @@ const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false, isMobile =
 
       <List component="nav" className="list">
         {/* Dashboard */}
-        {MENU_ITEMS.filter(item => 
+        {MENU_ITEMS.filter(item =>
           item.key === 'dashboard' && userPermissions.includes(item.permission)
         ).map(item => (
           <NavLink key={item.key} to={item.path} style={{ textDecoration: 'none', color: 'inherit' }}>
             {({ isActive }) => (
-              <MenuItem_ item={item} isActive={isActive} isCollapsed={isCollapsed} />
+              <div onClick={() => handleParentMenuClick(item.key)}>
+                <MenuItem_ item={item} isActive={isActive} isCollapsed={isCollapsed} />
+              </div>
             )}
           </NavLink>
         ))}
@@ -212,11 +216,9 @@ const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false, isMobile =
                 className={`listItemButton ${openMasterlist && !isCollapsed ? 'listItemButton--active' : ''} ${isCollapsed ? 'listItemButton--collapsed' : ''}`}
                 sx={{
                   gap: '1rem',
-                  backgroundColor: openMasterlist && !isCollapsed ? 'transparent' : 'transparent',
-                  '&:hover': {
-                    backgroundColor: openMasterlist && !isCollapsed ? 'rgba(137, 212, 255, 0.2)' : 'rgba(137, 212, 255, 0.2)'
-                  },
-                  '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)',  fontWeight: 500, color: 'var(--sidebar-text-color)' }
+                  backgroundColor: 'transparent',
+                  '&:hover': { backgroundColor: 'rgba(137, 212, 255, 0.2)' },
+                  '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', fontWeight: 500, color: 'var(--sidebar-text-color)' }
                 }}
               >
                 <ListItemIcon className="listItemIcon" sx={{ minWidth: '0', margin: '0', color: 'var(--sidebar-icon-color)', fontSize: 'var(--sidebar-icon-font-size)' }}>
@@ -224,9 +226,16 @@ const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false, isMobile =
                 </ListItemIcon>
                 {!isCollapsed && (
                   <>
-                    <ListItemText primary="Masterlist" className="listItemText" sx={{ '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', color: 'var(--sidebar-text-color)', fontFamily: '"Oswald", sans-serif' } }} />
+                    <ListItemText
+                      primary="Masterlist"
+                      className="listItemText"
+                      sx={{ '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', color: 'var(--sidebar-text-color)', fontFamily: '"Oswald", sans-serif' } }}
+                    />
                     <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
-                      {openMasterlist ? <ExpandLess sx={{ color: 'var(--sidebar-icon-color)', fontSize: '1.25rem' }} /> : <ExpandMore sx={{ color: 'var(--sidebar-icon-color)',fontSize: '1.25rem'  }} />}
+                      {openMasterlist
+                        ? <ExpandLess sx={{ color: 'var(--sidebar-icon-color)', fontSize: '1.25rem' }} />
+                        : <ExpandMore sx={{ color: 'var(--sidebar-icon-color)', fontSize: '1.25rem' }} />
+                      }
                     </Box>
                   </>
                 )}
@@ -237,27 +246,28 @@ const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false, isMobile =
             {!isCollapsed && (
               <Collapse in={openMasterlist}>
                 <List component="div" disablePadding>
-                  {MASTERLIST_ITEMS.filter(item => 
+                  {MASTERLIST_ITEMS.filter(item =>
                     userPermissions.includes(item.permission)
                   ).map(item => (
                     <NavLink key={item.key} to={item.path} style={{ textDecoration: 'none', color: 'inherit' }}>
                       {({ isActive }) => (
-                        <ListItemButton 
+                        <ListItemButton
                           className={`nestedItem ${isActive ? 'nestedItem--active' : ''}`}
                           sx={{
                             paddingLeft: '3.5rem',
                             gap: '1rem',
                             backgroundColor: isActive ? '#89D4FF' : 'transparent',
-                            '&:hover': {
-                              backgroundColor: isActive ? 'rgba(137, 212, 255, 0.85)' : 'rgba(137, 212, 255, 0.2)'
-                            },
-                            '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)' , fontWeight: 500, color: 'var(--sidebar-text-color)' }
+                            '&:hover': { backgroundColor: isActive ? 'rgba(137, 212, 255, 0.85)' : 'rgba(137, 212, 255, 0.2)' },
+                            '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', fontWeight: 500, color: 'var(--sidebar-text-color)' }
                           }}
                         >
                           <ListItemIcon className="listItemIcon" sx={{ color: 'var(--sidebar-icon-color)', minWidth: '0', margin: '0' }}>
                             <item.icon />
                           </ListItemIcon>
-                          <ListItemText primary={item.label} sx={{ '& .MuiTypography-root': { color: 'var(--sidebar-text-color-active)', fontFamily: '"Oswald", sans-serif' } }} />
+                          <ListItemText
+                            primary={item.label}
+                            sx={{ '& .MuiTypography-root': { color: 'var(--sidebar-text-color-active)', fontFamily: '"Oswald", sans-serif' } }}
+                          />
                         </ListItemButton>
                       )}
                     </NavLink>
@@ -274,12 +284,12 @@ const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false, isMobile =
                 onClose={handleMasterlistMenuClose}
                 PaperProps={{ elevation: 8, className: 'menuPaper' }}
               >
-                {MASTERLIST_ITEMS.filter(item => 
+                {MASTERLIST_ITEMS.filter(item =>
                   userPermissions.includes(item.permission)
                 ).map(item => (
                   <NavLink key={item.key} to={item.path} style={{ textDecoration: 'none', color: 'inherit' }}>
                     {({ isActive }) => (
-                      <MenuItem 
+                      <MenuItem
                         onClick={handleMasterlistMenuClose}
                         className={`menuItem ${isActive ? 'menuItem--active' : ''}`}
                       >
@@ -297,12 +307,14 @@ const Sidebar = ({ user, onChangeProfile, isSidebarCollapsed = false, isMobile =
         )}
 
         {/* Systems */}
-        {MENU_ITEMS.filter(item => 
+        {MENU_ITEMS.filter(item =>
           item.key === 'systems' && userPermissions.includes(item.permission)
         ).map(item => (
           <NavLink key={item.key} to={item.path} style={{ textDecoration: 'none', color: 'inherit' }}>
             {({ isActive }) => (
-              <MenuItem_ item={item} isActive={isActive} isCollapsed={isCollapsed} />
+              <div onClick={() => handleParentMenuClick(item.key)}>
+                <MenuItem_ item={item} isActive={isActive} isCollapsed={isCollapsed} />
+              </div>
             )}
           </NavLink>
         ))}

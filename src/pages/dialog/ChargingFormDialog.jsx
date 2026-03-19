@@ -38,18 +38,18 @@ export default function ChargingFormDialog({ open, onClose, charging = null, onS
   const [localLoading, setLocalLoading] = useState(false);
 
   const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm({
-    resolver: yupResolver(chargingValidationSchema),
-    mode: 'onTouched',
-    defaultValues: {
-      name: '',
-      code: '',
-    },
-  });
+  register,
+  handleSubmit,
+  formState: { errors, isSubmitted },
+  reset,
+} = useForm({
+  resolver: yupResolver(chargingValidationSchema),
+  mode: 'onSubmit', // ✅ only validates after submit attempt
+  defaultValues: {
+    name: '',
+    code: '',
+  },
+});
 
   // Populate form when charging is provided (edit mode)
   useEffect(() => {
@@ -138,27 +138,27 @@ export default function ChargingFormDialog({ open, onClose, charging = null, onS
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1, fontFamily: OSWALD }}>
           <TextField
-            {...register('code')}
-            label="Code"
-            fullWidth
-            placeholder="e.g., 10019"
-            error={!!errors.code}
-            helperText={errors.code?.message}
-            disabled={isLoading}
-            sx={{ '& input, & label': { fontFamily: OSWALD } }}
-          />
+  {...register('code')}
+  label="Code"
+  fullWidth
+  placeholder="e.g., 10019"
+  error={isSubmitted && !!errors.code}           // ✅
+  helperText={isSubmitted ? errors.code?.message : ''}  // ✅
+  disabled={isLoading}
+  sx={{ '& input, & label': { fontFamily: OSWALD } }}
+/>
 
-          <TextField
-            {...register('name')}
-            label="Name"
-            fullWidth
-            placeholder="e.g., Standard Charging"
-            error={!!errors.name}
-            helperText={errors.name?.message}
-            disabled={isLoading}
-            autoFocus
-            sx={{ '& input, & label': { fontFamily: OSWALD } }}
-          />
+<TextField
+  {...register('name')}
+  label="Name"
+  fullWidth
+  placeholder="e.g., Standard Charging"
+  error={isSubmitted && !!errors.name}           // ✅
+  helperText={isSubmitted ? errors.name?.message : ''}  // ✅
+  disabled={isLoading}
+  autoFocus
+  sx={{ '& input, & label': { fontFamily: OSWALD } }}
+/>
 
           
         </Box>
@@ -188,7 +188,7 @@ export default function ChargingFormDialog({ open, onClose, charging = null, onS
         open={snackbar.open}
         autoHideDuration={3000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <Alert severity={snackbar.severity} variant="filled" onClose={handleCloseSnackbar} sx={{ fontFamily: OSWALD }}>
           {snackbar.message}

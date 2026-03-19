@@ -572,7 +572,7 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
         open={snackbar.open}
         autoHideDuration={3000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <Alert severity={snackbar.severity} variant="filled" onClose={handleCloseSnackbar} sx={{ fontFamily: OSWALD }}>
           {snackbar.message}

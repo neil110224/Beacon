@@ -9,81 +9,255 @@ import {
   Box,
   Typography,
   Checkbox,
-  FormGroup,
   FormControlLabel,
   Snackbar,
   Alert,
-  IconButton,
-  Collapse,
   CircularProgress,
+  Divider,
+  Collapse,
+  IconButton,
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import { useForm, Controller } from 'react-hook-form';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 
 const OSWALD = '"Oswald", sans-serif';
 
-/**
- * RoleFormDialog Component
- * 
- * A dialog for creating and editing roles with permission management
- * 
- * @param {boolean} props.open - Whether the dialog is open
- * @param {function} props.onClose - Callback when dialog closes
- * @param {object} props.role - The role object to edit (null for create)
- * @param {function} props.onSave - Callback with (roleData) for create or (id, data) for update
- * @param {boolean} props.isLoading - Loading state from mutation
- */
+const CHECKBOX_SX = {
+  color: '#9e9e9e',
+  '&.Mui-checked': { color: '#2c3e50' },
+  '&.MuiCheckbox-indeterminate': { color: '#2c3e50' },
+};
+
+const PARENT_LABEL_SX = {
+  '& .MuiFormControlLabel-label': {
+    fontSize: '0.95rem',
+    fontWeight: 600,
+    fontFamily: OSWALD,
+    color: '#2c3e50',
+  },
+};
+
+const CHILD_LABEL_SX = {
+  '& .MuiFormControlLabel-label': {
+    fontSize: '0.875rem',
+    fontFamily: OSWALD,
+    color: '#444',
+  },
+};
+
+// ─── Permission definitions ───────────────────────────────────────────────────
+
+const DASHBOARD_SUBCHILDREN = ['Dashboard.FilterTeam'];
+const SYSTEMS_SUBCHILDREN = ['Systems.Add', 'Systems.Import'];
+const MASTERLIST_CHILDREN = ['Users', 'Category', 'Team', 'Charging', 'Role'];
+
+const ALL_DASHBOARD_PERMS = ['Dashboard', ...DASHBOARD_SUBCHILDREN];
+const ALL_SYSTEMS_PERMS = ['Systems', ...SYSTEMS_SUBCHILDREN];
+const ALL_MASTERLIST_PERMS = ['Masterlist', ...MASTERLIST_CHILDREN];
+
+// ─── Validation ───────────────────────────────────────────────────────────────
+
+const validationSchema = yup.object().shape({
+  name: yup.string().required('Role name is required').min(2, 'Role name must be at least 2 characters'),
+  permissions: yup.array().min(1, 'At least one permission must be selected'),
+});
+
+// ─── Small helpers ────────────────────────────────────────────────────────────
+
+const allIn = (perms, selected) => perms.every((p) => selected.includes(p));
+const someIn = (perms, selected) => perms.some((p) => selected.includes(p));
+const toggle = (perm, selected) =>
+  selected.includes(perm) ? selected.filter((p) => p !== perm) : [...selected, perm];
+const addAll = (perms, selected) => Array.from(new Set([...selected, ...perms]));
+const removeAll = (perms, selected) => selected.filter((p) => !perms.includes(p));
+
+// ─── Collapsible Section Wrapper ──────────────────────────────────────────────
+
+function CollapsibleSection({ title, isOpen, onToggle, isChecked, isIndeterminate, onParentChange, children }) {
+  return (
+    <Box
+      sx={{
+        border: '1px solid #e0e0e0',
+        borderRadius: '8px',
+        backgroundColor: '#fafafa',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Header row */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '8px 12px 8px 4px',
+        }}
+      >
+        <FormControlLabel
+          label={title}
+          sx={{ ...PARENT_LABEL_SX, mb: 0, mr: 0, flexGrow: 1 }}
+          onClick={(e) => e.stopPropagation()}
+          control={
+            <Checkbox
+              checked={isChecked}
+              indeterminate={isIndeterminate}
+              onChange={onParentChange}
+              sx={CHECKBOX_SX}
+            />
+          }
+        />
+        <IconButton
+          size="small"
+          onClick={onToggle}
+          sx={{
+            width: 28,
+            height: 28,
+            backgroundColor: '#2c3e50',
+            color: '#fff',
+            borderRadius: '4px',
+            flexShrink: 0,
+            '&:hover': { backgroundColor: '#34495e' },
+          }}
+        >
+          {isOpen
+            ? <KeyboardArrowUpIcon sx={{ fontSize: '1.1rem' }} />
+            : <KeyboardArrowDownIcon sx={{ fontSize: '1.1rem' }} />
+          }
+        </IconButton>
+      </Box>
+
+      {/* Collapsible content */}
+      <Collapse in={isOpen} timeout="auto" unmountOnExit>
+        <Divider sx={{ borderColor: '#e0e0e0' }} />
+        <Box sx={{ padding: '10px 16px 12px 16px' }}>
+          {children}
+        </Box>
+      </Collapse>
+    </Box>
+  );
+}
+
+// ─── Section: Dashboard ───────────────────────────────────────────────────────
+
+function DashboardSection({ selected, onChange }) {
+  const [open, setOpen] = useState(true);
+  const allPerms = ALL_DASHBOARD_PERMS;
+  const checkedAll = allIn(allPerms, selected);
+  const indeterminate = !checkedAll && someIn(allPerms, selected);
+
+  return (
+    <CollapsibleSection
+      title="Dashboard"
+      isOpen={open}
+      onToggle={() => setOpen((v) => !v)}
+      isChecked={checkedAll}
+      isIndeterminate={indeterminate}
+      onParentChange={() => onChange(checkedAll ? removeAll(allPerms, selected) : addAll(allPerms, selected))}
+    >
+      <Box sx={{ display: 'flex', flexDirection: 'column', ml: 2 }}>
+        {DASHBOARD_SUBCHILDREN.map((sub) => (
+          <FormControlLabel
+            key={sub}
+            label={sub}
+            sx={CHILD_LABEL_SX}
+            control={
+              <Checkbox
+                checked={selected.includes(sub)}
+                onChange={() => onChange(toggle(sub, selected))}
+                sx={CHECKBOX_SX}
+              />
+            }
+          />
+        ))}
+      </Box>
+    </CollapsibleSection>
+  );
+}
+
+// ─── Section: Systems ─────────────────────────────────────────────────────────
+
+function SystemsSection({ selected, onChange }) {
+  const [open, setOpen] = useState(true);
+  const allPerms = ALL_SYSTEMS_PERMS;
+  const checkedAll = allIn(allPerms, selected);
+  const indeterminate = !checkedAll && someIn(allPerms, selected);
+
+  return (
+    <CollapsibleSection
+      title="Systems"
+      isOpen={open}
+      onToggle={() => setOpen((v) => !v)}
+      isChecked={checkedAll}
+      isIndeterminate={indeterminate}
+      onParentChange={() => onChange(checkedAll ? removeAll(allPerms, selected) : addAll(allPerms, selected))}
+    >
+      <Box sx={{ display: 'flex', flexDirection: 'column', ml: 2 }}>
+        {SYSTEMS_SUBCHILDREN.map((sub) => (
+          <FormControlLabel
+            key={sub}
+            label={sub}
+            sx={CHILD_LABEL_SX}
+            control={
+              <Checkbox
+                checked={selected.includes(sub)}
+                onChange={() => onChange(toggle(sub, selected))}
+                sx={CHECKBOX_SX}
+              />
+            }
+          />
+        ))}
+      </Box>
+    </CollapsibleSection>
+  );
+}
+
+// ─── Section: Masterlist ──────────────────────────────────────────────────────
+
+function MasterlistSection({ selected, onChange }) {
+  const [open, setOpen] = useState(true);
+  const allPerms = ALL_MASTERLIST_PERMS;
+  const checkedAll = allIn(allPerms, selected);
+  const indeterminate = !checkedAll && someIn(allPerms, selected);
+
+  return (
+    <CollapsibleSection
+      title="Masterlist"
+      isOpen={open}
+      onToggle={() => setOpen((v) => !v)}
+      isChecked={checkedAll}
+      isIndeterminate={indeterminate}
+      onParentChange={() => onChange(checkedAll ? removeAll(allPerms, selected) : addAll(allPerms, selected))}
+    >
+      <Box sx={{ display: 'flex', flexDirection: 'column', ml: 2 }}>
+        {MASTERLIST_CHILDREN.map((child, idx) => (
+          <Box key={child}>
+            {idx > 0 && <Divider sx={{ my: 0.5, borderColor: '#eee' }} />}
+            <FormControlLabel
+              label={child}
+              sx={CHILD_LABEL_SX}
+              control={
+                <Checkbox
+                  checked={selected.includes(child)}
+                  onChange={() => onChange(toggle(child, selected))}
+                  sx={CHECKBOX_SX}
+                />
+              }
+            />
+          </Box>
+        ))}
+      </Box>
+    </CollapsibleSection>
+  );
+}
+
+// ─── Main Dialog ──────────────────────────────────────────────────────────────
+
 export default function RoleFormDialog({ open, onClose, role = null, onSave, isLoading = false }) {
   const isEdit = !!role;
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [localLoading, setLocalLoading] = useState(false);
-  const [expandedGroups, setExpandedGroups] = useState({ dashboard: false, masterlist: true, users: false, category: false, team: false, charging: false, role: false, systems: false });
-
-  // Hierarchical permission structure
-  const PERMISSION_STRUCTURE = {
-    Dashboard: [],
-    Systems: [],
-    Masterlist: [
-      'Users',
-      'Category',
-      'Team',
-      'Charging',
-      'Role',
-    ],
-  };
-
-  // Sub-children permissions for Dashboard items
-  const DASHBOARD_SUBCHILDREN = {
-    Dashboard: ['Dashboard.FilterTeam'],
-  };
-
-  // Sub-children permissions for Masterlist items
-  const MASTERLIST_SUBCHILDREN = {
-    Users: ['Users.Add'],
-    Category: ['Category.Add'],
-    Team: ['Team.Add'],
-    Charging: ['Charging.Add'],
-    Role: ['Role.Add'],
-  };
-
-  // Sub-children permissions for Systems
-  const SYSTEMS_SUBCHILDREN = {
-    Systems: ['Systems.Add', 'Systems.Import'],
-  };
-
-  // Validation schema
-  const validationSchema = yup.object().shape({
-    name: yup
-      .string()
-      .required('Role name is required')
-      .min(2, 'Role name must be at least 2 characters'),
-    permissions: yup
-      .array()
-      .min(1, 'At least one permission must be selected'),
-  });
 
   const {
     register,
@@ -94,102 +268,20 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
     setValue,
   } = useForm({
     resolver: yupResolver(validationSchema),
-    defaultValues: {
-      name: '',
-      permissions: [],
-    },
+    defaultValues: { name: '', permissions: [] },
   });
 
-  // Watch permissions to update selected permissions
-  const selectedPermissions = watch('permissions');
+  const selectedPermissions = watch('permissions') || [];
+  const handlePermChange = (newPerms) => setValue('permissions', newPerms);
 
-  const toggleGroup = (group) => {
-    setExpandedGroups(prev => ({
-      ...prev,
-      [group]: !prev[group]
-    }));
-  };
-
-  const handleParentPermissionChange = (parent) => {
-    const current = selectedPermissions || [];
-    const children = PERMISSION_STRUCTURE[parent] || [];
-    const parentAndChildren = [parent, ...children];
-
-    // If any child is checked, uncheck all; otherwise check all
-    const allSelected = parentAndChildren.every(p => current.includes(p));
-
-    if (allSelected) {
-      // Remove parent and all children
-      setValue(
-        'permissions',
-        current.filter(p => !parentAndChildren.includes(p))
-      );
-    } else {
-      // Add parent and all children
-      const newPermissions = new Set(current);
-      parentAndChildren.forEach(p => newPermissions.add(p));
-      setValue('permissions', Array.from(newPermissions));
-    }
-  };
-
-  const handleChildPermissionChange = (permission) => {
-    const current = selectedPermissions || [];
-    if (current.includes(permission)) {
-      setValue(
-        'permissions',
-        current.filter((p) => p !== permission)
-      );
-    } else {
-      setValue('permissions', [...current, permission]);
-    }
-  };
-
-  const isParentChecked = (parent) => {
-    const current = selectedPermissions || [];
-    const children = PERMISSION_STRUCTURE[parent] || [];
-    const parentAndChildren = [parent, ...children];
-    return parentAndChildren.every(p => current.includes(p));
-  };
-
-  const isParentIndeterminate = (parent) => {
-    const current = selectedPermissions || [];
-    const children = PERMISSION_STRUCTURE[parent] || [];
-    const parentAndChildren = [parent, ...children];
-    const checkedCount = parentAndChildren.filter(p => current.includes(p)).length;
-    return checkedCount > 0 && checkedCount < parentAndChildren.length;
-  };
-
-  // Handle sub-child permission (e.g., Users.Add)
-  const handleSubchildPermissionChange = (subchild) => {
-    const current = selectedPermissions || [];
-    if (current.includes(subchild)) {
-      setValue(
-        'permissions',
-        current.filter((p) => p !== subchild)
-      );
-    } else {
-      setValue('permissions', [...current, subchild]);
-    }
-  };
-
-  // Reset form when dialog opens/closes or when switching between add/edit mode
   useEffect(() => {
     if (open) {
-      if (isEdit && role) {
-        // Populate form with role data for editing
-        reset({
-          name: role.name || '',
-          permissions: role.access_permissions || [],
-        });
-      } else {
-        // Clear form for creating new role - explicitly clear all fields
-        reset({
-          name: '',
-          permissions: [],
-        });
-      }
+      reset(
+        isEdit && role
+          ? { name: role.name || '', permissions: role.access_permissions || [] }
+          : { name: '', permissions: [] }
+      );
     } else {
-      // Reset loading state when dialog closes
       setLocalLoading(false);
     }
   }, [open, role, isEdit, reset]);
@@ -198,35 +290,16 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
     setLocalLoading(true);
     try {
       if (isEdit) {
-        // For edit: pass id and data separately
         await onSave({ id: role.id, data: { name: data.name, access_permissions: data.permissions } }).unwrap();
       } else {
-        // For create: pass the entire object
         await onSave({ name: data.name, access_permissions: data.permissions }).unwrap();
       }
-
-      setSnackbar({
-        open: true,
-        message: isEdit ? 'Role updated successfully!' : 'Role created successfully!',
-        severity: 'success',
-      });
-
-      setTimeout(() => {
-        setLocalLoading(false);
-        onClose();
-      }, 1000);
+      setSnackbar({ open: true, message: isEdit ? 'Role updated successfully!' : 'Role created successfully!', severity: 'success' });
+      setTimeout(() => { setLocalLoading(false); onClose(); }, 1000);
     } catch (error) {
       setLocalLoading(false);
-      setSnackbar({
-        open: true,
-        message: error.message || 'An error occurred',
-        severity: 'error',
-      });
+      setSnackbar({ open: true, message: error?.data?.message || error.message || 'An error occurred', severity: 'error' });
     }
-  };
-
-  const handleCloseSnackbar = () => {
-    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
@@ -236,20 +309,16 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
         onClose={onClose}
         maxWidth="sm"
         fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: '12px',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
-          },
-        }}
+        PaperProps={{ sx: { borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.1)' } }}
       >
         <DialogTitle sx={{ fontWeight: 600, fontSize: '1.25rem', color: '#2c3e50', fontFamily: OSWALD }}>
           {isEdit ? 'Edit Role' : 'Add New Role'}
         </DialogTitle>
 
-        <DialogContent sx={{ pt: 2 }}>
-          <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt:1 }}>
-            {/* Role Name Input */}
+        <DialogContent sx={{ pt: 1 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mt: 1 }}>
+
+            {/* Role Name */}
             <TextField
               label="Role Name"
               fullWidth
@@ -258,291 +327,34 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
               helperText={errors.name?.message}
               {...register('name')}
               sx={{
-                mt:1,
                 '& input, & label': { fontFamily: OSWALD },
                 '& .MuiOutlinedInput-root': {
                   borderRadius: '8px',
-                  '&:hover fieldset': {
-                    borderColor: '#2c3e50',
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#2c3e50',
-                  },
+                  '&:hover fieldset': { borderColor: '#2c3e50' },
+                  '&.Mui-focused fieldset': { borderColor: '#2c3e50' },
                 },
               }}
             />
 
-            {/* Permissions Section */}
-            <Box sx={{ mt: 1 }}>
-              <Typography sx={{ fontWeight: 600, marginBottom: 1.5, color: '#2c3e50', fontFamily: OSWALD }}>
-                Permissions:
+            {/* Permissions */}
+            <Box>
+              <Typography sx={{ fontWeight: 600, mb: 1.5, color: '#2c3e50', fontFamily: OSWALD }}>
+                Permissions
               </Typography>
-              <FormGroup sx={{ gap: 1 }}>
-                {/* Dashboard - parent permission with expandable FilterTeam */}
-                <Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={selectedPermissions?.includes('Dashboard') || false}
-                          onChange={() => handleChildPermissionChange('Dashboard')}
-                          sx={{
-                            color: '#9e9e9e',
-                            '&.Mui-checked': {
-                              color: '#2c3e50',
-                            },
-                          }}
-                        />
-                      }
-                      label={'Dashboard'}
-                      sx={{
-                        marginBottom: 0,
-                        '& .MuiFormControlLabel-label': {
-                          fontSize: '0.95rem',
-                          fontWeight: 500,
-                          fontFamily: OSWALD,
-                        },
-                      }}
-                    />
-                    <IconButton
-                      size="small"
-                      onClick={() => toggleGroup('dashboard')}
-                      sx={{ padding: 0, marginLeft: 'auto', marginRight: 1 }}
-                    >
-                      {expandedGroups.dashboard ? (
-                        <ExpandLessIcon sx={{ fontSize: '1.2rem', color: '#2c3e50' }} />
-                      ) : (
-                        <ExpandMoreIcon sx={{ fontSize: '1.2rem', color: '#2c3e50' }} />
-                      )}
-                    </IconButton>
-                  </Box>
 
-                  {/* Dashboard child permissions */}
-                  <Collapse in={expandedGroups.dashboard} timeout="auto" unmountOnExit>
-                    <FormGroup sx={{ paddingLeft: 3, gap: 0.5, marginTop: 1 }}>
-                      {DASHBOARD_SUBCHILDREN.Dashboard?.map((subchild) => (
-                        <FormControlLabel
-                          key={subchild}
-                          control={
-                            <Checkbox
-                              checked={selectedPermissions?.includes(subchild) || false}
-                              onChange={() => handleSubchildPermissionChange(subchild)}
-                              sx={{
-                                color: '#9e9e9e',
-                                '&.Mui-checked': {
-                                  color: '#2c3e50',
-                                },
-                              }}
-                            />
-                          }
-                          label={subchild}
-                          sx={{
-                            marginBottom: 0,
-                            '& .MuiFormControlLabel-label': {
-                              fontSize: '0.9rem',
-                              fontFamily: OSWALD,
-                            },
-                          }}
-                        />
-                      ))}
-                    </FormGroup>
-                  </Collapse>
-                </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                <DashboardSection selected={selectedPermissions} onChange={handlePermChange} />
+                <SystemsSection selected={selectedPermissions} onChange={handlePermChange} />
+                <MasterlistSection selected={selectedPermissions} onChange={handlePermChange} />
+              </Box>
 
-                {/* Systems - parent permission with expandable Add */}
-                <Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={selectedPermissions?.includes('Systems') || false}
-                          onChange={() => handleChildPermissionChange('Systems')}
-                          sx={{
-                            color: '#9e9e9e',
-                            '&.Mui-checked': {
-                              color: '#2c3e50',
-                            },
-                          }}
-                        />
-                      }
-                      label={'Systems'}
-                      sx={{
-                        marginBottom: 0,
-                        '& .MuiFormControlLabel-label': {
-                          fontSize: '0.95rem',
-                          fontWeight: 500,
-                          fontFamily: OSWALD,
-                        },
-                      }}
-                    />
-                    <IconButton
-                      size="small"
-                      onClick={() => toggleGroup('systems')}
-                      sx={{ padding: 0, marginLeft: 'auto', marginRight: 1 }}
-                    >
-                      {expandedGroups.systems ? (
-                        <ExpandLessIcon sx={{ fontSize: '1.2rem', color: '#2c3e50' }} />
-                      ) : (
-                        <ExpandMoreIcon sx={{ fontSize: '1.2rem', color: '#2c3e50' }} />
-                      )}
-                    </IconButton>
-                  </Box>
-
-                  {/* Systems Add sub-permission */}
-                  <Collapse in={expandedGroups.systems} timeout="auto" unmountOnExit>
-                    <FormGroup sx={{ paddingLeft: 3, gap: 0.5, marginTop: 1 }}>
-                      {SYSTEMS_SUBCHILDREN.Systems?.map((subchild) => (
-                        <FormControlLabel
-                          key={subchild}
-                          control={
-                            <Checkbox
-                              checked={selectedPermissions?.includes(subchild) || false}
-                              onChange={() => handleSubchildPermissionChange(subchild)}
-                              sx={{
-                                color: '#9e9e9e',
-                                '&.Mui-checked': {
-                                  color: '#2c3e50',
-                                },
-                              }}
-                            />
-                          }
-                          label={subchild}
-                          sx={{
-                            marginBottom: 0,
-                            '& .MuiFormControlLabel-label': {
-                              fontSize: '0.9rem',
-                              fontFamily: OSWALD,
-                            },
-                          }}
-                        />
-                      ))}
-                    </FormGroup>
-                  </Collapse>
-                </Box>
-
-                {/* Masterlist - parent with children */}
-                <Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={isParentChecked('Masterlist')}
-                          indeterminate={isParentIndeterminate('Masterlist')}
-                          onChange={() => handleParentPermissionChange('Masterlist')}
-                          sx={{
-                            color: '#9e9e9e',
-                            '&.Mui-checked': {
-                              color: '#2c3e50',
-                            },
-                          }}
-                        />
-                      }
-                      label={'Masterlist'}
-                      sx={{
-                        marginBottom: 0,
-                        '& .MuiFormControlLabel-label': {
-                          fontSize: '0.95rem',
-                          fontWeight: 500,
-                          fontFamily: OSWALD,
-                        },
-                      }}
-                    />
-                    <IconButton
-                      size="small"
-                      onClick={() => toggleGroup('masterlist')}
-                      sx={{ padding: 0, marginLeft: 'auto', marginRight: 1 }}
-                    >
-                      {expandedGroups.masterlist ? (
-                        <ExpandLessIcon sx={{ fontSize: '1.2rem', color: '#2c3e50' }} />
-                      ) : (
-                        <ExpandMoreIcon sx={{ fontSize: '1.2rem', color: '#2c3e50' }} />
-                      )}
-                    </IconButton>
-                  </Box>
-
-                  {/* Masterlist children with sub-children */}
-                  <Collapse in={expandedGroups.masterlist} timeout="auto" unmountOnExit>
-                    <FormGroup sx={{ paddingLeft: 3, gap: 0.5, marginTop: 1 }}>
-                      {PERMISSION_STRUCTURE.Masterlist.map((permission) => (
-                        <Box key={permission}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <FormControlLabel
-                              control={
-                                <Checkbox
-                                  checked={selectedPermissions?.includes(permission) || false}
-                                  onChange={() => handleChildPermissionChange(permission)}
-                                  sx={{
-                                    color: '#9e9e9e',
-                                    '&.Mui-checked': {
-                                      color: '#2c3e50',
-                                    },
-                                  }}
-                                />
-                              }
-                              label={permission}
-                              sx={{
-                                marginBottom: 0.5,
-                                '& .MuiFormControlLabel-label': {
-                                  fontSize: '0.9rem',
-                                  fontFamily: OSWALD,
-                                },
-                              }}
-                            />
-                            <IconButton
-                              size="small"
-                              onClick={() => toggleGroup(permission.toLowerCase())}
-                              sx={{ padding: 0, marginLeft: 'auto', marginRight: 0.5 }}
-                            >
-                              {expandedGroups[permission.toLowerCase()] ? (
-                                <ExpandLessIcon sx={{ fontSize: '1rem', color: '#2c3e50' }} />
-                              ) : (
-                                <ExpandMoreIcon sx={{ fontSize: '1rem', color: '#2c3e50' }} />
-                              )}
-                            </IconButton>
-                          </Box>
-
-                          {/* Sub-children (Add permissions) */}
-                          <Collapse in={expandedGroups[permission.toLowerCase()]} timeout="auto" unmountOnExit>
-                            <FormGroup sx={{ paddingLeft: 5, gap: 0.5, marginTop: 0.5 }}>
-                              {MASTERLIST_SUBCHILDREN[permission]?.map((subchild) => (
-                                <FormControlLabel
-                                  key={subchild}
-                                  control={
-                                    <Checkbox
-                                      checked={selectedPermissions?.includes(subchild) || false}
-                                      onChange={() => handleSubchildPermissionChange(subchild)}
-                                      sx={{
-                                        color: '#9e9e9e',
-                                        '&.Mui-checked': {
-                                          color: '#2c3e50',
-                                        },
-                                      }}
-                                    />
-                                  }
-                                  label="Add"
-                                  sx={{
-                                    marginBottom: 0.5,
-                                    '& .MuiFormControlLabel-label': {
-                                      fontSize: '0.85rem',
-                                      fontFamily: OSWALD,
-                                    },
-                                  }}
-                                />
-                              ))}
-                            </FormGroup>
-                          </Collapse>
-                        </Box>
-                      ))}
-                    </FormGroup>
-                  </Collapse>
-                </Box>
-              </FormGroup>
               {errors.permissions && (
                 <Typography sx={{ color: '#d32f2f', fontSize: '0.75rem', mt: 1, fontFamily: OSWALD }}>
                   {errors.permissions.message}
                 </Typography>
               )}
             </Box>
+
           </Box>
         </DialogContent>
 
@@ -550,12 +362,7 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
           <Button
             onClick={onClose}
             disabled={isLoading || localLoading}
-            sx={{
-              textTransform: 'none',
-              color: '#666',
-              fontFamily: OSWALD,
-              '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' },
-            }}
+            sx={{ textTransform: 'none', color: '#666', fontFamily: OSWALD, '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' } }}
           >
             Cancel
           </Button>
@@ -577,14 +384,13 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar for notifications */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
+        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%', fontFamily: OSWALD }}>
+        <Alert severity={snackbar.severity} sx={{ width: '100%', fontFamily: OSWALD }}>
           {snackbar.message}
         </Alert>
       </Snackbar>

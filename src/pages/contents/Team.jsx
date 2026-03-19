@@ -147,13 +147,16 @@ const Team = () => {
   const handleTabChange = (event, newValue) => { setShowArchived(newValue === 1); setTeams([]); };
 
   const filteredTeams = useMemo(() => {
-    if (!debouncedSearchTerm) return Array.isArray(teams) ? teams : [];
-    return (Array.isArray(teams) ? teams : []).filter(team => team.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()));
-  }, [teams, debouncedSearchTerm]);
+    let filtered = Array.isArray(teams) ? teams : [];
+    // Only show archived teams in archive tab, active teams in active tab
+    filtered = filtered.filter(team => showArchived ? !!team.deleted_at : !team.deleted_at);
+    if (!debouncedSearchTerm) return filtered;
+    return filtered.filter(team => team.name?.toLowerCase().includes(debouncedSearchTerm.toLowerCase()));
+  }, [teams, debouncedSearchTerm, showArchived]);
 
   if (isLoading) {
     return (
-      <Box className="teamContainer" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '500px' }}>
+      <Box className="teamLoadingContainer">
         <Loading />
       </Box>
     );
@@ -171,26 +174,6 @@ const Team = () => {
   onAddClick={() => setTeamDialogOpen(true)}
   addLabel="CREATE"
 />
-
-      {!isLoading && filteredTeams.length === 0 && (
-        <Box className="teamEmptyStateWrapper">
-          <Box className="teamEmptyStateBox">
-            <Box>
-              <Nodata />
-            </Box>
-            <Box className="teamEmptyTextBox">
-              <Typography variant="h6" className="teamEmptyTitle" sx={{fontFamily: '"Oswald", sans-serif'}}>
-                Teams
-              </Typography>
-              <Typography variant="body2" sx={{fontFamily: '"Oswald", sans-serif'}}>
-                {showArchived
-                  ? "Currently no teams in the archive."
-                  : "No teams data available."}
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-      )}
 
       {filteredTeams.length > 0 || isLoading ? (
         <Box className="teamCardsGrid">
@@ -299,7 +282,7 @@ const Team = () => {
         open={snackbar.open}
         autoHideDuration={2000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
       >
         <Alert severity={snackbar.severity} variant="filled" onClose={handleCloseSnackbar}>
           {snackbar.message}

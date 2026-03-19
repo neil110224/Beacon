@@ -71,8 +71,9 @@
     }
 
     &:not(.Mui-selected):hover {
-      background-color: rgba(3, 52, 110, 0.08);
-    }
+  background-color: rgba(255, 255, 255, 0.08);
+  color: $primary-text-dark; // or whatever color you want on hover
+}
   }
 
   & .MuiTabs-indicator {

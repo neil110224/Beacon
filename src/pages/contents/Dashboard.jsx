@@ -1,4 +1,5 @@
-import { Box, Typography, Paper, IconButton, Button, FormControl, Select, MenuItem, Chip, TextField, Tooltip, CircularProgress } from '@mui/material'
+import { Box, Typography, Paper, IconButton, Button, FormControl, Select, MenuItem, Chip, TextField, Tooltip, CircularProgress,
+  Dialog, DialogTitle, DialogContent, DialogActions, Alert, Snackbar } from '@mui/material'
 import Loading from '../../component/reuseable/Loading'
 import nodataImg from '../../assets/alh.png'
 import Nodata from '../../component/reuseable/Nodata'
@@ -11,16 +12,169 @@ import PendingActionsIcon from '@mui/icons-material/PendingActions'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import { useGetSystemsListQuery } from '../../features/api/system/systemApi'
 import { useGetTeamsQuery } from '../../features/api/team/teamApi'
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
 import { useDebounce } from '../../hooks/useDebounce'
 import SearchIcon from '@mui/icons-material/Search'
 import CachedIcon from '@mui/icons-material/Cached'
+import { useForm, Controller } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
+import { useUpdateUserMutation } from '../../features/api/user/userApi'
 
+// ─── Validation schema ───────────────────────────────────────────────────────
+const changePasswordSchema = yup.object().shape({
+  new_password: yup.string()
+    .required('New password is required'),
+  confirm_password: yup.string()
+    .required('Confirm password is required')
+    .oneOf([yup.ref('new_password')], 'Passwords must match'),
+})
+
+// ✅ Forces label to always sit on the border — overrides global SCSS interference
+const fieldSx = {
+  '& .MuiInputLabel-root': {
+    transform: 'translate(14px, -9px) scale(0.75) !important',
+    backgroundColor: '#fff',
+    px: 0.5,
+  },
+  '& .MuiInputLabel-root.MuiInputLabel-shrink': {
+    transform: 'translate(14px, -9px) scale(0.75) !important',
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    transform: 'translate(14px, -9px) scale(0.75) !important',
+  },
+  '& .MuiOutlinedInput-notchedOutline': {
+    top: 0,
+  },
+  '& legend': {
+    display: 'none',
+  },
+}
+
+// ─── Force Change Password Dialog ────────────────────────────────────────────
+const ForceChangePasswordDialog = ({ open, onClose, user }) => {
+  const [apiLoading, setApiLoading] = useState(false)
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' })
+  const [updateUser] = useUpdateUserMutation()
+
+  const { control, handleSubmit, formState: { errors }, reset } = useForm({
+    resolver: yupResolver(changePasswordSchema),
+    mode: 'onBlur',
+    defaultValues: { new_password: '', confirm_password: '' },
+  })
+
+  const onSubmit = async (data) => {
+    try {
+      setApiLoading(true)
+      await updateUser({ id: user.id, data: { password: data.new_password } }).unwrap()
+      setSnackbar({ open: true, message: 'Password changed successfully!', severity: 'success' })
+      localStorage.removeItem('forceChangePassword')
+      reset()
+      setTimeout(() => onClose(), 1000)
+    } catch (error) {
+      let errorMessage = 'Failed to change password'
+      if (error?.data?.message) errorMessage = error.data.message
+      else if (error?.data?.errors) {
+        errorMessage = Object.entries(error.data.errors)
+          .map(([f, msgs]) => `${f}: ${msgs.join(', ')}`)
+          .join('; ') || 'Validation failed'
+      } else if (error?.message) errorMessage = error.message
+      setSnackbar({ open: true, message: errorMessage, severity: 'error' })
+    } finally {
+      setApiLoading(false)
+    }
+  }
+
+  const handleCloseSnackbar = (_, reason) => {
+    if (reason === 'clickaway') return
+    setSnackbar(prev => ({ ...prev, open: false }))
+  }
+
+  return (
+    <>
+      <Dialog open={open} onClose={() => {}} maxWidth="sm" fullWidth disableEscapeKeyDown>
+        <DialogTitle sx={{ fontWeight: 600, color: '#2c3e50' }}>
+          Welcome! Change Your Password
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <Alert severity="info">
+              Your username and password are the same. Please set a new password to secure your account.
+            </Alert>
+
+            {/* ✅ Using Controller so MUI gets the value prop — label stays on border */}
+            <Controller
+              name="new_password"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="New Password"
+                  type="password"
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                  error={!!errors.new_password}
+                  helperText={errors.new_password?.message}
+                  disabled={apiLoading}
+                  autoFocus
+                  InputLabelProps={{ shrink: true }}
+                  sx={fieldSx}
+                />
+              )}
+            />
+
+            <Controller
+              name="confirm_password"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Confirm Password"
+                  type="password"
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                  error={!!errors.confirm_password}
+                  helperText={errors.confirm_password?.message}
+                  disabled={apiLoading}
+                  InputLabelProps={{ shrink: true }}
+                  sx={fieldSx}
+                />
+              )}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={handleSubmit(onSubmit)}
+            variant="contained"
+            disabled={apiLoading}
+            startIcon={apiLoading && <CircularProgress size={20} />}
+            fullWidth
+          >
+            {apiLoading ? 'Changing Password...' : 'Change Password'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert severity={snackbar.severity} variant="filled" onClose={handleCloseSnackbar}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </>
+  )
+}
+
+// ─── System Progress Card ─────────────────────────────────────────────────────
 const SystemProgress = ({ system, onNavigate }) => {
-  // Calculate stats from the system's nested data
   const calculateStats = (sys) => {
     let total = 0, done = 0, pending = 0, hold = 0
-
     if (sys.categories && Array.isArray(sys.categories)) {
       sys.categories.forEach((category) => {
         if (category.progress && Array.isArray(category.progress)) {
@@ -33,16 +187,13 @@ const SystemProgress = ({ system, onNavigate }) => {
         }
       })
     }
-
     const remaining = total - done
     const percentage = total > 0 ? Math.round((done / total) * 100) : 0
-
     return { total, done, remaining, hold, pending, percentage }
   }
 
   const stats = calculateStats(system)
 
-  // Get recent pending items (limit to 2, exclude done items)
   const getRecentItems = (sys) => {
     const items = []
     if (sys.categories && Array.isArray(sys.categories)) {
@@ -50,12 +201,8 @@ const SystemProgress = ({ system, onNavigate }) => {
         const category = sys.categories[i]
         if (category.progress && Array.isArray(category.progress)) {
           for (let j = 0; j < category.progress.length && items.length < 2; j++) {
-            // Only add pending and hold items, skip done items
             if (category.progress[j].status !== 'done') {
-              items.push({
-                ...category.progress[j],
-                category: category.categoryName
-              })
+              items.push({ ...category.progress[j], category: category.categoryName })
             }
           }
         }
@@ -67,120 +214,80 @@ const SystemProgress = ({ system, onNavigate }) => {
   const recentItems = getRecentItems(system)
 
   const getStatusColor = (status) => {
-    const colors = {
-      pending: '#89D4FF',     
-      done: '#281C59',
-      hold: '#261CC1',
-    }
+    const colors = { pending: '#89D4FF', done: '#281C59', hold: '#261CC1' }
     return colors[status?.toLowerCase()] || '#9e9e9e'
   }
 
   return (
     <Box className="systemProgressContainer">
-      {/* Progress Percentage Display */}
       <Box className="progressPercentageBox">
         <Box className="progressPercentageCircle">
-          <Typography className="progressPercentageText" sx={{fontSize:'0.75rem', fontFamily: '"Oswald", sans-serif'}}>
+          <Typography className="progressPercentageText" sx={{ fontSize: '0.75rem', fontFamily: '"Oswald", sans-serif' }}>
             {stats.percentage}%
           </Typography>
         </Box>
         <Box className="progressInfoBox">
-          <Typography variant="caption" className="progressLabel" sx={{fontFamily: '"Oswald", sans-serif'}}>
+          <Typography variant="caption" className="progressLabel" sx={{ fontFamily: '"Oswald", sans-serif' }}>
             Progress
           </Typography>
-          <Typography className="progressCompleted" sx={{fontFamily: '"Oswald", sans-serif'}}>
+          <Typography className="progressCompleted" sx={{ fontFamily: '"Oswald", sans-serif' }}>
             {stats.pending > 0 ? 'On going' : 'Completed'}
           </Typography>
         </Box>
       </Box>
 
-      {/* Stats Grid */}
       <Box className="statsGridContainer">
         <Box className="statItem statItemTotal">
-          <Typography variant="caption" className="statItemLabel" sx={{fontFamily: '"Oswald", sans-serif'}}>
-            Total
-          </Typography>
-          <Typography className="statItemValue" sx={{fontFamily: '"Oswald", sans-serif'}}>
-            {stats.total}
-          </Typography>
+          <Typography variant="caption" className="statItemLabel" sx={{ fontFamily: '"Oswald", sans-serif' }}>Total</Typography>
+          <Typography className="statItemValue" sx={{ fontFamily: '"Oswald", sans-serif' }}>{stats.total}</Typography>
         </Box>
-
         <Box className="statItem statItemDone">
-          <Typography variant="caption" className="statItemLabel" sx={{fontFamily: '"Oswald", sans-serif'}}>
-            Done
-          </Typography>
-          <Typography className="statItemValue" sx={{fontFamily: '"Oswald", sans-serif'}}>
-            {stats.done}
-          </Typography>
+          <Typography variant="caption" className="statItemLabel" sx={{ fontFamily: '"Oswald", sans-serif' }}>Done</Typography>
+          <Typography className="statItemValue" sx={{ fontFamily: '"Oswald", sans-serif' }}>{stats.done}</Typography>
         </Box>
-
         <Box className="statItem statItemRemaining">
-          <Typography variant="caption" className="statItemLabel" sx={{fontFamily: '"Oswald", sans-serif'}}>
-            Pending
-          </Typography>
-          <Typography className="statItemValue" sx={{fontFamily: '"Oswald", sans-serif'}}>
-            {stats.remaining}
-          </Typography>
+          <Typography variant="caption" className="statItemLabel" sx={{ fontFamily: '"Oswald", sans-serif' }}>Pending</Typography>
+          <Typography className="statItemValue" sx={{ fontFamily: '"Oswald", sans-serif' }}>{stats.remaining}</Typography>
         </Box>
-
         <Box className="statItem statItemHold">
-          <Typography variant="caption" className="statItemLabel" sx={{fontFamily: '"Oswald", sans-serif'}}>
-            On Hold
-          </Typography>
-          <Typography className="statItemValue" sx={{fontFamily: '"Oswald", sans-serif'}}>
-            {stats.hold}
-          </Typography>
+          <Typography variant="caption" className="statItemLabel" sx={{ fontFamily: '"Oswald", sans-serif' }}>On Hold</Typography>
+          <Typography className="statItemValue" sx={{ fontFamily: '"Oswald", sans-serif' }}>{stats.hold}</Typography>
         </Box>
       </Box>
 
-
-
-      {/* Recent Items Section */}
       {recentItems.length > 0 && (
         <Box className="pendingTasksSection">
-          <Typography variant="caption" className="pendingTasksTitle" sx={{fontFamily: '"Oswald", sans-serif'}}>    
+          <Typography variant="caption" className="pendingTasksTitle" sx={{ fontFamily: '"Oswald", sans-serif' }}>
             Pending Tasks
           </Typography>
-          <Box component="ul" className="pendingTasksList" sx={{fontSize:'0.55rem', fontFamily: '"Oswald", sans-serif'}}>
+          <Box component="ul" className="pendingTasksList" sx={{ fontSize: '0.55rem', fontFamily: '"Oswald", sans-serif' }}>
             {recentItems.map((item, idx) => (
-              <Box
-                key={idx}
-                component="li"
-                className="pendingTaskItem"
-              >
-                <Typography className="pendingTaskDescription" sx={{fontFamily: '"Oswald", sans-serif'}}>
+              <Box key={idx} component="li" className="pendingTaskItem">
+                <Typography className="pendingTaskDescription" sx={{ fontFamily: '"Oswald", sans-serif' }}>
                   {item.description}
                 </Typography>
-                {/* Chip for status */}
-                <Chip 
-                  label={item.status} 
+                <Chip
+                  label={item.status}
                   className="pendingTaskChip"
-                  sx={{
-                    bgcolor: getStatusColor(item.status),
-                  }}
+                  sx={{ bgcolor: getStatusColor(item.status) }}
                 />
               </Box>
             ))}
           </Box>
           {(() => {
-            // Count total pending/hold items
             let totalPending = 0
             system.categories?.forEach(cat => {
-              cat.progress?.forEach(item => {
-                if (item.status !== 'done') totalPending++
-              })
+              cat.progress?.forEach(item => { if (item.status !== 'done') totalPending++ })
             })
             return totalPending > 2 ? (
-              <Typography className="pendingTasksEllipsis" sx={{fontFamily: '"Oswald", sans-serif'}}>
-                ......
-              </Typography>
+              <Typography className="pendingTasksEllipsis" sx={{ fontFamily: '"Oswald", sans-serif' }}>......</Typography>
             ) : null
           })()}
           <Button
             size="small"
             onClick={onNavigate}
             className="viewAllButton"
-            sx={{fontSize:'10px', fontFamily: '"Oswald", sans-serif'}}
+            sx={{ fontSize: '10px', fontFamily: '"Oswald", sans-serif' }}
           >
             View All
           </Button>
@@ -190,6 +297,7 @@ const SystemProgress = ({ system, onNavigate }) => {
   )
 }
 
+// ─── Dashboard ────────────────────────────────────────────────────────────────
 const Dashboard = () => {
   const navigate = useNavigate()
   const user = useSelector(selectCurrentUser)
@@ -199,13 +307,12 @@ const Dashboard = () => {
   const [selectedTeam, setSelectedTeam] = useState('')
   const [systemsSearchQuery, setSystemsSearchQuery] = useState('')
 
-  // Debounce systems search query
+  const [forceChangePasswordOpen, setForceChangePasswordOpen] = useState(
+    () => localStorage.getItem('forceChangePassword') === 'true'
+  )
+
   const debouncedSystemsSearch = useDebounce(systemsSearchQuery, 500)
 
-  // Mirror the same logic used in Sidebar to compute actual collapsed state
-  const isActuallySidebarCollapsed = isSidebarCollapsed ? isSidebarLocked : false
-
-  // Fetch teams for the filter
   const { data: teamsData } = useGetTeamsQuery({
     status: 'active',
     paginate: 'none',
@@ -219,59 +326,39 @@ const Dashboard = () => {
     : Array.isArray(teamsData)
     ? teamsData
     : []
-  
-  // Build query params based on selected team or user role
+
   const buildQueryParams = () => {
     const isUserRole = user?.role?.name?.toLowerCase() === "user"
-    
     const baseParams = {}
-    
-    // If a team is selected, use that team
     if (selectedTeam) {
       baseParams.status = "active"
       baseParams.scope = "per_team"
       baseParams.team_id = selectedTeam
     } else if (isUserRole && user?.team?.id) {
-      // Use user's team
       baseParams.status = "active"
       baseParams.scope = "per_team"
       baseParams.team_id = user.team.id
     } else {
-      // Global scope
       baseParams.status = "active"
       baseParams.scope = "global"
     }
-    
-    // Add search query if provided
-    if (debouncedSystemsSearch) {
-      baseParams.search = debouncedSystemsSearch
-    }
-    
+    if (debouncedSystemsSearch) baseParams.search = debouncedSystemsSearch
     return baseParams
   }
 
   const queryParams = buildQueryParams()
   const { data: systemsData, isLoading: systemsLoading, error: systemsError, refetch: refetchSystems } = useGetSystemsListQuery(queryParams)
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   const handleRefresh = async () => {
-    setIsRefreshing(true);
-    try {
-      await refetchSystems();
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
+    setIsRefreshing(true)
+    try { await refetchSystems() } finally { setIsRefreshing(false) }
+  }
 
-  // Use systems data directly (backend handles filtering via search parameter)
-  const filteredSystems = Array.isArray(systemsData)
-    ? systemsData
-    : []
+  const filteredSystems = Array.isArray(systemsData) ? systemsData : []
 
-  // Calculate overall stats from filtered systems
   const calculateOverallStats = () => {
     let totalSum = 0, completedSum = 0, pendingSum = 0
-
     if (Array.isArray(filteredSystems)) {
       filteredSystems.forEach((system) => {
         if (system.categories && Array.isArray(system.categories)) {
@@ -287,35 +374,23 @@ const Dashboard = () => {
         }
       })
     }
-
     const percentage = totalSum > 0 ? Math.round((completedSum / totalSum) * 100) : 0
-    return {
-      pending: pendingSum,
-      completed: completedSum,
-      percentage: percentage
-    }
+    return { pending: pendingSum, completed: completedSum, percentage }
   }
 
   const stats = calculateOverallStats()
 
   const StatCard = ({ title, count, icon: Icon, color, isPercentage = false }) => (
-    <Paper
-      elevation={0}
-      className="statCard"
-      sx={{ bgcolor: '#f3f3f3', }}  
-    >
+    <Paper elevation={0} className="statCard" sx={{ bgcolor: '#f3f3f3' }}>
       <Box className="statCardContent">
-        <Box
-          className="statCardIcon"
-          sx={{ bgcolor: `${color}15` }}
-        >
+        <Box className="statCardIcon" sx={{ bgcolor: `${color}15` }}>
           <Icon sx={{ fontSize: 20, color }} />
         </Box>
         <Box className="statCardValue">
-          <Typography variant="h6" className="statCardNumber" sx={{fontFamily: '"Oswald", sans-serif'}}>
+          <Typography variant="h6" className="statCardNumber" sx={{ fontFamily: '"Oswald", sans-serif' }}>
             {count}{isPercentage && '%'}
           </Typography>
-          <Typography variant="body2" className="statCardLabel" sx={{fontFamily: '"Oswald", sans-serif'}}>
+          <Typography variant="body2" className="statCardLabel" sx={{ fontFamily: '"Oswald", sans-serif' }}>
             {title}
           </Typography>
         </Box>
@@ -325,7 +400,7 @@ const Dashboard = () => {
 
   if (systemsLoading) {
     return (
-      <Box className="loadingContainer">
+      <Box className="dashboardLoadingContainer">
         <Loading />
       </Box>
     )
@@ -333,29 +408,30 @@ const Dashboard = () => {
 
   return (
     <Box className="dashboardContainer">
-      {/* Welcome Message with Filters on Same Line */}
+
+      <ForceChangePasswordDialog
+        open={forceChangePasswordOpen}
+        onClose={() => setForceChangePasswordOpen(false)}
+        user={user}
+      />
+
       <Box className="welcomeSection" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
-        <Typography 
-          variant="h6" 
-          className="welcomeTitle"
-          sx={{fontFamily: '"Oswald", sans-serif'}}
-        >
+        <Typography variant="h6" className="welcomeTitle" sx={{ fontFamily: '"Oswald", sans-serif' }}>
           Welcome back, {user?.first_name || 'User'}!
         </Typography>
 
-        {/* Filters on Right Side */}
         {canFilterByTeam && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Tooltip title="Refresh systems" placement="top">
               <IconButton
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                sx={{
-                  color: '#03346E',
-                  '&:hover': { backgroundColor: 'rgba(3, 52, 110, 0.08)' }
-                }}
+                sx={{ color: '#03346E', '&:hover': { backgroundColor: 'rgba(3, 52, 110, 0.08)' } }}
               >
-                <CachedIcon sx={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none', '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } } }} />
+                <CachedIcon sx={{
+                  animation: isRefreshing ? 'spin 1s linear infinite' : 'none',
+                  '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } }
+                }} />
               </IconButton>
             </Tooltip>
             <FormControl className="filterSelect" size="small">
@@ -366,12 +442,10 @@ const Dashboard = () => {
                 className="filterSelectInput"
               >
                 <MenuItem value="">
-                  <Typography className="filterMenuItemText" sx={{fontFamily: '"Oswald", sans-serif'}}>All Teams</Typography>
+                  <Typography className="filterMenuItemText" sx={{ fontFamily: '"Oswald", sans-serif' }}>All Teams</Typography>
                 </MenuItem>
                 {teams.map((team) => (
-                  <MenuItem key={team.id} value={team.id}>
-                    {team.name}
-                  </MenuItem>
+                  <MenuItem key={team.id} value={team.id}>{team.name}</MenuItem>
                 ))}
               </Select>
             </FormControl>
@@ -393,39 +467,24 @@ const Dashboard = () => {
         )}
       </Box>
 
-      {/* Summary Cards */}
       <Box className="summarySectionWrapper">
         <Box className="summaryCardBox">
-          <StatCard
-            title="Pending"
-            count={stats.pending}
-            icon={PendingActionsIcon}
-            color="#857fe0"
-          />
+          <StatCard title="Pending" count={stats.pending} icon={PendingActionsIcon} color="#857fe0" />
         </Box>
         <Box className="summaryCardBox">
-          <StatCard
-            title="Progress"
-            count={parseInt(stats.percentage)}
-            icon={CheckCircleIcon}
-            color="#160d92"
-            isPercentage={true}
-          />
+          <StatCard title="Progress" count={parseInt(stats.percentage)} icon={CheckCircleIcon} color="#160d92" isPercentage={true} />
         </Box>
       </Box>
 
-      {/* Systems Grid */}
       {systemsError ? (
         <Box className="emptyStateContainer">
           <Box className="emptyStateContent">
-            <Box>
-              <Nodata />
-            </Box>
+            <Box><Nodata /></Box>
             <Box className="emptyStateText">
-              <Typography variant="h6" className="emptyStateTitle" sx={{fontFamily: '"Oswald", sans-serif'}}>
+              <Typography variant="h6" className="emptyStateTitle" sx={{ fontFamily: '"Oswald", sans-serif' }}>
                 {user?.team?.name || 'Your Team'}
               </Typography>
-              <Typography variant="body2" className="emptyStateDescription" sx={{fontFamily: '"Oswald", sans-serif'}}>
+              <Typography variant="body2" className="emptyStateDescription" sx={{ fontFamily: '"Oswald", sans-serif' }}>
                 Currently no system
               </Typography>
             </Box>
@@ -434,14 +493,9 @@ const Dashboard = () => {
       ) : !Array.isArray(filteredSystems) || filteredSystems.length === 0 ? (
         <Box className="emptyStateContainer">
           <Box className="emptyStateContent">
-            <Box
-              component="img"
-              src={nodataImg}
-              alt="No data"
-              className="emptyStateImage"
-            />
+            <Box component="img" src={nodataImg} alt="No data" className="emptyStateImage" />
             <Box className="emptyStateText">
-              <Typography variant="h6" className="emptyStateTitle" sx={{fontFamily: '"Oswald", sans-serif'}}>
+              <Typography variant="h6" className="emptyStateTitle" sx={{ fontFamily: '"Oswald", sans-serif' }}>
                 {user?.team?.name || 'Projects'}
               </Typography>
               <Typography variant="body2" className="emptyStateDescription">
@@ -452,28 +506,23 @@ const Dashboard = () => {
         </Box>
       ) : (
         <Box className="systemsGrid">
-          {filteredSystems.map((system, idx) => {
-            return (
-          <Box
-            key={`${system.systemName}-${idx}`}
-            onClick={() => navigate(`/SystemCategory/${system.systemName}`)}
-            className="systemCard"
-          >
-            {/* Project Name Header */}
-            <Typography variant='h6' className="projectName" sx={{fontFamily: '"Oswald", sans-serif'}}>
-              {system.systemName}
-            </Typography>
-
-            {/* All Stats from SystemProgress */}
-            <Box className="systemCardContent">
-              <SystemProgress 
-                system={system} 
-                onNavigate={() => navigate(`/SystemCategory/${system.systemName}`)}
-              />
+          {filteredSystems.map((system, idx) => (
+            <Box
+              key={`${system.systemName}-${idx}`}
+              onClick={() => navigate(`/SystemCategory/${system.systemName}`)}
+              className="systemCard"
+            >
+              <Typography variant='h6' className="projectName" sx={{ fontFamily: '"Oswald", sans-serif' }}>
+                {system.systemName}
+              </Typography>
+              <Box className="systemCardContent">
+                <SystemProgress
+                  system={system}
+                  onNavigate={() => navigate(`/SystemCategory/${system.systemName}`)}
+                />
+              </Box>
             </Box>
-          </Box>
-            )
-          })}
+          ))}
         </Box>
       )}
     </Box>

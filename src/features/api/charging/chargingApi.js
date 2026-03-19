@@ -8,14 +8,13 @@ export const chargingApi = todoListApi.injectEndpoints({
         if (params.status) queryParams.status = params.status;
         if (params.paginate !== undefined)
           queryParams.paginate = params.paginate;
-        if (params.pagination) queryParams.pagination = params.pagination;
         if (params.term) queryParams.term = params.term;
 
-        const config = { url: "charging" };
-        if (Object.keys(queryParams).length > 0) {
-          config.params = queryParams;
-        }
-        return config;
+        return {
+          url: "sync_charging",
+          method: "POST",
+          body: queryParams,
+        };
       },
       providesTags: ["Charging"],
     }),
@@ -27,7 +26,7 @@ export const chargingApi = todoListApi.injectEndpoints({
 
     createCharging: builder.mutation({
       query: (newCharging) => ({
-        url: "charging",
+        url: "charging", // ✅ make sure this route exists in Laravel
         method: "POST",
         body: newCharging,
       }),
@@ -40,15 +39,12 @@ export const chargingApi = todoListApi.injectEndpoints({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: (result, error, { id }) => [
-        { type: "Charging", id },
-        "Charging",
-      ],
+      invalidatesTags: ["Charging"],
     }),
 
     deleteCharging: builder.mutation({
       query: (id) => ({
-        url: `charging/${id}`,
+        url: `charging/${id}`, // ✅ make sure this route exists in Laravel
         method: "DELETE",
       }),
       invalidatesTags: ["Charging"],

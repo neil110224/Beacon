@@ -340,7 +340,7 @@ export default function SystemteamEditDialog({
         message={snackbar.message}
         severity={snackbar.severity}
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       />
     </>
   )

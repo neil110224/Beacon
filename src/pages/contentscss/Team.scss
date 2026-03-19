@@ -2,10 +2,10 @@
 @import "../../styles/mixins.scss";
 
 .teamLoadingContainer {
-  min-height: 60vh;
   display: flex;
   justify-content: center;
   align-items: center;
+  min-height: 500px;
 }
 
 .teamContainer {

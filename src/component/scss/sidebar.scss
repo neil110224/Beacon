@@ -2,19 +2,16 @@
 @use "../../styles/colors" as *;
 
 // ========== SIDEBAR FONT SIZE VARIABLES ==========
-// Edit these values to change font sizes for all sidebar buttons at once
 $sidebar-button-font-size: 1rem;
 $sidebar-icon-font-size: 1.2rem;
 // ============================================
 
 // ========== SIDEBAR COLOR VARIABLES ==========
-// Edit these values to change colors for all sidebar elements
 $sidebar-icon-color: #03346E;
 $sidebar-text-color: #03346E;
 $sidebar-text-color-active: #001835;
 // ============================================
 
-// Main Sidebar Container Wrapper
 .sidebarWrapper {
   --sidebar-btn-font-size: #{$sidebar-button-font-size};
   --sidebar-icon-font-size: #{$sidebar-icon-font-size};
@@ -30,7 +27,6 @@ $sidebar-text-color-active: #001835;
   box-shadow: 1px 0 14px rgba(0, 0, 0, 0.2);
   position: relative;
 
-
   &--collapsed {
     min-width: 90px;
     max-width: 90px;
@@ -42,7 +38,6 @@ $sidebar-text-color-active: #001835;
   }
 }
 
-// Main Sidebar Container
 .sidebar {
   background: $primary-dark;
   height: 100vh;
@@ -54,14 +49,12 @@ $sidebar-text-color-active: #001835;
   box-shadow: 4px 0 12px rgba(0, 0, 0, 0.1);
 }
 
-// Header Section - FIXED LOGO POSITION, FLUSH LEFT
 .header {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
   padding: 0.5rem 0;
-
   height: 60px;
   min-height: 60px;
   max-height: 60px;
@@ -84,7 +77,6 @@ $sidebar-text-color-active: #001835;
   }
 }
 
-// Logo Section - FIXED SIZE, NO MOVEMENT, FLUSH LEFT
 .logoBox {
   width: 80px;
   height: 80px;
@@ -108,7 +100,6 @@ $sidebar-text-color-active: #001835;
   }
 }
 
-// Title Section
 .titleBox {
   display: flex;
   align-items: center;
@@ -117,7 +108,6 @@ $sidebar-text-color-active: #001835;
   justify-content: center;
 }
 
-// Title Heading
 .title {
   margin: 0;
   font-size: 1.5rem;
@@ -127,7 +117,6 @@ $sidebar-text-color-active: #001835;
   color: $primary-text-light;
 }
 
-// List/Nav Container
 .list {
   flex-grow: 1;
   overflow-y: auto;
@@ -135,8 +124,6 @@ $sidebar-text-color-active: #001835;
   padding: 0;
   color: $primary-text-dark;
 
-
-  // Hide scrollbar
   &::-webkit-scrollbar {
     display: none;
   }
@@ -144,7 +131,6 @@ $sidebar-text-color-active: #001835;
   scrollbar-width: none;
 }
 
-// List Item Button - ICON ALWAYS ON LEFT, FLUSH TO EDGE
 .listItemButton {
   background: transparent;
   color: $primary-text-dark;
@@ -153,7 +139,7 @@ $sidebar-text-color-active: #001835;
   border-radius: 0;
   margin-bottom: 0.5rem;
   padding: 0;
-  padding-left:0;
+  padding-left: 0;
   margin-left: 0;
   margin-right: 0;
   border: none;
@@ -162,7 +148,7 @@ $sidebar-text-color-active: #001835;
   min-height: 48px;
   max-height: 48px;
   display: flex;
-  gap: 0.5rem;  // Gap between icon and text
+  gap: 0.5rem;
   position: relative;
   width: 100%;
 
@@ -179,7 +165,6 @@ $sidebar-text-color-active: #001835;
   }
 }
 
-// List Item Icon - FIXED WIDTH, NO MOVEMENT ON COLLAPSE
 .listItemIcon {
   color: $sidebar-icon-color;
   height: 30px;
@@ -194,7 +179,6 @@ $sidebar-text-color-active: #001835;
   }
 }
 
-// List Item Text - FLEXIBLE, EXPANDS TO FILL SPACE
 .listItemText {
   font-weight: 300;
   font-size: $sidebar-button-font-size;
@@ -203,7 +187,7 @@ $sidebar-text-color-active: #001835;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-left: 0;  // Flush text to the left
+  margin-left: 0;
 
   span {
     display: block;
@@ -212,7 +196,6 @@ $sidebar-text-color-active: #001835;
   }
 }
 
-// Masterlist Styles
 .masterlistButton {
   padding-left: 0;
 
@@ -230,7 +213,6 @@ $sidebar-text-color-active: #001835;
   }
 }
 
-// Nested List Items (Masterlist children)
 .nestedItem {
   background-color: transparent;
   color: $primary-text-dark;
@@ -258,7 +240,6 @@ $sidebar-text-color-active: #001835;
   }
 }
 
-// Menu Item Styles
 .menuItem {
   background-color: transparent;
   color: $primary-text-dark;
@@ -284,12 +265,11 @@ $sidebar-text-color-active: #001835;
   }
 }
 
-// Spacer
 .spacer {
   flex-grow: 1;
 }
 
-// Sidebar Resize Handle - Draggable Indicator
+// ✅ Resize handle — gray color
 .sidebarResizeHandle {
   position: absolute;
   right: 0;
@@ -297,8 +277,8 @@ $sidebar-text-color-active: #001835;
   bottom: 0;
   width: 8px;
   cursor: ew-resize;
-  transition: all 0.5s ease;
-  background: linear-gradient(90deg, rgba(82, 152, 114, 0.2) 0%, rgba(82, 152, 114, 0.4) 50%, rgba(82, 152, 114, 0.2) 100%);
+  transition: all 0.3s ease;
+  background: linear-gradient(90deg, rgba(160, 160, 160, 0.2) 0%, rgba(160, 160, 160, 0.4) 50%, rgba(160, 160, 160, 0.2) 100%);
 
   &::before {
     content: '';
@@ -310,24 +290,24 @@ $sidebar-text-color-active: #001835;
     height: 40px;
     background: repeating-linear-gradient(
       90deg,
-      rgba(82, 152, 114, 0.5),
-      rgba(82, 152, 114, 0.5) 2px,
+      rgba(150, 150, 150, 0.5),
+      rgba(150, 150, 150, 0.5) 2px,
       transparent 2px,
       transparent 4px
     );
     border-radius: 2px;
-    transition: all 0.5s ease;
+    transition: all 0.3s ease;
   }
 
   &:hover {
-    background: linear-gradient(90deg, rgba(82, 152, 114, 0.4) 0%, rgba(82, 152, 114, 0.6) 50%, rgba(82, 152, 114, 0.4) 100%);
-    box-shadow: -2px 0 8px rgba(82, 152, 114, 0.3);
+    background: linear-gradient(90deg, rgba(130, 130, 130, 0.4) 0%, rgba(130, 130, 130, 0.6) 50%, rgba(130, 130, 130, 0.4) 100%);
+    box-shadow: -2px 0 8px rgba(130, 130, 130, 0.3);
 
     &::before {
       background: repeating-linear-gradient(
         90deg,
-        rgba(82, 152, 114, 0.8),
-        rgba(82, 152, 114, 0.8) 2px,
+        rgba(120, 120, 120, 0.8),
+        rgba(120, 120, 120, 0.8) 2px,
         transparent 2px,
         transparent 4px
       );
@@ -336,18 +316,16 @@ $sidebar-text-color-active: #001835;
   }
 
   &:active {
-    background: linear-gradient(90deg, rgba(82, 152, 114, 0.5) 0%, rgba(82, 152, 114, 0.7) 50%, rgba(82, 152, 114, 0.5) 100%);
-    box-shadow: -4px 0 12px rgba(82, 152, 114, 0.4);
+    background: linear-gradient(90deg, rgba(110, 110, 110, 0.5) 0%, rgba(110, 110, 110, 0.7) 50%, rgba(110, 110, 110, 0.5) 100%);
+    box-shadow: -4px 0 12px rgba(110, 110, 110, 0.4);
   }
 }
 
-// Tooltip Styles
 .tooltip {
   font-family: "Oswald", sans-serif;
   font-size: 0.875rem;
 }
 
-// Responsive adjustments
 @include bp.sm {
   .sidebar {
     &--collapsed {

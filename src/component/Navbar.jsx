@@ -44,7 +44,25 @@ const Navbar = () => {
   const location = useLocation();
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [teamDialogOpen, setTeamDialogOpen] = useState(false);
-  const [activePage, setActivePage] = useState("HOME");
+  // Determine active page from route, with Masterlist parent
+  const routeToPage = {
+    '/dashboard': 'Dashboard',
+    '/users': 'Users',
+    '/role': 'Role',
+    '/charging': 'Charging',
+    '/category': 'Category',
+    '/team': 'Team',
+    '/systems': 'Systems',
+  };
+  const masterlistRoutes = ['/users', '/role', '/charging', '/category', '/team'];
+  const path = location.pathname.toLowerCase();
+  let activePage = routeToPage[path] || (path.startsWith('/systemcategory') ? 'System Category' : '');
+  let isMasterlist = false;
+  let masterlistChild = '';
+  if (masterlistRoutes.includes(path)) {
+    isMasterlist = true;
+    masterlistChild = routeToPage[path];
+  }
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
@@ -134,6 +152,8 @@ const Navbar = () => {
             isSidebarLocked={isSidebarLocked}
             onToggleSidebarLock={handleToggleSidebarLock}
             isSidebarCollapsed={isSidebarCollapsed}
+            // ✅ Pass setter so Sidebar can auto-collapse via drag
+            onCollapse={setIsSidebarCollapsed}
             isMobile={false}
           />
         </Box>
@@ -154,6 +174,8 @@ const Navbar = () => {
           isSidebarLocked={isSidebarLocked}
           onToggleSidebarLock={handleToggleSidebarLock}
           isSidebarCollapsed={isSidebarCollapsed}
+          // ✅ Pass setter so Sidebar can auto-collapse via drag
+          onCollapse={setIsSidebarCollapsed}
           isMobile={true}
           mobileDrawerOpen={mobileDrawerOpen}
           onCloseMobileDrawer={handleToggleMobileDrawer}
@@ -181,11 +203,55 @@ const Navbar = () => {
               </Tooltip>
             )}
 
+            {/* Mobile Menu Button (left of active page) */}
             {showMobileSidebar && (
-              <IconButton onClick={handleToggleMobileDrawer} className="mobileMenuButton">
+              <IconButton onClick={handleToggleMobileDrawer} className="mobileMenuButton" sx={{ mr: 1 }}>
                 <MenuIcon />
               </IconButton>
             )}
+
+            {/* Active Page Name */}
+            <Typography
+              className="activePageLabel"
+              sx={{
+                fontFamily: OSWALD,
+                fontWeight: 600,
+                fontSize: '1.1rem',
+                color: '#03346E',
+                ml: 1,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                minWidth: '95px',
+                display: (activePage || isMasterlist) ? 'block' : 'none',
+              }}
+            >
+              {isMasterlist ? (
+                <>
+                  <span
+                    style={{
+                      fontSize: '0.75em',
+                      fontWeight: 600,
+                      opacity: 0.85,
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    Masterlist
+                  </span>
+                  <span style={{ margin: '0 0.4em', fontSize: '1.1rem', opacity: 0.7, }}>{'>'}</span>
+                  <span
+                    style={{
+                      fontSize: '1.1rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.5px',
+                    }}
+                  >
+                    {masterlistChild}
+                  </span>
+                </>
+              ) : (
+                activePage
+              )}
+            </Typography>
           </Box>
 
           {/* User Info */}
