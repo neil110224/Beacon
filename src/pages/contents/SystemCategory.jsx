@@ -1,8 +1,11 @@
-import { Box, CircularProgress, Accordion, AccordionSummary, AccordionDetails, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Select, MenuItem, Snackbar, Alert, TextField, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Menu, Tabs, Tab, FormControl, InputLabel, Tooltip } from '@mui/material'
+import { Box, CircularProgress, Accordion, AccordionSummary, AccordionDetails, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Select, MenuItem, Snackbar, Alert, TextField, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Menu, Tabs, Tab, FormControl, InputLabel, Tooltip, Checkbox, Collapse } from '@mui/material'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import AddIcon from '@mui/icons-material/Add'
 import CheckIcon from '@mui/icons-material/Check'
+import DoneAllIcon from '@mui/icons-material/DoneAll'
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import React, { useMemo, useState, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
@@ -17,15 +20,15 @@ import { useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
 import '../contentscss/SystemCategory.scss'
 import Confirmation from '../../component/reuseable/Confirmation'
-import SettingsSystemDaydreamIcon from '@mui/icons-material/SettingsSystemDaydream';
+import SettingsSystemDaydreamIcon from '@mui/icons-material/SettingsSystemDaydream'
 
 const OSWALD = '"Oswald", sans-serif'
+const PAGE_SIZE = 10
+
 const SystemCategory = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const { systemName } = useParams()
   const user = useSelector(selectCurrentUser)
-
-  console.log('URL systemName:', systemName)
 
   const buildQueryParams = () => {
     const isUserRole = user?.role?.name?.toLowerCase() === "user"
@@ -38,11 +41,11 @@ const SystemCategory = () => {
 
   const queryParams = buildQueryParams()
   const { data: systemsData, isLoading, error, refetch } = useGetSystemsListQuery(queryParams)
-  console.log('Systems Data:', systemsData)
   const [updateProgressStatus] = useUpdateProgressStatusMutation()
   const [updateProgress] = useUpdateProgressMutation()
   const [createProgress] = useCreateProgressMutation()
   const { data: categoriesData } = useGetCategoriesListQuery({ status: 'active', pagination: 'none' })
+
   const [editingStatus, setEditingStatus] = useState({})
   const [editingDates, setEditingDates] = useState({})
   const [editingRemarks, setEditingRemarks] = useState({})
@@ -55,28 +58,28 @@ const SystemCategory = () => {
   const [markAsDoneDialog, setMarkAsDoneDialog] = useState({ open: false, item: null, action: null })
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('pending')
   const [dateEditDialog, setDateEditDialog] = useState({ open: false, item: null, raised_date: null, target_date: null, end_date: null })
-  const [createDialog, setCreateDialog] = useState({
-    open: false,
-    selectedCategory: '',
-    description: '',
-    raisedDate: null,
-    targetDate: null,
-    remarks: ''
-  })
+  const [createDialog, setCreateDialog] = useState({ open: false, selectedCategory: '', description: '', raisedDate: null, targetDate: null, remarks: '' })
   const [createLoading, setCreateLoading] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState(null)
   const [editDialog, setEditDialog] = useState({ open: false, item: null, remarks: '' })
 
+  // Per-category "show all" toggle (key = category index)
+  const [expandedCategories, setExpandedCategories] = useState({})
+
+  // Selection state: { [categoryIdx]: Set of item ids }
+  const [selectedItems, setSelectedItems] = useState({})
+
+  // Bulk mark as done dialog
+  const [bulkDoneDialog, setBulkDoneDialog] = useState({ open: false, categoryIdx: null, end_date: null })
+  const [bulkLoading, setBulkLoading] = useState(false)
+
   const currentSystem = useMemo(() => {
     if (!systemsData || !Array.isArray(systemsData)) return null
-    const found = systemsData.find(sys => sys.systemName === systemName)
-    console.log('Current System:', found)
-    return found
+    return systemsData.find(sys => sys.systemName === systemName) || null
   }, [systemsData, systemName])
 
   const allCategories = useMemo(() => {
     if (!categoriesData) return []
-    console.log('Categories Data:', categoriesData)
     if (Array.isArray(categoriesData)) return categoriesData
     if (Array.isArray(categoriesData.data)) return categoriesData.data
     if (Array.isArray(categoriesData.data?.data)) return categoriesData.data.data
@@ -86,12 +89,7 @@ const SystemCategory = () => {
   }, [categoriesData])
 
   const getStatusColor = useCallback((status) => {
-    const statusColors = {
-      pending: '#ff9800',
-      done: '#4caf50',
-      hold: '#2196f3',
-      inprogress: '#9c27b0',
-    }
+    const statusColors = { pending: '#ff9800', done: '#4caf50', hold: '#2196f3', inprogress: '#9c27b0' }
     return statusColors[status?.toLowerCase()] || '#9e9e9e'
   }, [])
 
@@ -102,32 +100,88 @@ const SystemCategory = () => {
   ], [])
 
   const getStatusLabel = useCallback((status) => {
-    const statusMap = {
-      'pending': 'Pending',
-      'hold': 'On Hold',
-      'done': 'Done',
-      'inprogress': 'In Progress'
-    }
+    const statusMap = { 'pending': 'Pending', 'hold': 'On Hold', 'done': 'Done', 'inprogress': 'In Progress' }
     return statusMap[status?.toLowerCase()] || status || '-'
   }, [])
 
   const getUpdatedBy = useCallback((item) => {
-    const updatedBy = item?.updated_by;
+    const updatedBy = item?.updated_by
     if (updatedBy) {
-      // Prefer first_name + last_name if available
-      const first = updatedBy.first_name || '';
-      const last = updatedBy.last_name || '';
-      const fullName = `${first} ${last}`.trim();
-      if (fullName !== '') return fullName;
-      // Fallback to username if present
-      if (updatedBy.username) return updatedBy.username;
-      // Fallback to name property if present
-      if (updatedBy.name) return updatedBy.name;
-      // Fallback to stringified object if nothing else
-      return typeof updatedBy === 'string' ? updatedBy : '-';
+      const first = updatedBy.first_name || ''
+      const last = updatedBy.last_name || ''
+      const fullName = `${first} ${last}`.trim()
+      if (fullName !== '') return fullName
+      if (updatedBy.username) return updatedBy.username
+      if (updatedBy.name) return updatedBy.name
+      return typeof updatedBy === 'string' ? updatedBy : '-'
     }
-    return '-';
+    return '-'
   }, [])
+
+  // ── Selection helpers ──────────────────────────────────────────────────────
+
+  const getSelected = useCallback((catIdx) => selectedItems[catIdx] || new Set(), [selectedItems])
+
+  const toggleSelectItem = useCallback((catIdx, itemId) => {
+    setSelectedItems(prev => {
+      const set = new Set(prev[catIdx] || [])
+      set.has(itemId) ? set.delete(itemId) : set.add(itemId)
+      return { ...prev, [catIdx]: set }
+    })
+  }, [])
+
+  const toggleSelectAll = useCallback((catIdx, visibleItems) => {
+    setSelectedItems(prev => {
+      const set = new Set(prev[catIdx] || [])
+      const allSelected = visibleItems.every(i => set.has(i.id))
+      if (allSelected) {
+        visibleItems.forEach(i => set.delete(i.id))
+      } else {
+        visibleItems.forEach(i => set.add(i.id))
+      }
+      return { ...prev, [catIdx]: set }
+    })
+  }, [])
+
+  const clearSelection = useCallback((catIdx) => {
+    setSelectedItems(prev => ({ ...prev, [catIdx]: new Set() }))
+  }, [])
+
+  // ── Bulk Mark As Done ──────────────────────────────────────────────────────
+
+  const handleOpenBulkDone = useCallback((catIdx) => {
+    setBulkDoneDialog({ open: true, categoryIdx: catIdx, end_date: null })
+  }, [])
+
+  const handleCloseBulkDone = useCallback(() => {
+    setBulkDoneDialog({ open: false, categoryIdx: null, end_date: null })
+  }, [])
+
+  const handleConfirmBulkDone = useCallback(async () => {
+    const { categoryIdx, end_date } = bulkDoneDialog
+    if (categoryIdx === null || !end_date) return
+    const ids = Array.from(getSelected(categoryIdx))
+    if (!ids.length) return
+    setBulkLoading(true)
+    try {
+      await Promise.all(ids.map(id =>
+        updateProgress({ progressId: id, status: 'done', end_date: end_date.format('YYYY-MM-DD') }).unwrap()
+      ))
+      await refetch()
+      clearSelection(categoryIdx)
+      setSnackbar({ open: true, message: `${ids.length} item(s) marked as done!`, severity: 'success' })
+      handleCloseBulkDone()
+    } catch (err) {
+      let msg = 'Failed to mark items as done'
+      if (err?.data?.errors?.length > 0) msg = err.data.errors[0]?.detail || msg
+      else if (err?.data?.message) msg = err.data.message
+      setSnackbar({ open: true, message: msg, severity: 'error' })
+    } finally {
+      setBulkLoading(false)
+    }
+  }, [bulkDoneDialog, getSelected, updateProgress, refetch, clearSelection])
+
+  // ── Existing handlers ──────────────────────────────────────────────────────
 
   const handleStatusChange = useCallback(async (itemId, newStatus) => {
     setEditingStatus(prev => ({ ...prev, [itemId]: newStatus }))
@@ -144,28 +198,6 @@ const SystemCategory = () => {
       setLoadingStatusId(null)
     }
   }, [updateProgressStatus, refetch])
-
-  const handleEndDateChange = useCallback(async (item, newDate) => {
-    const formattedDate = newDate ? dayjs(newDate).format('YYYY-MM-DD') : null
-    setEditingDates(prev => ({ ...prev, [item.id]: { ...prev[item.id], end_date: formattedDate } }))
-    setLoadingStatusId(item.id)
-    try {
-      await updateProgress({ progressId: item.id, end_date: formattedDate, status: item.status }).unwrap()
-      await refetch()
-      setEditingDates(prev => { const s = { ...prev }; delete s[item.id]; return s })
-      setSnackbar({ open: true, message: 'End date updated successfully!', severity: 'success' })
-    } catch (err) {
-      let errorMessage = 'Failed to update end date'
-      if (err?.data?.errors?.length > 0) errorMessage = err.data.errors[0]?.detail || err.data.errors[0]?.message || errorMessage
-      else if (err?.data?.detail) errorMessage = err.data.detail
-      else if (err?.data?.message) errorMessage = err.data.message
-      else if (typeof err?.data === 'string') errorMessage = err.data
-      setSnackbar({ open: true, message: errorMessage, severity: 'error' })
-      setEditingDates(prev => { const s = { ...prev }; delete s[item.id]; return s })
-    } finally {
-      setLoadingStatusId(null)
-    }
-  }, [updateProgress, refetch])
 
   const handleRemarksChange = useCallback(async (item, newRemarks) => {
     setEditingRemarks(prev => ({ ...prev, [item.id]: newRemarks }))
@@ -313,12 +345,12 @@ const SystemCategory = () => {
     setLoadingStatusId('creating')
     try {
       if (!currentSystem) {
-        setSnackbar({ open: true, message: 'System not found. Please select a system first.', severity: 'error' })
+        setSnackbar({ open: true, message: 'System not found.', severity: 'error' })
         setCreateLoading(false); setLoadingStatusId(null); return
       }
       const systemId = currentSystem.id || currentSystem.system_id
       if (!systemId) {
-        setSnackbar({ open: true, message: 'System ID not found in system data.', severity: 'error' })
+        setSnackbar({ open: true, message: 'System ID not found.', severity: 'error' })
         setCreateLoading(false); setLoadingStatusId(null); return
       }
       const selectedCategoryObj = allCategories.find(cat => cat.id === createDialog.selectedCategory)
@@ -340,7 +372,6 @@ const SystemCategory = () => {
           }]
         }]
       }
-      console.log('Create Progress Payload:', payload)
       setNewCategoryName(selectedCategoryObj.categoryName || selectedCategoryObj.name)
       await createProgress(payload).unwrap()
       await refetch()
@@ -404,9 +435,7 @@ const SystemCategory = () => {
     '& .MuiFormLabel-root': { fontFamily: OSWALD },
   }
 
-  if (isLoading) {
-    return <Box className="systemCategoryLoadingContainer"><CircularProgress /></Box>
-  }
+  if (isLoading) return <Box className="systemCategoryLoadingContainer"><CircularProgress /></Box>
 
   if (error) {
     return (
@@ -427,8 +456,6 @@ const SystemCategory = () => {
   }
 
   const isDoneTab = selectedStatusFilter === 'done'
-
-  // Columns where we want center alignment
   const centeredColumns = ['Status']
 
   return (
@@ -447,7 +474,7 @@ const SystemCategory = () => {
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Tooltip title="Back to System page" arrow>
-            <IconButton aria-label="Go to System List" onClick={() => navigate('/systems')} sx={{ color: '#03346E' }}>
+            <IconButton onClick={() => navigate('/systems')} sx={{ color: '#03346E' }}>
               <SettingsSystemDaydreamIcon />
             </IconButton>
           </Tooltip>
@@ -469,7 +496,10 @@ const SystemCategory = () => {
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
           <Tabs
             value={selectedStatusFilter}
-            onChange={(e, newValue) => setSelectedStatusFilter(newValue)}
+            onChange={(e, newValue) => {
+              setSelectedStatusFilter(newValue)
+              setSelectedItems({})
+            }}
             sx={{
               '& .MuiTab-root': { fontFamily: OSWALD, textTransform: 'capitalize', fontWeight: 600 },
               '& .Mui-selected': { color: '#03346E' },
@@ -486,6 +516,14 @@ const SystemCategory = () => {
           currentSystem.categories.map((category, idx) => {
             const filteredProgress = category.progress.filter(item => item.status?.toLowerCase() === selectedStatusFilter)
             const isNewCategory = newCategoryName === category.categoryName
+            const isExpanded = !!expandedCategories[idx]
+            const visibleItems = isExpanded ? filteredProgress : filteredProgress.slice(0, PAGE_SIZE)
+            const hasMore = filteredProgress.length > PAGE_SIZE
+            const selected = getSelected(idx)
+            const selectedCount = selected.size
+            const allVisibleSelected = visibleItems.length > 0 && visibleItems.every(i => selected.has(i.id))
+            const someSelected = selectedCount > 0 && !allVisibleSelected
+
             return (
               <Accordion
                 key={idx}
@@ -494,17 +532,63 @@ const SystemCategory = () => {
                 sx={isNewCategory ? { backgroundColor: 'rgba(3, 52, 110, 0.05)', border: '2px solid #03346E' } : {}}
               >
                 <AccordionSummary expandIcon={<ExpandMoreIcon className="systemCategoryExpandIcon" />}>
-                  <Typography variant="h6" sx={{ fontFamily: OSWALD }}>
-                    {category.categoryName}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%', pr: 2 }}>
+                    <Typography variant="h6" sx={{ fontFamily: OSWALD, flex: 1 }}>
+                      {category.categoryName}
+                    </Typography>
+
+                    {/* Selection toolbar — only show on non-done tabs when items exist */}
+                    {!isDoneTab && filteredProgress.length > 0 && selectedCount > 0 && (
+                      <Box
+                        onClick={e => e.stopPropagation()}
+                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                      >
+                        <Chip
+                          label={`${selectedCount} selected`}
+                          size="small"
+                          sx={{ fontFamily: OSWALD, backgroundColor: '#03346E', color: '#fff', fontWeight: 600 }}
+                        />
+                        <Button
+                          size="small"
+                          variant="contained"
+                          startIcon={<DoneAllIcon />}
+                          onClick={() => handleOpenBulkDone(idx)}
+                          sx={{ backgroundColor: '#4caf50', fontFamily: OSWALD, fontSize: '0.75rem', py: 0.4 }}
+                        >
+                          Mark as Done
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="text"
+                          onClick={() => clearSelection(idx)}
+                          sx={{ fontFamily: OSWALD, fontSize: '0.75rem', color: '#888' }}
+                        >
+                          Clear
+                        </Button>
+                      </Box>
+                    )}
+                  </Box>
                 </AccordionSummary>
+
                 <AccordionDetails>
-                  {filteredProgress && filteredProgress.length > 0 ? (
+                  {filteredProgress.length > 0 ? (
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <TableContainer component={Paper} className="systemCategoryTableContainer">
                         <Table size="small" className="systemCategoryTable">
                           <TableHead>
                             <TableRow className="systemCategoryTableHead">
+                              {/* Checkbox column — only on non-done tabs */}
+                              {!isDoneTab && (
+                                <TableCell padding="checkbox" sx={{ backgroundColor: 'inherit' }}>
+                                  <Checkbox
+                                    size="small"
+                                    indeterminate={someSelected}
+                                    checked={allVisibleSelected}
+                                    onChange={() => toggleSelectAll(idx, visibleItems)}
+                                    sx={{ color: '#fff', '&.Mui-checked': { color: '#fff' }, '&.MuiCheckbox-indeterminate': { color: '#fff' } }}
+                                  />
+                                </TableCell>
+                              )}
                               {(isDoneTab
                                 ? ['ID', 'Description', 'Remarks', 'Raised Date', 'Target Date', 'End Date', 'Updated By', 'Status']
                                 : ['ID', 'Description', 'Remarks', 'Raised Date', 'Target Date', 'End Date', 'Updated By', 'Status', 'Action']
@@ -520,8 +604,8 @@ const SystemCategory = () => {
                             </TableRow>
                           </TableHead>
                           <TableBody>
-                            {filteredProgress.map((item) => {
-                              console.log('Progress item:', item)
+                            {visibleItems.map((item) => {
+                              const isChecked = selected.has(item.id)
                               return (
                                 <TableRow
                                   key={item.id}
@@ -529,9 +613,22 @@ const SystemCategory = () => {
                                   onClick={() => item.status?.toLowerCase() !== 'done' && !anchorEl && handleOpenDateEditDialog(item)}
                                   sx={{
                                     cursor: item.status?.toLowerCase() === 'done' ? 'default' : 'pointer',
+                                    backgroundColor: isChecked ? 'rgba(3, 52, 110, 0.06)' : 'inherit',
                                     '&:hover': { backgroundColor: item.status?.toLowerCase() === 'done' ? 'transparent' : 'rgba(3, 52, 110, 0.08)' }
                                   }}
                                 >
+                                  {/* Checkbox cell */}
+                                  {!isDoneTab && (
+                                    <TableCell padding="checkbox" onClick={e => e.stopPropagation()}>
+                                      <Checkbox
+                                        size="small"
+                                        checked={isChecked}
+                                        onChange={() => toggleSelectItem(idx, item.id)}
+                                        sx={{ color: '#03346E', '&.Mui-checked': { color: '#03346E' } }}
+                                      />
+                                    </TableCell>
+                                  )}
+
                                   <TableCell sx={{ fontFamily: OSWALD }}>{item.id}</TableCell>
                                   <TableCell sx={{ fontFamily: OSWALD }}>{item.description}</TableCell>
 
@@ -591,13 +688,8 @@ const SystemCategory = () => {
 
                                   <TableCell sx={{ fontFamily: OSWALD }}>{item.raised_date}</TableCell>
                                   <TableCell sx={{ fontFamily: OSWALD }}>{item.target_date || item.start_date || '-'}</TableCell>
-
                                   <TableCell sx={{ fontFamily: OSWALD }}>{item.end_date || '-'}</TableCell>
-                                  {/* Updated By (moved) */}
-                                  <TableCell sx={{ fontFamily: OSWALD, color: '#555' }}>
-                                    {getUpdatedBy(item)}
-                                  </TableCell>
-                                  {/* Status — centered */}
+                                  <TableCell sx={{ fontFamily: OSWALD, color: '#555' }}>{getUpdatedBy(item)}</TableCell>
                                   <TableCell align="center">
                                     <Chip
                                       label={getStatusLabel(item.status)}
@@ -613,7 +705,6 @@ const SystemCategory = () => {
                                     />
                                   </TableCell>
 
-                                  {/* Action — hidden on Done tab */}
                                   {!isDoneTab && (
                                     <TableCell>
                                       <IconButton
@@ -645,6 +736,23 @@ const SystemCategory = () => {
                           </TableBody>
                         </Table>
                       </TableContainer>
+
+                      {/* Show more / Show less */}
+                      {hasMore && (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1.5 }}>
+                          <Button
+                            size="small"
+                            variant="text"
+                            endIcon={isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                            onClick={() => setExpandedCategories(prev => ({ ...prev, [idx]: !prev[idx] }))}
+                            sx={{ fontFamily: OSWALD, color: '#03346E', fontWeight: 600, fontSize: '0.8rem' }}
+                          >
+                            {isExpanded
+                              ? 'Show less'
+                              : `Show all ${filteredProgress.length} items`}
+                          </Button>
+                        </Box>
+                      )}
                     </LocalizationProvider>
                   ) : (
                     <Box className="systemCategoryEmptyItems">
@@ -696,7 +804,7 @@ const SystemCategory = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Date Edit Dialog */}
+      {/* Date Edit Dialog (single item mark as done) */}
       <Dialog open={dateEditDialog.open} onClose={handleCloseDateEditDialog} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 600, color: '#03346E', fontFamily: OSWALD }}>Mark As Done?</DialogTitle>
         <DialogContent>
@@ -718,7 +826,7 @@ const SystemCategory = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDateEditDialog} color="primary" disabled={loadingStatusId === dateEditDialog.item?.id} sx={{ fontFamily: OSWALD }}>Cancel</Button>
+          <Button onClick={handleCloseDateEditDialog} disabled={loadingStatusId === dateEditDialog.item?.id} sx={{ fontFamily: OSWALD }}>Cancel</Button>
           <Button
             onClick={handleConfirmDateEdit}
             variant="contained"
@@ -726,6 +834,42 @@ const SystemCategory = () => {
             disabled={!dateEditDialog.end_date || loadingStatusId === dateEditDialog.item?.id}
           >
             {loadingStatusId === dateEditDialog.item?.id ? 'Marking as done...' : 'Mark as Done'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Bulk Mark As Done Dialog */}
+      <Dialog open={bulkDoneDialog.open} onClose={handleCloseBulkDone} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 600, color: '#03346E', fontFamily: OSWALD }}>
+          Mark {bulkDoneDialog.categoryIdx !== null ? getSelected(bulkDoneDialog.categoryIdx).size : 0} Item(s) as Done
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Typography variant="body2" sx={{ color: '#666', fontStyle: 'italic', fontFamily: OSWALD }}>
+              Please provide an end date to mark the selected items as done.
+            </Typography>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <Box>
+                <Typography variant="caption" sx={{ color: '#666', fontWeight: 500, fontFamily: OSWALD }}>End Date *</Typography>
+                <DatePicker
+                  value={bulkDoneDialog.end_date}
+                  onChange={(newDate) => setBulkDoneDialog(prev => ({ ...prev, end_date: newDate }))}
+                  slotProps={{ textField: { size: "small", fullWidth: true, sx: oswaldInputSx } }}
+                  disabled={bulkLoading}
+                />
+              </Box>
+            </LocalizationProvider>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseBulkDone} disabled={bulkLoading} sx={{ fontFamily: OSWALD }}>Cancel</Button>
+          <Button
+            onClick={handleConfirmBulkDone}
+            variant="contained"
+            sx={{ backgroundColor: '#4caf50', fontFamily: OSWALD }}
+            disabled={!bulkDoneDialog.end_date || bulkLoading}
+          >
+            {bulkLoading ? <><CircularProgress size={16} sx={{ mr: 1, color: '#fff' }} />Marking...</> : 'Confirm'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -842,14 +986,7 @@ const SystemCategory = () => {
 
             <Box>
               <Typography variant="caption" sx={{ color: '#666', fontWeight: 500, fontFamily: OSWALD }}>Status</Typography>
-              <TextField
-                value="Pending"
-                fullWidth
-                size="small"
-                disabled
-                variant="outlined"
-                sx={oswaldInputSx}
-              />
+              <TextField value="Pending" fullWidth size="small" disabled variant="outlined" sx={oswaldInputSx} />
             </Box>
 
             <TextField
@@ -873,9 +1010,7 @@ const SystemCategory = () => {
             sx={{ backgroundColor: '#03346E', fontFamily: OSWALD }}
             disabled={createLoading || !createDialog.selectedCategory || !createDialog.description || !createDialog.raisedDate}
           >
-            {createLoading ? (
-              <><CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />Creating...</>
-            ) : 'Create'}
+            {createLoading ? <><CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />Creating...</> : 'Create'}
           </Button>
         </DialogActions>
       </Dialog>

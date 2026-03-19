@@ -60,15 +60,22 @@
 }
 
 // Paper Container for main table
+// overflow: hidden is handled via MUI sx on the Paper component
 .dataTablePaper {
   border-radius: 12px;
-  overflow: hidden;
   border: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  width: 100%;
+  box-sizing: border-box;
 }
 
-// Table Container with custom scrollbar
+// Table Container — THE ONLY ELEMENT THAT SCROLLS
+// The scrollbar lives here, never on the browser window
 .dataTableContainer {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+
   &::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -81,33 +88,50 @@
   &::-webkit-scrollbar-thumb {
     background-color: $primary-text-light;
     border-radius: 4px;
-    
+
     &:hover {
       background-color: $primary-text-dark;
     }
   }
 }
 
-
 // Table base styles
 .dataTableBase {
-  min-width: 1400px;
+  min-width: 100%;
+  width: 100%;
+  table-layout: auto;
+  border-collapse: collapse;
 
-  // Table cell padding
   & .MuiTableCell-root {
     padding: 8px;
+    word-break: break-word;
+    max-width: 200px;
   }
 
   @include bp.md {
-    min-width: 900px;
+    min-width: 100%;
+    & .MuiTableCell-root {
+      max-width: 140px;
+      font-size: 0.95rem;
+    }
   }
 
   @include bp.sm {
-    min-width: 600px;
+    min-width: 100%;
+    & .MuiTableCell-root {
+      max-width: 100px;
+      font-size: 0.85rem;
+      padding: 6px 2px;
+    }
   }
 
   @include bp.xs {
-    min-width: 500px;
+    min-width: 100%;
+    & .MuiTableCell-root {
+      max-width: 70px;
+      font-size: 0.75rem;
+      padding: 4px 1px;
+    }
   }
 }
 
@@ -118,26 +142,32 @@
 
 // Table Header Cell
 .dataTableHeaderCell {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 800;
   color: $primary-text-light;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  
+  max-width: 200px;
+
   &:hover {
     background-color: rgba(0, 0, 0, 0.1);
     cursor: help;
   }
 
-  @include bp.sm {
+  @include bp.md {
     font-size: 1rem;
-    padding: 8px 4px;
+    max-width: 140px;
   }
-
-  @include bp.xs {
-    font-size: 0.85rem;
+  @include bp.sm {
+    font-size: 0.9rem;
+    max-width: 100px;
     padding: 6px 2px;
+  }
+  @include bp.xs {
+    font-size: 0.75rem;
+    max-width: 70px;
+    padding: 4px 1px;
   }
 }
 
@@ -162,7 +192,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  
+  max-width: 200px;
+
   &:hover {
     overflow: visible;
     text-overflow: initial;
@@ -170,14 +201,19 @@
     word-break: break-word;
   }
 
-  @include bp.sm {
-    font-size: 0.875rem;
-    padding: 8px 4px;
+  @include bp.md {
+    font-size: 0.95rem;
+    max-width: 140px;
   }
-
+  @include bp.sm {
+    font-size: 0.85rem;
+    max-width: 100px;
+    padding: 6px 2px;
+  }
   @include bp.xs {
     font-size: 0.75rem;
-    padding: 6px 2px;
+    max-width: 70px;
+    padding: 4px 1px;
   }
 }
 
@@ -198,8 +234,3 @@
   color: $primary-text-light;
   margin-bottom: 8px;
 }
-
-// // Table Pagination
-// .dataTablePagination {
-//   component: div;
-// }

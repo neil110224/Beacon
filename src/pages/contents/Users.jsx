@@ -4,6 +4,7 @@ import {
   useDeleteUserMutation,
   useCreateUserMutation,
   useUpdateUserMutation,
+  useResetPasswordMutation,
 } from '../../features/api/user/userApi'
 import { useDebounce } from '../../hooks/useDebounce'
 import { useSelector } from 'react-redux'
@@ -25,6 +26,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert'
 import ArchiveIcon from '@mui/icons-material/Archive'
 import RestoreIcon from '@mui/icons-material/Restore'
 import EditIcon from '@mui/icons-material/Edit'
+import RestartAltIcon from '@mui/icons-material/RestartAlt'
 import Snackbar from '../../component/reuseable/Snackbar'
 import MasterlistTab from '../../component/reuseable/MasterlistTab'
 import '../contentscss/Users.scss'
@@ -39,8 +41,9 @@ const Users = () => {
   const [selectedUser, setSelectedUser] = useState(null)
   const [userDialogOpen, setUserDialogOpen] = useState(false)
   const [showArchived, setShowArchived] = useState(false)
-  const [isTabSwitching, setIsTabSwitching] = useState(false) // ← add this
+  const [isTabSwitching, setIsTabSwitching] = useState(false)
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false)
+  const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false)
   const [snackbarOpen, setSnackbarOpen] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
   const [snackbarSeverity, setSnackbarSeverity] = useState('success')
@@ -54,6 +57,7 @@ const Users = () => {
   const [deleteUser, { isLoading: isArchiving }] = useDeleteUserMutation()
   const [createUser] = useCreateUserMutation()
   const [updateUser] = useUpdateUserMutation()
+  const [resetPassword, { isLoading: isResetting }] = useResetPasswordMutation()
 
   const users = Array.isArray(data?.data?.data) ? data.data.data : Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : []
 
@@ -61,6 +65,36 @@ const Users = () => {
   const handleMenuClose = () => { setAnchorEl(null); }
   const handleEdit = () => { setUserDialogOpen(true); handleMenuClose(); }
   const handleArchive = () => { if (!selectedUser) return; setConfirmDialogOpen(true); setAnchorEl(null); }
+
+  const handleResetPassword = () => {
+    if (!selectedUser) return
+    setResetPasswordDialogOpen(true)
+    setAnchorEl(null)
+  }
+
+  const handleConfirmResetPassword = async () => {
+    if (!selectedUser) return
+    try {
+      await resetPassword(selectedUser.id).unwrap()
+      setResetPasswordDialogOpen(false)
+      setSelectedUser(null)
+      setSnackbarMessage('Password reset successfully!')
+      setSnackbarSeverity('success')
+      setSnackbarOpen(true)
+    } catch (error) {
+      const errorMessage = error?.data?.errors?.[0]?.detail || 'Failed to reset password. Please try again.'
+      console.error('Failed to reset password:', error)
+      setSnackbarMessage(errorMessage)
+      setSnackbarSeverity('error')
+      setSnackbarOpen(true)
+    }
+  }
+
+  const handleCancelResetPassword = () => {
+    setResetPasswordDialogOpen(false)
+    setSelectedUser(null)
+  }
+
   const handleConfirmArchive = async () => {
     if (!selectedUser) return
     try {
@@ -78,12 +112,14 @@ const Users = () => {
       setSnackbarOpen(true)
     }
   }
+
   const handleCancelConfirm = () => { setConfirmDialogOpen(false); setSelectedUser(null); }
+
   const handleTabChange = (event, newValue) => {
-  setIsTabSwitching(true)           // ← add this
-  setShowArchived(newValue === 1)
-  setTimeout(() => setIsTabSwitching(false), 600)  // ← add this
-}
+    setIsTabSwitching(true)
+    setShowArchived(newValue === 1)
+    setTimeout(() => setIsTabSwitching(false), 600)
+  }
 
   const columns = [
     { id: 'id', label: 'ID', align: 'center' },
@@ -135,6 +171,10 @@ const Users = () => {
                 <EditIcon fontSize="small" className="usersEditIcon" />
                 Edit
               </MenuItem>,
+              <MenuItem key="reset-password" onClick={handleResetPassword} disabled={isResetting} className="usersMenuItem">
+                <RestartAltIcon fontSize="small" className="usersResetPasswordIcon" />
+                Reset Password
+              </MenuItem>,
               <MenuItem key="archive" onClick={handleArchive} disabled={isArchiving} className="usersMenuItem">
                 <ArchiveIcon fontSize="small" className="usersArchiveIcon" />
                 Archive
@@ -146,13 +186,8 @@ const Users = () => {
     },
   ]
 
-
-  // Determine if we should show Nodata (no users found, or 404 on search)
-  // Show Nodata if searching and no users found (active or archive), regardless of error
-  const showNoData =
-    !isLoading && users.length === 0 && searchTerm && !showArchived;
-  const showArchiveNoData =
-    !isLoading && users.length === 0 && searchTerm && showArchived;
+  const showNoData = !isLoading && users.length === 0 && searchTerm && !showArchived;
+  const showArchiveNoData = !isLoading && users.length === 0 && searchTerm && showArchived;
 
   return (
     <>
@@ -169,14 +204,10 @@ const Users = () => {
           onRefresh={refetch}
         />
 
-
-
         {showNoData && (
           <Box className="usersEmptyStateWrapper">
             <Box className="usersEmptyStateBox">
-              <Box style={{ width: 300, margin: '0 auto' }}>
-                <Nodata />
-              </Box>
+              <Box style={{ width: 300, margin: '0 auto' }}><Nodata /></Box>
               <Box className="usersEmptyTextBox">
                 <Typography variant="h6" className="usersEmptyTitle">Users</Typography>
                 <Typography variant="body2">Currently no "{searchTerm}" data.</Typography>
@@ -188,9 +219,7 @@ const Users = () => {
         {showArchiveNoData && (
           <Box className="usersEmptyStateWrapper">
             <Box className="usersEmptyStateBox">
-              <Box style={{ width: 300, margin: '0 auto' }}>
-                <Nodata />
-              </Box>
+              <Box style={{ width: 300, margin: '0 auto' }}><Nodata /></Box>
               <Box className="usersEmptyTextBox">
                 <Typography variant="h6" className="usersEmptyTitle">Users</Typography>
                 <Typography variant="body2">Currently no "{searchTerm}" data in the archive.</Typography>
@@ -202,9 +231,7 @@ const Users = () => {
         {!showNoData && !showArchiveNoData && (!isLoading && users.length === 0 && !isError) || (isError && showArchived && !searchTerm) ? (
           <Box className="usersEmptyStateWrapper">
             <Box className="usersEmptyStateBox">
-              <Box style={{ width: 300, margin: '0 auto' }}>
-                <Nodata />
-              </Box>
+              <Box style={{ width: 300, margin: '0 auto' }}><Nodata /></Box>
               <Box className="usersEmptyTextBox">
                 <Typography variant="h6" className="usersEmptyTitle">Users</Typography>
                 <Typography variant="body2">{showArchived ? "Currently no users in the archive." : "No users data available."}</Typography>
@@ -223,25 +250,12 @@ const Users = () => {
             error={error}
             tableSx={{ 
               minWidth: 1200,
-              '& .MuiTableCell-root': {
-                padding: '14px 16px',
-                fontSize: '0.875rem',
-                color: '#2c3e50',
-              },
-              '& .MuiTableBody-root .MuiTableRow-root': {
-                cursor: 'default',
-              }
+              '& .MuiTableCell-root': { padding: '14px 16px', fontSize: '0.875rem', color: '#2c3e50' },
+              '& .MuiTableBody-root .MuiTableRow-root': { cursor: 'default' }
             }}
             headSx={{ 
               background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
-              '& th': { 
-                fontWeight: 600,
-                color: '#ffffff !important',
-                fontSize: '0.875rem',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                padding: '16px',
-              }
+              '& th': { fontWeight: 600, color: '#ffffff !important', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '16px' }
             }}
           />
         )}
@@ -261,6 +275,14 @@ const Users = () => {
           onConfirm={handleConfirmArchive}
           title={selectedUser?.deleted_at ? "Confirm Restore" : "Confirm Archive"}
           message={selectedUser?.deleted_at ? "Are you sure you want to restore this user?" : "Are you sure you want to archive this user?"}
+        />
+
+        <Confirmation
+          open={resetPasswordDialogOpen}
+          onClose={handleCancelResetPassword}
+          onConfirm={handleConfirmResetPassword}
+          title="Reset Password"
+          message="Are you sure you want to reset the password? It will be set back to the user's username."
         />
 
         <Snackbar

@@ -258,6 +258,7 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
   const isEdit = !!role;
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [localLoading, setLocalLoading] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
 
   const {
     register,
@@ -295,7 +296,8 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
         await onSave({ name: data.name, access_permissions: data.permissions }).unwrap();
       }
       setSnackbar({ open: true, message: isEdit ? 'Role updated successfully!' : 'Role created successfully!', severity: 'success' });
-      setTimeout(() => { setLocalLoading(false); onClose(); }, 1000);
+      setJustSaved(true);
+      setTimeout(() => { setLocalLoading(false); setJustSaved(false); onClose(); }, 1000);
     } catch (error) {
       setLocalLoading(false);
       setSnackbar({ open: true, message: error?.data?.message || error.message || 'An error occurred', severity: 'error' });
@@ -361,7 +363,7 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
         <DialogActions sx={{ padding: 2, gap: 1 }}>
           <Button
             onClick={onClose}
-            disabled={isLoading || localLoading}
+            disabled={isLoading || localLoading || justSaved}
             sx={{ textTransform: 'none', color: '#666', fontFamily: OSWALD, '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' } }}
           >
             Cancel
@@ -369,8 +371,8 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
           <Button
             onClick={handleSubmit(onSubmit)}
             variant="contained"
-            disabled={isLoading || localLoading}
-            startIcon={(isLoading || localLoading) && <CircularProgress size={20} />}
+            disabled={isLoading || localLoading || justSaved}
+            startIcon={(isLoading || localLoading || justSaved) && <CircularProgress size={20} />}
             sx={{
               textTransform: 'none',
               backgroundColor: '#2c3e50',
@@ -379,7 +381,7 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
               '&:disabled': { backgroundColor: '#ccc' },
             }}
           >
-            {isLoading || localLoading ? 'Saving...' : isEdit ? 'Update Role' : 'Create Role'}
+            {isLoading || localLoading || justSaved ? 'Saving...' : isEdit ? 'Update Role' : 'Create Role'}
           </Button>
         </DialogActions>
       </Dialog>

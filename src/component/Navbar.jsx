@@ -20,8 +20,10 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { selectCurrentUser, logout } from "../features/api/slice/authSlice";
+import LockOpenIcon from '@mui/icons-material/LockOpen';
 
 import ChangeProfileDialog from "../pages/dialog/ChangeProfileDialog";
+import Changepassword from "../pages/dialog/Changepassword";
 import MainContent from "./MainContent";
 import Confirmation from "./reuseable/Confirmation";
 
@@ -38,6 +40,7 @@ import "./scss/navbar.scss";
 const OSWALD = '"Oswald", sans-serif';
 
 const Navbar = () => {
+    const [changePasswordDialogOpen, setChangePasswordDialogOpen] = useState(false);
   const user = useSelector(selectCurrentUser);
   const dispatch = useDispatch();
   const firstName = user?.first_name;
@@ -139,6 +142,11 @@ const Navbar = () => {
   };
 
   const handleProfileDialogClose = () => setProfileDialogOpen(false);
+  const handleChangePasswordDialogOpen = () => {
+    setChangePasswordDialogOpen(true);
+    handleClose();
+  };
+  const handleChangePasswordDialogClose = () => setChangePasswordDialogOpen(false);
 
   const handleLogoutClick = () => {
     handleClose();
@@ -326,6 +334,12 @@ const Navbar = () => {
                 Change information
               </Typography>
             </MenuItem>
+            <MenuItem onClick={handleChangePasswordDialogOpen} className="menuItem">
+              <LockOpenIcon className="menuIcon" />
+              <Typography className="menuItemText" sx={{ fontFamily: OSWALD }}>
+                Change password
+              </Typography>
+            </MenuItem>
             <MenuItem onClick={handleLogoutClick} className="menuItem logoutItem">
               <LogoutIcon className="menuIcon" />
               <Typography className="menuItemText" sx={{ fontFamily: OSWALD }}>
@@ -363,6 +377,11 @@ const Navbar = () => {
       <ChangeProfileDialog
         open={profileDialogOpen}
         onClose={handleProfileDialogClose}
+        user={user}
+      />
+      <Changepassword
+        open={changePasswordDialogOpen}
+        onClose={handleChangePasswordDialogClose}
         user={user}
       />
     </Box>

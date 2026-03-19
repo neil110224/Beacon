@@ -35,6 +35,7 @@ export default function CategoryFormDialog({ open, onClose, category = null, onS
   const isEdit = !!category;
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [localLoading, setLocalLoading] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
 
  const {
   register,
@@ -80,9 +81,11 @@ export default function CategoryFormDialog({ open, onClose, category = null, onS
         severity: 'success',
       });
 
+      setJustSaved(true);
       reset();
       setTimeout(() => {
         setLocalLoading(false);
+        setJustSaved(false);
         onClose();
       }, 500);
     } catch (error) {
@@ -98,8 +101,9 @@ export default function CategoryFormDialog({ open, onClose, category = null, onS
   };
 
   const handleDialogClose = () => {
-    if (localLoading || isLoading) return;
+    if (localLoading || isLoading || justSaved) return;
     reset();
+    setJustSaved(false);
     onClose();
   };
 
@@ -124,21 +128,21 @@ export default function CategoryFormDialog({ open, onClose, category = null, onS
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleDialogClose} disabled={isLoading || localLoading} sx={{ fontFamily: OSWALD }}>
+        <Button onClick={handleDialogClose} disabled={isLoading || localLoading || justSaved} sx={{ fontFamily: OSWALD }}>
           Cancel
         </Button>
         <Button
           onClick={handleSubmit(onSubmit)}
           variant="contained"
-          disabled={isLoading || localLoading}
-          startIcon={(isLoading || localLoading) && <CircularProgress size={20} />}
+          disabled={isLoading || localLoading || justSaved}
+          startIcon={(isLoading || localLoading || justSaved) && <CircularProgress size={20} />}
           sx={{
             backgroundColor: '#2c3e50',
             fontFamily: OSWALD,
             '&:hover': { backgroundColor: '#34495e' },
           }}
         >
-          {(isLoading || localLoading) ? 'Saving...' : isEdit ? 'Update' : 'Create'}
+          {(isLoading || localLoading || justSaved) ? 'Saving...' : isEdit ? 'Update' : 'Create'}
         </Button>
       </DialogActions>
 

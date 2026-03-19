@@ -32,31 +32,20 @@ function TablePaginationActions(props) {
 
   return (
     <Box className="paginationActionsWrapper">
-      <IconButton
-        onClick={(e) => onPageChange(e, 0)}
-        disabled={page === 0}
-      >
+      <IconButton onClick={(e) => onPageChange(e, 0)} disabled={page === 0}>
         {theme.direction === "rtl" ? <LastPageIcon /> : <FirstPageIcon />}
       </IconButton>
-
-      <IconButton
-        onClick={(e) => onPageChange(e, page - 1)}
-        disabled={page === 0}
-      >
+      <IconButton onClick={(e) => onPageChange(e, page - 1)} disabled={page === 0}>
         {theme.direction === "rtl" ? <KeyboardArrowRight /> : <KeyboardArrowLeft />}
       </IconButton>
-
       <IconButton
         onClick={(e) => onPageChange(e, page + 1)}
         disabled={page >= Math.ceil(count / rowsPerPage) - 1}
       >
         {theme.direction === "rtl" ? <KeyboardArrowLeft /> : <KeyboardArrowRight />}
       </IconButton>
-
       <IconButton
-        onClick={(e) =>
-          onPageChange(e, Math.max(0, Math.ceil(count / rowsPerPage) - 1))
-        }
+        onClick={(e) => onPageChange(e, Math.max(0, Math.ceil(count / rowsPerPage) - 1))}
         disabled={page >= Math.ceil(count / rowsPerPage) - 1}
       >
         {theme.direction === "rtl" ? <FirstPageIcon /> : <LastPageIcon />}
@@ -72,10 +61,44 @@ TablePaginationActions.propTypes = {
   onPageChange: PropTypes.func.isRequired,
 };
 
+const headerCellSx = (col) => ({
+  width: col.width || "auto",
+  minWidth: col.minWidth || "unset",
+  maxWidth: col.maxWidth || col.width || "120px", // respects col.maxWidth, falls back to col.width, then 120px
+  fontSize: "1.1rem",
+  color: "#03346E",
+  fontWeight: 700,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+  textTransform: "uppercase",
+  textAlign: "center",
+  cursor: "help",
+  padding: "4px 8px",
+  fontFamily: '"Oswald", sans-serif',
+  "@media (max-width: 768px)": { fontSize: "1rem", padding: "8px 4px" },
+  "@media (max-width: 575.98px)": { fontSize: "0.85rem", padding: "6px 2px" },
+});
+
+const bodyCellSx = (col, cellTextColor) => ({
+  width: col.width || "auto",
+  minWidth: col.minWidth || "unset",
+  maxWidth: col.maxWidth || col.width || "120px", // same logic as header
+  color: cellTextColor,
+  fontSize: "0.85rem",
+  textAlign: "center",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+  fontFamily: '"Oswald", sans-serif',
+  "@media (max-width: 768px)": { fontSize: "0.875rem", padding: "8px 4px" },
+  "@media (max-width: 575.98px)": { fontSize: "0.75rem", padding: "6px 2px" },
+});
+
 function DataTable({
-  columns = [],          // ✅ default safe
-  rows = [],             // ✅ default safe
-  totalCount = 0,        // ✅ default safe
+  columns = [],
+  rows = [],
+  totalCount = 0,
   isLoading = false,
   isError = false,
   error = null,
@@ -83,26 +106,32 @@ function DataTable({
   tableSx = { minWidth: 1400 },
   headSx = { bgcolor: "#dadada" },
   onRowClick = null,
+  heightOffset = "180px",
 }) {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
-  // Prevent slice crash if rows is undefined
   const safeRows = Array.isArray(rows) ? rows : [];
+  const paginatedRows = safeRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
-  const paginatedRows = safeRows.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
+  const paperSx = {
+    display: "flex",
+    flexDirection: "column",
+    width: "100%",
+    height: `calc(100vh - ${heightOffset})`,
+    overflow: "hidden",
+  };
+
+  const tableContainerSx = {
+    flex: 1,
+    overflow: "auto",
+    minHeight: 0,
+  };
 
   if (isLoading) {
     return (
-      <Paper 
-        elevation={0}
-        className="dataTablePaper"
-        sx={{ display: "flex", flexDirection: "column", maxHeight: "400px" }}
-      >
-        <TableContainer className="dataTableContainer" sx={{ overflow: "auto", flex: 1 }}>
+      <Paper elevation={0} className="dataTablePaper" sx={paperSx}>
+        <TableContainer className="dataTableContainer" sx={tableContainerSx}>
           <Table className="dataTableBase">
             <TableHead className="dataTableHead" sx={{ position: "sticky", top: 0, zIndex: 1 }}>
               <TableRow>
@@ -110,65 +139,21 @@ function DataTable({
                   <TableCell align="center"><Skeleton width="100%" /></TableCell>
                 ) : (
                   columns.map((col) => (
-                    <TableCell 
-                      key={col.id} 
-                      align={col.align || "left"} 
-                      className="dataTableHeaderCell"
-                      sx={{ 
-                        width: col.width,
-                        maxWidth: "150px",
-                        fontSize: "1.3rem",
-                        color: "#03346E",
-                        fontWeight: 700,
-                        fontFamily: '"Oswald", sans-serif',
-                        '@media (max-width: 768px)': {
-                          fontSize: '1rem',
-                          padding: '8px 4px'
-                        },
-                        '@media (max-width: 575.98px)': {
-                          fontSize: '0.85rem',
-                          maxWidth: '100px',
-                          padding: '6px 2px'
-                        }
-                      }}
-                    >
+                    <TableCell key={col.id} align={col.align || "center"} className="dataTableHeaderCell" sx={headerCellSx(col)}>
                       <Skeleton />
                     </TableCell>
                   ))
                 )}
               </TableRow>
-            </TableHead>  
-
+            </TableHead>
             <TableBody>
               {Array.from(new Array(10)).map((_, rowIndex) => (
-                <TableRow 
-                  key={rowIndex}
-                  className="dataTableRow"
-                >
+                <TableRow key={rowIndex} className="dataTableRow">
                   {columns.length === 0 ? (
                     <TableCell align="center"><Skeleton width="100%" /></TableCell>
                   ) : (
                     columns.map((col) => (
-                      <TableCell 
-                        key={col.id} 
-                        align={col.align || "left"} 
-                        className="dataTableBodyCell"
-                        sx={{ 
-                          width: col.width, 
-                          maxWidth: "150px",
-                          fontSize: "0.85rem",
-                          fontFamily: '"Oswald", sans-serif',
-                          '@media (max-width: 768px)': {
-                            fontSize: '0.875rem',
-                            padding: '8px 4px'
-                          },
-                          '@media (max-width: 575.98px)': {
-                            fontSize: '0.75rem',
-                            maxWidth: '100px',
-                            padding: '6px 2px'
-                          }
-                        }}
-                      >
+                      <TableCell key={col.id} align={col.align || "center"} className="dataTableBodyCell" sx={bodyCellSx(col, cellTextColor)}>
                         <Skeleton />
                       </TableCell>
                     ))
@@ -178,7 +163,6 @@ function DataTable({
             </TableBody>
           </Table>
         </TableContainer>
-
         <TablePagination
           component="div"
           rowsPerPageOptions={[10, 20, 30, 50]}
@@ -188,15 +172,14 @@ function DataTable({
           onPageChange={() => {}}
           onRowsPerPageChange={() => {}}
           ActionsComponent={TablePaginationActions}
-          sx={{ color: "#03346E" }}
+          sx={{ color: "#03346E", flexShrink: 0 }}
         />
       </Paper>
     );
   }
 
-  // Check if error is 404 (no records found) - treat as empty state
   const isNotFoundError = error?.status === 404 || error?.data?.errors?.[0]?.status === 404;
-  
+
   if (isError && !isNotFoundError && error) {
     return (
       <Box className="dataTableError">
@@ -205,34 +188,20 @@ function DataTable({
     );
   }
 
-  // If 404 or no rows, show empty state with Nodata animation
   if (isNotFoundError || safeRows.length === 0) {
     return (
-              <Box className="emptyStateContainer" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px', fontFamily: '"Oswald", sans-serif' }}>
+      <Box
+        className="emptyStateContainer"
+        sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px", width: "100%", fontFamily: '"Oswald", sans-serif' }}
+      >
         <Nodata />
       </Box>
     );
   }
 
   return (
-    <Paper 
-      elevation={0}
-      className="dataTablePaper"
-      sx={{ 
-        display: "flex", 
-        flexDirection: "column", 
-        height: "420px",
-        '@media (max-width: 768px)': {
-          height: 'auto',
-          maxHeight: '500px'
-        },
-        '@media (max-width: 575.98px)': {
-          height: 'auto',
-          maxHeight: '400px'
-        }
-      }}
-    >
-      <TableContainer className="dataTableContainer" sx={{ overflow: "auto", flex: 1, minHeight: 0 }}>
+    <Paper elevation={0} className="dataTablePaper" sx={paperSx}>
+      <TableContainer className="dataTableContainer" sx={tableContainerSx}>
         <Table className="dataTableBase">
           <TableHead className="dataTableHead" sx={{ position: "sticky", top: 0, zIndex: 1 }}>
             <TableRow>
@@ -240,90 +209,46 @@ function DataTable({
                 <TableCell align="center">No Columns Defined</TableCell>
               ) : (
                 columns.map((col) => (
-                  <TableCell 
-                    key={col.id} 
-                    align={col.align || "left"} 
-                    className="dataTableHeaderCell" 
+                  <TableCell
+                    key={col.id}
+                    align={col.align || "center"}
+                    className="dataTableHeaderCell"
                     title={col.label}
-                    sx={{ 
-                      width: col.width, 
-                      maxWidth: "150px",
-                      fontSize: "1.3rem", 
-                      color: "#03346E", 
-                      fontWeight: 700,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      cursor: "help",
-                      fontFamily: '"Oswald", sans-serif',
-                      '@media (max-width: 768px)': {
-                        fontSize: '1rem',
-                        padding: '8px 4px'
-                      },
-                      '@media (max-width: 575.98px)': {
-                        fontSize: '0.85rem',
-                        maxWidth: '100px',
-                        padding: '6px 2px'
-                      }
-                    }}
+                    sx={headerCellSx(col)}
                   >
                     {col.label}
                   </TableCell>
                 ))
               )}
             </TableRow>
-          </TableHead>  
+          </TableHead>
 
           <TableBody>
             {paginatedRows.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length || 1}
-                  align="center"
-                  className="dataTableEmptyCell"
-                >
+                <TableCell colSpan={columns.length || 1} align="center" className="dataTableEmptyCell">
                   <Box className="emptyDataBox">
                     <InboxIcon className="emptyDataIcon" />
-                    <Typography variant="body1" color="text.secondary" sx={{fontFamily: '"Oswald", sans-serif'}}>
-                      {safeRows.length === 0
-                        ? "No data available"
-                        : "No data on this page"}
+                    <Typography variant="body1" color="text.secondary" sx={{ fontFamily: '"Oswald", sans-serif' }}>
+                      {safeRows.length === 0 ? "No data available" : "No data on this page"}
                     </Typography>
                   </Box>
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedRows.map((row, index) => (
-                <TableRow 
+              paginatedRows.map((row) => (
+                <TableRow
                   key={row.id || Math.random()}
                   className="dataTableRow"
                   onClick={() => onRowClick && onRowClick(row)}
-                  sx={{ cursor: onRowClick ? 'pointer' : 'default' }}
+                  sx={{ cursor: onRowClick ? "pointer" : "default" }}
                 >
                   {columns.map((col) => (
-                    <TableCell 
-                      key={col.id} 
-                      align={col.align || "left"} 
-                      className="dataTableBodyCell" 
-                      sx={{ 
-                        width: col.width, 
-                        maxWidth: "150px",
-                        color: cellTextColor,
-                        fontSize: "0.85rem",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        fontFamily: '"Oswald", sans-serif',
-                        '@media (max-width: 768px)': {
-                          fontSize: '0.875rem',
-                          padding: '8px 4px'
-                        },
-                        '@media (max-width: 575.98px)': {
-                          fontSize: '0.75rem',
-                          maxWidth: '100px',
-                          padding: '6px 2px'
-                        }
-                      }}
+                    <TableCell
+                      key={col.id}
+                      align={col.align || "center"}
+                      className="dataTableBodyCell"
+                      sx={bodyCellSx(col, cellTextColor)}
                     >
                       {col.render ? col.render(row) : row[col.id]}
                     </TableCell>
@@ -337,7 +262,7 @@ function DataTable({
 
       <TablePagination
         component="div"
-        rowsPerPageOptions={[10,20, 30, 50]}
+        rowsPerPageOptions={[10, 20, 30, 50]}
         count={totalCount || safeRows.length}
         rowsPerPage={rowsPerPage}
         page={page}
@@ -347,19 +272,15 @@ function DataTable({
           setPage(0);
         }}
         ActionsComponent={TablePaginationActions}
-        sx={{ 
+        sx={{
           color: "#03346E",
-          '@media (max-width: 768px)': {
-            fontSize: '0.875rem',
-            padding: '8px'
+          flexShrink: 0,
+          "@media (max-width: 768px)": { fontSize: "0.875rem", padding: "8px" },
+          "@media (max-width: 575.98px)": {
+            fontSize: "0.75rem",
+            padding: "4px",
+            "& .MuiToolbar-root": { padding: "4px 8px" },
           },
-          '@media (max-width: 575.98px)': {
-            fontSize: '0.75rem',
-            padding: '4px',
-            '& .MuiToolbar-root': {
-              padding: '4px 8px'
-            }
-          }
         }}
       />
     </Paper>
@@ -372,6 +293,9 @@ DataTable.propTypes = {
       id: PropTypes.string.isRequired,
       label: PropTypes.string.isRequired,
       align: PropTypes.string,
+      width: PropTypes.string,
+      minWidth: PropTypes.string,
+      maxWidth: PropTypes.string,
       render: PropTypes.func,
     })
   ),
@@ -383,6 +307,7 @@ DataTable.propTypes = {
   tableSx: PropTypes.object,
   headSx: PropTypes.object,
   cellTextColor: PropTypes.string,
+  heightOffset: PropTypes.string,
 };
 
 export default DataTable;

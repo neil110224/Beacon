@@ -62,6 +62,7 @@ const createUserValidationSchema = (isEdit) => {
 export default function UserFormDialog({ open, onClose, user = null, onSave, isLoading = false }) {
   const isEdit = !!user;
   const [apiLoading, setApiLoading] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [selectedRoleForEdit, setSelectedRoleForEdit] = useState(null);
@@ -228,8 +229,10 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
       }
 
       // Reset form and close
+      setJustSaved(true);
       reset();
       setTimeout(() => {
+        setJustSaved(false);
         onClose();
       }, 500);
     } catch (error) {
@@ -263,6 +266,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
     reset();
     setChargingSearchInput('');
     setSnackbar({ open: false, message: '', severity: 'success' });
+    setJustSaved(false);
     onClose();
   };
 
@@ -454,17 +458,17 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleDialogClose} disabled={apiLoading || isLoading} sx={{ fontFamily: OSWALD }}>
+        <Button onClick={handleDialogClose} disabled={apiLoading || isLoading || justSaved} sx={{ fontFamily: OSWALD }}>
           Cancel
         </Button>
         <Button
           onClick={handleSubmit(onSubmit)}
           variant="contained"
-          disabled={apiLoading || isLoading}
-          startIcon={(apiLoading || isLoading) && <CircularProgress size={20} />}
+          disabled={apiLoading || isLoading || justSaved}
+          startIcon={(apiLoading || isLoading || justSaved) && <CircularProgress size={20} />}
           sx={{ fontFamily: OSWALD }}
         >
-          {apiLoading || isLoading ? 'Saving...' : isEdit ? 'Update' : 'Save'}
+          {apiLoading || isLoading || justSaved ? 'Saving...' : isEdit ? 'Update' : 'Save'}
         </Button>
       </DialogActions>
 

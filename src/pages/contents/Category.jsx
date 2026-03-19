@@ -88,11 +88,11 @@ const Category = () => {
   const showTable = !isRealError && filteredCategories.length > 0
 
   const columns = [
-    { id: 'id', label: 'ID', align: 'center' },
-    { id: 'name', label: 'Name', render: (row) => row.name || row.categoryName || 'N/A' },
+    { id: 'id', label: 'ID', align: 'center', width: '10%' },
+    { id: 'name', label: 'Name', render: (row) => row.name || row.categoryName || 'N/A', width: '20%' },
     {
       id: 'created_at', label: 'Created At', render: (row) =>
-        row.created_at ? new Date(row.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'
+        row.created_at ? new Date(row.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', width: '10%' }) : 'N/A'
     },
     {
       id: 'actions', label: 'Actions', align: 'center',

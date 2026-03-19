@@ -14,48 +14,6 @@ const userApi = todoListApi
         }),
       }),
 
-      // getUsers: build.query({
-      //   query: (params = {}) => {
-      //     const {
-      //       status = "active",
-      //       paginate,
-      //       pagination = "none",
-      //       term,
-      //       ...otherParams
-      //     } = params;
-
-      //     const queryParams = new URLSearchParams();
-
-      //     if (status) {
-      //       queryParams.append("status", status);
-      //     }
-      //     if (paginate !== undefined) {
-      //       queryParams.append("paginate", paginate.toString());
-      //     }
-      //     if (pagination) {
-      //       queryParams.append("pagination", pagination);
-      //     }
-      //     if (term && term.trim() !== "") {
-      //       queryParams.append("term", term.trim());
-      //     }
-
-      //     Object.entries(otherParams).forEach(([key, value]) => {
-      //       if (value !== undefined && value !== null && value !== "") {
-      //         queryParams.append(key, value.toString());
-      //       }
-      //     });
-
-      //     const queryString = queryParams.toString();
-      //     const url = queryString ? `user?${queryString}` : "user";
-
-      //     return {
-      //       url,
-      //       method: "GET",
-      //     };
-      //   },
-      //   providesTags: ["users"],
-      // }),
-
       getUsers: build.query({
         query: (params = {}) => {
           const queryParams = {};
@@ -70,6 +28,14 @@ const userApi = todoListApi
           return config;
         },
         providesTags: ["users"],
+      }),
+
+      changePassword: build.mutation({
+        query: (body) => ({
+          url: "change_password/",
+          method: "PUT",
+          body,
+        }),
       }),
 
       createUser: build.mutation({
@@ -115,6 +81,18 @@ const userApi = todoListApi
           "users",
         ],
       }),
+
+      // ✅ New: Reset password to default (same as username)
+      resetPassword: build.mutation({
+        query: (id) => ({
+          url: `reset_password/${id}`,
+          method: "PATCH",
+        }),
+        invalidatesTags: (result, error, id) => [
+          { type: "users", id },
+          "users",
+        ],
+      }),
     }),
   });
 
@@ -126,6 +104,8 @@ export const {
   useUpdateUserMutation,
   useDeleteUserMutation,
   useUpdateUserProfilePictureMutation,
+  useChangePasswordMutation,
+  useResetPasswordMutation, // ✅ new export
 } = userApi;
 
 export default userApi;

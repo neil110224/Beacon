@@ -119,7 +119,7 @@ const Role = () => {
     { id: 'name', label: 'ROLES' },
     {
       id: 'access_permissions',
-      label: 'Permissions',
+      label: 'PERMISSIONS',
       render: (row) => {
         const permissions = row.access_permissions || [];
         return permissions.length > 0 
@@ -129,7 +129,7 @@ const Role = () => {
     },
     {
       id: 'created_at',
-      label: 'Created At',
+      label: 'CREATED AT',
       render: (row) => new Date(row.created_at).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -138,7 +138,7 @@ const Role = () => {
     },
     {
       id: 'actions',
-      label: 'Actions',
+      label: 'ACTIONS',
       align: 'center',
       render: (row) => (
         <>

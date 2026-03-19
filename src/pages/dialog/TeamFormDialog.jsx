@@ -37,6 +37,7 @@ const teamValidationSchema = yup.object().shape({
 export default function TeamFormDialog({ open, onClose, team = null, onSave, isLoading = false }) {
   const isEdit = !!team;
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [justSaved, setJustSaved] = useState(false);
 
   const {
   register,
@@ -78,8 +79,10 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
         severity: 'success',
       });
 
+      setJustSaved(true);
       setTimeout(() => {
         reset({ name: '', code: '' }, { keepDirty: false, keepTouched: false });
+        setJustSaved(false);
         onClose();
       }, 500);
     } catch (error) {
@@ -105,8 +108,10 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
   };
 
   const handleDialogClose = () => {
+    if (justSaved) return;
     reset({ name: '', code: '' }, { keepDirty: false, keepTouched: false });
     setSnackbar({ open: false, message: '', severity: 'success' });
+    setJustSaved(false);
     onClose();
   };
 
@@ -148,21 +153,21 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleDialogClose} disabled={isLoading} sx={{ fontFamily: OSWALD }}>
+        <Button onClick={handleDialogClose} disabled={isLoading || justSaved} sx={{ fontFamily: OSWALD }}>
           Cancel
         </Button>
         <Button
           onClick={handleSubmit(onSubmit)}
           variant="contained"
-          disabled={isLoading}
-          startIcon={isLoading && <CircularProgress size={20} />}
+          disabled={isLoading || justSaved}
+          startIcon={(isLoading || justSaved) && <CircularProgress size={20} />}
           sx={{
             backgroundColor: '#2c3e50',
             fontFamily: OSWALD,
             '&:hover': { backgroundColor: '#34495e' },
           }}
         >
-          {isLoading ? 'Saving...' : isEdit ? 'Update' : 'Save'}
+          {(isLoading || justSaved) ? 'Saving...' : isEdit ? 'Update' : 'Save'}
         </Button>
       </DialogActions>
       {/* Snackbar for success/error messages */}
