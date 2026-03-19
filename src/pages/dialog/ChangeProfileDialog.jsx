@@ -36,13 +36,15 @@ const ChangeProfileDialog = ({ open, onClose, user }) => {
   // Removed handleFileChange and handleRemovePicture
 
 const handleSave = async () => {
-  // Only send text fields
+  // Only send text fields, make suffix optional
   const userData = {
     first_name: firstName,
     middle_name: middleName,
     last_name: lastName,
-    suffix: suffix,
   };
+  if (suffix && suffix.trim() !== '') {
+    userData.suffix = suffix;
+  }
   try {
     const result = await updateUserMutation({ id: user.id, data: userData }).unwrap();
     dispatch(updateUser(result.data));
@@ -116,12 +118,31 @@ const handleSave = async () => {
   }}
         />
         <TextField
-          label="Suffix"
+          label="Suffix (optional)"
           value={suffix}
           onChange={(e) => setSuffix(e.target.value)}
           fullWidth
           margin="normal"
           disabled={isLoading}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              '& fieldset': {
+                borderColor: '#1976d2', // Custom border color
+                borderWidth: 2,
+              },
+              '&:hover fieldset': {
+                borderColor: '#115293', // Darker on hover
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: '#1565c0', // Even darker when focused
+              },
+            },
+            '& .MuiInputLabel-root': {
+              top: '2px',
+              background: '#fff',
+              padding: '0 4px',
+            },
+          }}
         />
       </DialogContent>
       <DialogActions>

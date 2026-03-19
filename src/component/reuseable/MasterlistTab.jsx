@@ -21,19 +21,26 @@ const MasterlistTab = ({
   onAddClick,
   addLabel = "Create",  // default value
   onRefresh,
+  refreshing,
 }) => {
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  // Use parent refreshing prop if provided, otherwise fallback to internal state
+  const [internalRefreshing, setInternalRefreshing] = useState(false);
+  const isRefreshing = typeof refreshing === 'boolean' ? refreshing : internalRefreshing;
 
   const handleRefresh = async () => {
     if (!onRefresh) return;
-    setIsRefreshing(true);
-    try {
-      const result = await onRefresh();
-      console.log('Data refreshed successfully', result);
-    } catch (error) {
-      console.error('Failed to refresh data:', error);
-    } finally {
-      setIsRefreshing(false);
+    if (typeof refreshing === 'boolean') {
+      onRefresh(); // parent handles state
+    } else {
+      setInternalRefreshing(true);
+      try {
+        const result = await onRefresh();
+        console.log('Data refreshed successfully', result);
+      } catch (error) {
+        console.error('Failed to refresh data:', error);
+      } finally {
+        setInternalRefreshing(false);
+      }
     }
   };
   return (

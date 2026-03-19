@@ -85,7 +85,7 @@ const Category = () => {
   // True loading state — don't show nodata until fully settled
   const isSettled = !isLoading && !isFetching && !isTabSwitching && searchTerm === debouncedSearchTerm
   const showNoData = isSettled && (is404 || (!isRealError && filteredCategories.length === 0))
-  const showTable = !isRealError && (filteredCategories.length > 0 || isLoading || isFetching)
+  const showTable = !isRealError && filteredCategories.length > 0
 
   const columns = [
     { id: 'id', label: 'ID', align: 'center' },
@@ -118,8 +118,8 @@ const Category = () => {
         onRefresh={refetch}
       />
 
-      {/* No data state — only shown when fully settled */}
-      {showNoData && (
+      {/* Only show one empty state or table at a time */}
+      {showNoData ? (
         <Box className="categoryEmptyStateWrapper">
           <Box className="categoryEmptyStateBox">
             <Nodata />
@@ -137,10 +137,7 @@ const Category = () => {
             </Box>
           </Box>
         </Box>
-      )}
-
-      {/* Real error state (non-404) */}
-      {isRealError && (
+      ) : isRealError ? (
         <Box className="categoryEmptyStateWrapper">
           <Box className="categoryEmptyStateBox">
             <Nodata />
@@ -152,10 +149,7 @@ const Category = () => {
             </Box>
           </Box>
         </Box>
-      )}
-
-      {/* Table — shown while loading or when data exists */}
-      {showTable && (
+      ) : showTable ? (
         <DataTable
           columns={columns}
           rows={filteredCategories}
@@ -173,7 +167,7 @@ const Category = () => {
             '& th': { fontWeight: 600, color: '#ffffff !important', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '16px' }
           }}
         />
-      )}
+      ) : null}
 
       <Menu
         className="categoryMenu"

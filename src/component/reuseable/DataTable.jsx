@@ -115,10 +115,10 @@ function DataTable({
                       align={col.align || "left"} 
                       className="dataTableHeaderCell"
                       sx={{ 
-                        width: col.width, 
+                        width: col.width,
                         maxWidth: "150px",
-                        fontSize: "1.3rem", 
-                        color: "#03346E", 
+                        fontSize: "1.3rem",
+                        color: "#03346E",
                         fontWeight: 700,
                         fontFamily: '"Oswald", sans-serif',
                         '@media (max-width: 768px)': {

@@ -49,6 +49,7 @@ const Team = () => {
   const [expandedTeamId, setExpandedTeamId] = useState(null);
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
   const [selectedTeamForMembers, setSelectedTeamForMembers] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   
 
@@ -66,11 +67,11 @@ const Team = () => {
     return colorMap;
   }, [teams]);
 
-  const { data: teamsData, isLoading: teamsLoading, isError: teamsError, error: teamsErrorData, refetch } = useGetTeamsQuery({
+  const { data: teamsData, isLoading: teamsLoading, isError: teamsError, error: teamsErrorData, refetch: refetchTeams } = useGetTeamsQuery({
     status: showArchived ? 'inactive' : 'active',
     term: debouncedSearchTerm,
   });
-  const { data: usersData, isLoading: usersLoading } = useGetUsersQuery({
+  const { data: usersData, isLoading: usersLoading, refetch: refetchUsers } = useGetUsersQuery({
     status: 'active',
     paginate: 'none',
     pagination: 'none',
@@ -127,7 +128,15 @@ const Team = () => {
   const handleEdit = () => { setTeamDialogOpen(true); handleMenuClose(); };
   const handleArchiveClick = () => { if (!selectedTeam) return; setArchiveDialogOpen(true); handleMenuClose(); };
   const handleArchiveDialogClose = () => { setArchiveDialogOpen(false); setSelectedTeam(null); };
-  const handleTeamDialogClose = () => { setTeamDialogOpen(false); setSelectedTeam(null); refetch(); };
+  const handleTeamDialogClose = () => { setTeamDialogOpen(false); setSelectedTeam(null); refetchTeams(); };
+
+  // Unified refresh handler for MasterlistTab
+  const handleRefresh = () => {
+    setRefreshing(true);
+    Promise.all([refetchTeams(), refetchUsers()]).finally(() => {
+      setTimeout(() => setRefreshing(false), 600); // keep spinning for a bit
+    });
+  };
 
   const handleArchiveConfirm = async () => {
     if (!selectedTeam) return;
@@ -162,20 +171,58 @@ const Team = () => {
     );
   }
 
+  // Show Nodata if searching and no teams found (active or archive), regardless of error
+  // Handle 404 error (no teams found) for archive tab
+  const is404 = teamsError && teamsErrorData?.errors?.[0]?.status === 404;
+  const showNoData = !isLoading && filteredTeams.length === 0 && searchTerm && !showArchived;
+  const showArchiveNoData = (!isLoading && filteredTeams.length === 0 && showArchived);
+
   return (
     <Box className="teamContainer">
       <MasterlistTab
-  showArchived={showArchived}
-  onTabChange={handleTabChange}
-  searchTerm={searchTerm}
-  onSearchChange={setSearchTerm}
-  searchPlaceholder="Search Team..."
-  canAdd={canAddTeam}
-  onAddClick={() => setTeamDialogOpen(true)}
-  addLabel="CREATE"
-/>
+        showArchived={showArchived}
+        onTabChange={handleTabChange}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search Team..."
+        canAdd={canAddTeam}
+        onAddClick={() => setTeamDialogOpen(true)}
+        addLabel="CREATE"
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
+      />
 
-      {filteredTeams.length > 0 || isLoading ? (
+      {showNoData && (
+        <Box className="teamEmptyStateWrapper">
+          <Box className="teamEmptyStateBox">
+            <Box>
+              <Nodata />
+            </Box>
+            <Box className="teamEmptyTextBox">
+              <Typography variant="h6" className="teamEmptyTitle" sx={{fontFamily: '"Oswald", sans-serif'}}>Teams</Typography>
+              <Typography variant="body2" sx={{fontFamily: '"Oswald", sans-serif'}}>Currently no "{searchTerm}" data.</Typography>
+            </Box>
+          </Box>
+        </Box>
+      )}
+
+      {showArchiveNoData && (
+        <Box className="teamEmptyStateWrapper">
+          <Box className="teamEmptyStateBox">
+            <Nodata />
+            <Box className="teamEmptyTextBox">
+              <Typography variant="h6" className="teamEmptyTitle" sx={{fontFamily: '"Oswald", sans-serif'}}>Teams</Typography>
+              <Typography variant="body2" sx={{fontFamily: '"Oswald", sans-serif'}}>
+                {searchTerm
+                  ? `Currently no "${searchTerm}" data in the archive.`
+                  : 'No team currently on the archived.'}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+      )}
+
+      {!showNoData && !showArchiveNoData && (filteredTeams.length > 0 || isLoading) ? (
         <Box className="teamCardsGrid">
           {filteredTeams.map(team => (
             <Card key={team.id} className="teamCard" style={{ backgroundColor: teamColorMap[team.id] }} onClick={() => handleOpenMembersDialog(team)}>
@@ -195,19 +242,7 @@ const Team = () => {
             </Card>
           ))}
         </Box>
-      ) : (
-        <Box className="teamEmptyStateWrapper">
-          <Box className="teamEmptyStateBox">
-            <Box>
-              <Nodata />
-            </Box>
-            <Box className="teamEmptyTextBox">
-              <Typography variant="h6" className="teamEmptyTitle" sx={{fontFamily: '"Oswald", sans-serif'}}>Teams</Typography>
-              <Typography variant="body2" sx={{fontFamily: '"Oswald", sans-serif'}}>{showArchived ? "Currently no teams in the archive." : "No teams data available."}</Typography>
-            </Box>
-          </Box>
-        </Box>
-      )}
+      ) : null}
 
       <Menu className="teamMenu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
         {selectedTeam?.deleted_at ? (

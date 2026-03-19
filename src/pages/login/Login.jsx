@@ -139,7 +139,7 @@ const Login = () => {
               }}
             >
               Welcome to{' '}
-              <Box component="span" sx={{ color: '#0387bb', fontWeight: 900, fontSize: { xs: 25, md: 30 } }}>
+              <Box component="span" sx={{ color: '#0387bb', fontWeight: 900, fontFamily: 'Oswald, sans-serif', fontSize: { xs: 25, md: 30 } }}>
                 Beacon!
               </Box>
             </Box>

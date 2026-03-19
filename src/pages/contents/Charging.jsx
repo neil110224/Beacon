@@ -80,6 +80,9 @@ const Charging = () => {
     },
   ];
 
+  // Only show empty state if there is no data to show, otherwise show DataTable
+  const showEmptyState = (!isLoading && ((isError && error?.errors?.[0]?.status === 404) || (!isError && filteredData.length === 0)));
+
   return (
     <Box className="chargingContainer">
       <MasterlistTab
@@ -91,7 +94,7 @@ const Charging = () => {
         showCreateButton={false}
       />
 
-      {(!isLoading && ((isError && error?.errors?.[0]?.status === 404) || (!isError && filteredData.length === 0))) && (
+      {showEmptyState ? (
         <Box className="chargingEmptyStateWrapper">
           <Box className="chargingEmptyStateBox">
             <Box style={{ width: 300, margin: '0 auto' }}>
@@ -113,9 +116,7 @@ const Charging = () => {
             </Box>
           </Box>
         </Box>
-      )}
-
-      {!isError && (
+      ) : (
         <DataTable
           columns={columns}
           rows={filteredData}
@@ -133,8 +134,6 @@ const Charging = () => {
           }}
         />
       )}
-
-      {/* Archive/Restore and Confirmation code removed for cleaner version */}
 
       <Snackbar
         open={snackbar.open}

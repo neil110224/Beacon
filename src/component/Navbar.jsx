@@ -41,6 +41,29 @@ const Navbar = () => {
   const user = useSelector(selectCurrentUser);
   const dispatch = useDispatch();
   const firstName = user?.first_name;
+  const lastName = user?.last_name;
+  // Compute initials for Avatar
+  const getInitials = (first, last) => {
+    const firstInitial = first ? first.charAt(0).toUpperCase() : '';
+    const lastInitial = last ? last.charAt(0).toUpperCase() : '';
+    return firstInitial + lastInitial;
+  };
+  // Generate a random color on each login (persist for session)
+  const pastelColors = [
+    '#F48FB1', '#81D4FA', '#FFD54F', '#A5D6A7', '#CE93D8',
+    '#FFAB91', '#90CAF9', '#E6EE9C', '#B0BEC5', '#FFCC80',
+    '#B39DDB', '#80CBC4', '#FF8A65', '#C5E1A5', '#F06292',
+    '#BA68C8', '#4DB6AC', '#FFD740', '#9575CD', '#AED581'
+  ];
+  const getRandomColor = () => {
+    // Try to persist for session so it doesn't change on every re-render
+    let color = sessionStorage.getItem('avatarBgColor');
+    if (!color) {
+      color = pastelColors[Math.floor(Math.random() * pastelColors.length)];
+      sessionStorage.setItem('avatarBgColor', color);
+    }
+    return color;
+  };
   const location = useLocation();
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [teamDialogOpen, setTeamDialogOpen] = useState(false);
@@ -264,10 +287,21 @@ const Navbar = () => {
             </Typography>
 
             <Avatar
-              src={user?.profile_picture || "/static/images/avatar/2.jpg"}
+              src={user?.profile_picture || undefined}
               className="userAvatar"
-              sx={{ width: 30, height: 30, marginLeft: '8px' }}
-            />
+              sx={{
+                width: 30,
+                height: 30,
+                marginLeft: '8px',
+                bgcolor: !user?.profile_picture ? getRandomColor() : undefined,
+                color: !user?.profile_picture ? '#fff' : undefined,
+                fontWeight: 600,
+                fontFamily: OSWALD,
+                fontSize: '1rem',
+              }}
+            >
+              {!user?.profile_picture && getInitials(firstName, lastName)}
+            </Avatar>
           </Box>
 
           <Menu

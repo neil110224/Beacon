@@ -146,6 +146,14 @@ const Users = () => {
     },
   ]
 
+
+  // Determine if we should show Nodata (no users found, or 404 on search)
+  // Show Nodata if searching and no users found (active or archive), regardless of error
+  const showNoData =
+    !isLoading && users.length === 0 && searchTerm && !showArchived;
+  const showArchiveNoData =
+    !isLoading && users.length === 0 && searchTerm && showArchived;
+
   return (
     <>
       <Box className="usersContainer">
@@ -161,79 +169,109 @@ const Users = () => {
           onRefresh={refetch}
         />
 
-          {(!isLoading && users.length === 0 && !isError) || (isError && showArchived) ? (
-            <Box className="usersEmptyStateWrapper">
-              <Box className="usersEmptyStateBox">
-                <Box style={{ width: 300, margin: '0 auto' }}>
-                  <Nodata />
-                </Box>
-                <Box className="usersEmptyTextBox">
-                  <Typography variant="h6" className="usersEmptyTitle">Users</Typography>
-                  <Typography variant="body2">{showArchived ? "Currently no users in the archive." : "No users data available."}</Typography>
-                </Box>
+
+
+        {showNoData && (
+          <Box className="usersEmptyStateWrapper">
+            <Box className="usersEmptyStateBox">
+              <Box style={{ width: 300, margin: '0 auto' }}>
+                <Nodata />
+              </Box>
+              <Box className="usersEmptyTextBox">
+                <Typography variant="h6" className="usersEmptyTitle">Users</Typography>
+                <Typography variant="body2">Currently no "{searchTerm}" data.</Typography>
               </Box>
             </Box>
-          ) : null}
+          </Box>
+        )}
 
-          {!isError && (
-            <DataTable
-              columns={columns}
-              rows={users}
-              totalCount={data?.data?.total}
-              isLoading={isLoading || searchTerm !== debouncedSearchTerm || isTabSwitching}
-              isError={isError}
-              error={error}
-              tableSx={{ 
-                minWidth: 1200,
-                '& .MuiTableCell-root': {
-                  padding: '14px 16px',
-                  fontSize: '0.875rem',
-                  color: '#2c3e50',
-                },
-                '& .MuiTableBody-root .MuiTableRow-root': {
-                  cursor: 'default',
-                }
-              }}
-              headSx={{ 
-                background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
-                '& th': { 
-                  fontWeight: 600,
-                  color: '#ffffff !important',
-                  fontSize: '0.875rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  padding: '16px',
-                }
-              }}
-            />
-          )}
+        {showArchiveNoData && (
+          <Box className="usersEmptyStateWrapper">
+            <Box className="usersEmptyStateBox">
+              <Box style={{ width: 300, margin: '0 auto' }}>
+                <Nodata />
+              </Box>
+              <Box className="usersEmptyTextBox">
+                <Typography variant="h6" className="usersEmptyTitle">Users</Typography>
+                <Typography variant="body2">Currently no "{searchTerm}" data in the archive.</Typography>
+              </Box>
+            </Box>
+          </Box>
+        )}
 
-          <UserFormDialog
-            key={userDialogOpen ? (selectedUser ? `edit-${selectedUser.id}` : 'add') : 'closed'}
-            open={userDialogOpen}
-            onClose={() => { setUserDialogOpen(false); setSelectedUser(null); }}
-            user={selectedUser}
-            onSave={selectedUser ? updateUser : createUser}
-            isLoading={false}
+        {!showNoData && !showArchiveNoData && (!isLoading && users.length === 0 && !isError) || (isError && showArchived && !searchTerm) ? (
+          <Box className="usersEmptyStateWrapper">
+            <Box className="usersEmptyStateBox">
+              <Box style={{ width: 300, margin: '0 auto' }}>
+                <Nodata />
+              </Box>
+              <Box className="usersEmptyTextBox">
+                <Typography variant="h6" className="usersEmptyTitle">Users</Typography>
+                <Typography variant="body2">{showArchived ? "Currently no users in the archive." : "No users data available."}</Typography>
+              </Box>
+            </Box>
+          </Box>
+        ) : null}
+
+        {!isError && !showNoData && (
+          <DataTable
+            columns={columns}
+            rows={users}
+            totalCount={data?.data?.total}
+            isLoading={isLoading || searchTerm !== debouncedSearchTerm || isTabSwitching}
+            isError={isError}
+            error={error}
+            tableSx={{ 
+              minWidth: 1200,
+              '& .MuiTableCell-root': {
+                padding: '14px 16px',
+                fontSize: '0.875rem',
+                color: '#2c3e50',
+              },
+              '& .MuiTableBody-root .MuiTableRow-root': {
+                cursor: 'default',
+              }
+            }}
+            headSx={{ 
+              background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
+              '& th': { 
+                fontWeight: 600,
+                color: '#ffffff !important',
+                fontSize: '0.875rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                padding: '16px',
+              }
+            }}
           />
+        )}
 
-          <Confirmation
-            open={confirmDialogOpen}
-            onClose={handleCancelConfirm}
-            onConfirm={handleConfirmArchive}
-            title={selectedUser?.deleted_at ? "Confirm Restore" : "Confirm Archive"}
-            message={selectedUser?.deleted_at ? "Are you sure you want to restore this user?" : "Are you sure you want to archive this user?"}
-          />
+        <UserFormDialog
+          key={userDialogOpen ? (selectedUser ? `edit-${selectedUser.id}` : 'add') : 'closed'}
+          open={userDialogOpen}
+          onClose={() => { setUserDialogOpen(false); setSelectedUser(null); }}
+          user={selectedUser}
+          onSave={selectedUser ? updateUser : createUser}
+          isLoading={false}
+        />
 
-          <Snackbar
-            open={snackbarOpen}
-            message={snackbarMessage}
-            severity={snackbarSeverity}
-            onClose={() => setSnackbarOpen(false)}
-          />
-        </Box>
-      </>
-    )
-  }
+        <Confirmation
+          open={confirmDialogOpen}
+          onClose={handleCancelConfirm}
+          onConfirm={handleConfirmArchive}
+          title={selectedUser?.deleted_at ? "Confirm Restore" : "Confirm Archive"}
+          message={selectedUser?.deleted_at ? "Are you sure you want to restore this user?" : "Are you sure you want to archive this user?"}
+        />
+
+        <Snackbar
+          open={snackbarOpen}
+          message={snackbarMessage}
+          severity={snackbarSeverity}
+          onClose={() => setSnackbarOpen(false)}
+        />
+      </Box>
+    </>
+  )
+}
 
 export default Users

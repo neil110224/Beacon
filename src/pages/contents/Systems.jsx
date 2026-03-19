@@ -278,10 +278,8 @@ const Systems = () => {
   return (
     <Box className="systemsContainer"> 
       {/* Header */}
-      <Box className="systemsHeader" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
-        <Typography variant="h5" className="systemsTitle" sx={{ fontFamily: '"Oswald", sans-serif' }}>
-          {isUserRole ? 'Systems' : 'Systems Management'}
-        </Typography>
+      <Box className="systemsHeader" sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1 }}>
+        
 
         <Box className="systemsHeaderActions" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Tooltip title="Refresh systems" placement="top">

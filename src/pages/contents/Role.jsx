@@ -109,6 +109,10 @@ const Role = () => {
     )
   , [roles, debouncedSearchTerm]);
 
+  // Show Nodata if searching and no roles found (active or archive), regardless of error
+  const showNoData = !isLoading && filteredRoles.length === 0 && searchTerm && !showArchived;
+  const showArchiveNoData = !isLoading && filteredRoles.length === 0 && searchTerm && showArchived;
+
   // Define columns for DataTable
   const columns = [
     { id: 'id', label: 'ID', align: 'center' },
@@ -191,7 +195,35 @@ const Role = () => {
         onRefresh={refetch}
       />
 
-      {((!isLoading && filteredRoles.length === 0 && !isError) || (isError && showArchived)) && (
+      {showNoData && (
+        <Box className="roleEmptyStateWrapper">
+          <Box className="roleEmptyStateBox">
+            <Box style={{ width: 300, margin: '0 auto' }}>
+              <Nodata />
+            </Box>
+            <Box className="roleEmptyTextBox">
+              <Typography variant="h6" className="roleEmptyTitle">Roles</Typography>
+              <Typography variant="body2">Currently no "{searchTerm}" data.</Typography>
+            </Box>
+          </Box>
+        </Box>
+      )}
+
+      {showArchiveNoData && (
+        <Box className="roleEmptyStateWrapper">
+          <Box className="roleEmptyStateBox">
+            <Box style={{ width: 300, margin: '0 auto' }}>
+              <Nodata />
+            </Box>
+            <Box className="roleEmptyTextBox">
+              <Typography variant="h6" className="roleEmptyTitle">Roles</Typography>
+              <Typography variant="body2">Currently no "{searchTerm}" data in the archive.</Typography>
+            </Box>
+          </Box>
+        </Box>
+      )}
+
+      {!showNoData && !showArchiveNoData && (((!isLoading && filteredRoles.length === 0 && !isError) || (isError && showArchived))) && (
         <Box className="roleEmptyStateWrapper">
           <Box className="roleEmptyStateBox">
             <Box style={{ width: 300, margin: '0 auto' }}>
