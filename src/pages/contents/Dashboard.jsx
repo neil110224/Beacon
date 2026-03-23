@@ -29,7 +29,6 @@ const changePasswordSchema = yup.object().shape({
     .oneOf([yup.ref('new_password')], 'Passwords must match'),
 })
 
-// ✅ Forces label to always sit on the border — overrides global SCSS interference
 const fieldSx = {
   '& .MuiInputLabel-root': {
     transform: 'translate(14px, -9px) scale(0.75) !important',
@@ -101,7 +100,6 @@ const ForceChangePasswordDialog = ({ open, onClose, user }) => {
               Your username and password are the same. Please set a new password to secure your account.
             </Alert>
 
-            {/* ✅ Using Controller so MUI gets the value prop — label stays on border */}
             <Controller
               name="new_password"
               control={control}
@@ -304,7 +302,14 @@ const Dashboard = () => {
   const userPermissions = user?.role?.access_permissions || []
   const canFilterByTeam = userPermissions.includes('Dashboard.FilterTeam')
   const { isSidebarCollapsed = false, isSidebarLocked = false } = useOutletContext() || {}
-  const [selectedTeam, setSelectedTeam] = useState('')
+
+  const isAdminRole = user?.role?.name?.toLowerCase() !== 'user'
+
+  // ✅ Default to the user's own team ID; admins start with '' (All Teams)
+  const [selectedTeam, setSelectedTeam] = useState(
+    () => isAdminRole ? '' : (user?.team?.id ?? '')
+  )
+
   const [systemsSearchQuery, setSystemsSearchQuery] = useState('')
 
   const [forceChangePasswordOpen, setForceChangePasswordOpen] = useState(
@@ -327,21 +332,32 @@ const Dashboard = () => {
     ? teamsData
     : []
 
-  const buildQueryParams = () => {
-    const isUserRole = user?.role?.name?.toLowerCase() === "user"
-    const baseParams = {}
-    if (selectedTeam) {
-      baseParams.status = "active"
-      baseParams.scope = "per_team"
-      baseParams.team_id = selectedTeam
-    } else if (isUserRole && user?.team?.id) {
-      baseParams.status = "active"
-      baseParams.scope = "per_team"
-      baseParams.team_id = user.team.id
-    } else {
-      baseParams.status = "active"
-      baseParams.scope = "global"
+  // ✅ Sync selectedTeam if user data loads after component mounts
+  useEffect(() => {
+    if (!isAdminRole && user?.team?.id && selectedTeam === '') {
+      setSelectedTeam(user.team.id)
     }
+  }, [user?.team?.id])
+
+  const buildQueryParams = () => {
+    const baseParams = {}
+
+    if (selectedTeam) {
+      // A specific team is selected (works for both admin picking a team and regular user)
+      baseParams.status = 'active'
+      baseParams.scope = 'per_team'
+      baseParams.team_id = selectedTeam
+    } else if (isAdminRole) {
+      // Admin with "All Teams" selected
+      baseParams.status = 'active'
+      baseParams.scope = 'global'
+    } else {
+      // Fallback for regular user with no team assigned yet
+      baseParams.status = 'active'
+      baseParams.scope = 'per_team'
+      if (user?.team?.id) baseParams.team_id = user.team.id
+    }
+
     if (debouncedSystemsSearch) baseParams.search = debouncedSystemsSearch
     return baseParams
   }
@@ -434,6 +450,7 @@ const Dashboard = () => {
                 }} />
               </IconButton>
             </Tooltip>
+
             <FormControl className="filterSelect" size="small">
               <Select
                 value={selectedTeam}
@@ -441,14 +458,20 @@ const Dashboard = () => {
                 displayEmpty
                 className="filterSelectInput"
               >
-                <MenuItem value="">
-                  <Typography className="filterMenuItemText" sx={{ fontFamily: '"Oswald", sans-serif' }}>All Teams</Typography>
-                </MenuItem>
+                {/* ✅ Only admins see "All Teams" option */}
+                {isAdminRole && (
+                  <MenuItem value="">
+                    <Typography className="filterMenuItemText" sx={{ fontFamily: '"Oswald", sans-serif' }}>All Teams</Typography>
+                  </MenuItem>
+                )}
                 {teams.map((team) => (
-                  <MenuItem key={team.id} value={team.id}>{team.name}</MenuItem>
+                  <MenuItem key={team.id} value={team.id}>
+                    <Typography sx={{ fontFamily: '"Oswald", sans-serif' }}>{team.name}</Typography>
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>
+
             <TextField
               placeholder="Search systems..."
               value={systemsSearchQuery}

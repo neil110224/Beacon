@@ -19,13 +19,23 @@ import {
   Divider,
   Card,
   CardContent,
-  TextField,
 } from '@mui/material'
 import { useGetSystemsListQuery } from '../../features/api/system/systemApi'
 import { useGetCategoriesListQuery } from '../../features/api/category/categoryApi'
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import dayjs from 'dayjs'
+
+const OSWALD = '"Oswald", sans-serif'
+
+const oswaldInputSx = {
+  '& input, & textarea, & .MuiSelect-select': { fontFamily: OSWALD },
+  '& .MuiInputLabel-root': { fontFamily: OSWALD },
+  '& .MuiFormLabel-root': { fontFamily: OSWALD },
+}
 
 const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }) => {
-  const OSWALD = '"Oswald", sans-serif'
   const [selectedSystems, setSelectedSystems] = React.useState({})
   const [selectedTeamId, setSelectedTeamId] = React.useState('all')
   const [statusFilter, setStatusFilter] = React.useState('all')
@@ -34,6 +44,10 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
   const [endDate, setEndDate] = React.useState('')
   const [isLoading, setIsLoading] = React.useState(false)
   const [snackbar, setSnackbar] = React.useState({ open: false, message: '', severity: 'success' })
+
+  // ── Controlled open state for each DatePicker ──────────────────────────────
+  const [startPickerOpen, setStartPickerOpen] = React.useState(false)
+  const [endPickerOpen, setEndPickerOpen] = React.useState(false)
 
   const { data: allSystemsData, isLoading: allSystemsLoading } = useGetSystemsListQuery({
     status: 'active',
@@ -103,7 +117,6 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
     [selectedCategoriesKey, categories]
   )
 
-  // Check if a progress item's raised_date falls within the date range
   const isWithinDateRange = React.useCallback(
     (raisedDate) => {
       if (!startDate && !endDate) return true
@@ -115,11 +128,9 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
     [startDate, endDate]
   )
 
-  // Filter systems based on team, category, status, and raised_date range
   const systemsForSelectedTeam = React.useMemo(() => {
     if (!systemsData || systemsData.length === 0) return []
     return systemsData.filter((system) => {
-      // Team filter
       if (selectedTeamId !== 'all' && selectedTeamId !== '') {
         const hasTeam = system.team.some((team) => team.id === parseInt(selectedTeamId))
         if (!hasTeam) return false
@@ -130,14 +141,12 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
 
   const filteredSystemsByStatus = React.useMemo(() => {
     return systemsForSelectedTeam.filter((system) => {
-      // Category filter
       const relevantCats = isAllCategories
         ? system.categories
         : system.categories?.filter((cat) => systemCategoryMatches(cat))
 
       if (!relevantCats || relevantCats.length === 0) return false
 
-      // Check if any progress item passes status + date filters
       const hasMatchingProgress = relevantCats.some((cat) =>
         cat.progress?.some((item) => {
           if (statusFilter !== 'all' && item.status.toLowerCase() !== statusFilter.toLowerCase()) return false
@@ -197,7 +206,6 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
     }
     params.append('year', new Date().getFullYear().toString())
     if (statusFilter !== 'all') params.append('status', statusFilter)
-    // Send raised_date range to backend
     if (startDate) params.append('start_date', startDate)
     if (endDate) params.append('end_date', endDate)
     return params
@@ -352,7 +360,6 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
   React.useEffect(() => { setSelectedSystems({}) }, [selectedCategories])
   React.useEffect(() => { setSelectedSystems({}) }, [startDate, endDate])
 
-  // Reset form state
   const resetForm = React.useCallback(() => {
     setSelectedSystems({})
     setSelectedTeamId('all')
@@ -360,18 +367,16 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
     setSelectedCategories(categories.map((cat) => cat.id))
     setStartDate('')
     setEndDate('')
+    setStartPickerOpen(false)
+    setEndPickerOpen(false)
     setIsLoading(false)
     setSnackbar({ open: false, message: '', severity: 'success' })
   }, [categories])
 
-  // Reset form when dialog is opened
   React.useEffect(() => {
-    if (open) {
-      resetForm()
-    }
+    if (open) resetForm()
   }, [open, resetForm])
 
-  // Modified onClose to reset form as well
   const handleClose = () => {
     resetForm()
     onClose()
@@ -380,205 +385,239 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
   // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ fontFamily: OSWALD, fontWeight: 600, color: '#2c3e50' }}>
-        Export Systems
-      </DialogTitle>
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ fontFamily: OSWALD, fontWeight: 600, color: '#2c3e50' }}>
+          Export Systems
+        </DialogTitle>
 
-      <DialogContent>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
 
-          {/* Team Selector */}
-          <FormControl fullWidth>
-            <InputLabel sx={{ fontFamily: OSWALD }}>Select Team</InputLabel>
-            <Select
-              value={selectedTeamId}
-              label="Select Team"
-              onChange={(e) => { setSelectedTeamId(e.target.value); setSelectedSystems({}) }}
-              disabled={allSystemsLoading || (allTeams.length === 0 && selectedTeamId !== 'all')}
-              sx={{ fontFamily: OSWALD }}
-            >
-              <MenuItem value="all" sx={{ fontFamily: OSWALD }}>All Teams</MenuItem>
-              {allTeams.map((team) => (
-                <MenuItem key={team.id} value={team.id} sx={{ fontFamily: OSWALD }}>
-                  {team.name} ({team.code})
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          {/* Category Selector */}
-          <FormControl fullWidth>
-            <InputLabel sx={{ fontFamily: OSWALD }}>Select Category</InputLabel>
-            <Select
-              value={isAllCategories ? 'all' : selectedCategories[0]}
-              label="Select Category"
-              onChange={(e) => {
-                const val = e.target.value
-                setSelectedCategories(val === 'all' ? categories.map((c) => c.id) : [val])
-              }}
-              disabled={isLoading || loadingCategories}
-              sx={{ fontFamily: OSWALD }}
-            >
-              <MenuItem value="all" sx={{ fontFamily: OSWALD }}>All Categories</MenuItem>
-              {categories.map((category) => (
-                <MenuItem key={category.id} value={category.id} sx={{ fontFamily: OSWALD }}>
-                  {category.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          {/* Status Filter */}
-          <FormControl fullWidth>
-            <InputLabel sx={{ fontFamily: OSWALD }}>Filter by Status</InputLabel>
-            <Select
-              value={statusFilter}
-              label="Filter by Status"
-              onChange={(e) => setStatusFilter(e.target.value)}
-              disabled={isLoading}
-              sx={{ fontFamily: OSWALD }}
-            >
-              {STATUS_OPTIONS.map((option) => (
-                <MenuItem key={option.value} value={option.value} sx={{ fontFamily: OSWALD }}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          {/* Date Range — filters by raised_date */}
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <TextField
-              label="Raised Date From"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              disabled={isLoading}
-              InputLabelProps={{ shrink: true }}
-              sx={{ flex: 1 }}
-            />
-            <Typography sx={{ fontFamily: OSWALD, color: '#666' }}>to</Typography>
-            <TextField
-              label="Raised Date To"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              disabled={isLoading}
-              InputLabelProps={{ shrink: true }}
-              sx={{ flex: 1 }}
-            />
-          </Box>
-
-          {(startDate || endDate) && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography sx={{ fontFamily: OSWALD, fontSize: '0.8rem', color: '#666' }}>
-                Filtering by raised date: {startDate || '...'} → {endDate || '...'}
-              </Typography>
-              <Button
-                size="small"
-                onClick={() => { setStartDate(''); setEndDate('') }}
-                sx={{ fontFamily: OSWALD, fontSize: '0.75rem', minWidth: 'auto', color: '#e74c3c' }}
+            {/* Team Selector */}
+            <FormControl fullWidth>
+              <InputLabel sx={{ fontFamily: OSWALD }}>Select Team</InputLabel>
+              <Select
+                value={selectedTeamId}
+                label="Select Team"
+                onChange={(e) => { setSelectedTeamId(e.target.value); setSelectedSystems({}) }}
+                disabled={allSystemsLoading || (allTeams.length === 0 && selectedTeamId !== 'all')}
+                sx={{ fontFamily: OSWALD }}
               >
-                Clear
-              </Button>
-            </Box>
-          )}
+                <MenuItem value="all" sx={{ fontFamily: OSWALD }}>All Teams</MenuItem>
+                {allTeams.map((team) => (
+                  <MenuItem key={team.id} value={team.id} sx={{ fontFamily: OSWALD }}>
+                    {team.name} ({team.code})
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-          <Divider />
+            {/* Category Selector */}
+            <FormControl fullWidth>
+              <InputLabel sx={{ fontFamily: OSWALD }}>Select Category</InputLabel>
+              <Select
+                value={isAllCategories ? 'all' : selectedCategories[0]}
+                label="Select Category"
+                onChange={(e) => {
+                  const val = e.target.value
+                  setSelectedCategories(val === 'all' ? categories.map((c) => c.id) : [val])
+                }}
+                disabled={isLoading || loadingCategories}
+                sx={{ fontFamily: OSWALD }}
+              >
+                <MenuItem value="all" sx={{ fontFamily: OSWALD }}>All Categories</MenuItem>
+                {categories.map((category) => (
+                  <MenuItem key={category.id} value={category.id} sx={{ fontFamily: OSWALD }}>
+                    {category.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-          {/* Select All */}
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={
-                  filteredSystemsByStatus.length > 0 &&
-                  selectedCount === filteredSystemsByStatus.filter((s) => canExportSystem(s)).length &&
-                  selectedCount > 0
-                }
-                onChange={(e) => handleSelectAll(e.target.checked)}
-                disabled={isLoading || filteredSystemsByStatus.length === 0}
-              />
-            }
-            label={
-              <Typography sx={{ fontFamily: OSWALD }}>
-                Select All ({selectedCount}/{filteredSystemsByStatus.filter((s) => canExportSystem(s)).length})
-              </Typography>
-            }
-          />
+            {/* Status Filter */}
+            <FormControl fullWidth>
+              <InputLabel sx={{ fontFamily: OSWALD }}>Filter by Status</InputLabel>
+              <Select
+                value={statusFilter}
+                label="Filter by Status"
+                onChange={(e) => setStatusFilter(e.target.value)}
+                disabled={isLoading}
+                sx={{ fontFamily: OSWALD }}
+              >
+                {STATUS_OPTIONS.map((option) => (
+                  <MenuItem key={option.value} value={option.value} sx={{ fontFamily: OSWALD }}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
 
-          {/* Systems List */}
-          <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
-            {allSystemsLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 5 }}>
-                <CircularProgress />
-              </Box>
-            ) : filteredSystemsByStatus && filteredSystemsByStatus.length > 0 ? (
-              filteredSystemsByStatus.map((system) => (
-                <Card
-                  key={system.id}
-                  sx={{
-                    mb: 2,
-                    backgroundColor: canExportSystem(system) ? '#f8f9fa' : '#f5f5f5',
-                    opacity: canExportSystem(system) ? 1 : 0.6,
+            {/* Date Range — filters by raised_date */}
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="caption" sx={{ color: '#666', fontWeight: 500, fontFamily: OSWALD }}>
+                  Raised Date From
+                </Typography>
+                <DatePicker
+                  value={startDate ? dayjs(startDate) : null}
+                  onChange={(newValue) => {
+                    setStartDate(newValue ? newValue.format('YYYY-MM-DD') : '')
+                    setStartPickerOpen(false)
                   }}
+                  open={startPickerOpen}
+                  onOpen={() => setStartPickerOpen(true)}
+                  onClose={() => setStartPickerOpen(false)}
+                  disabled={isLoading}
+                  slotProps={{
+                    textField: {
+                      size: 'small',
+                      fullWidth: true,
+                      sx: oswaldInputSx,
+                      inputProps: { readOnly: true },
+                      onClick: () => !isLoading && setStartPickerOpen(true),
+                    },
+                  }}
+                />
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="caption" sx={{ color: '#666', fontWeight: 500, fontFamily: OSWALD }}>
+                  Raised Date To
+                </Typography>
+                <DatePicker
+                  value={endDate ? dayjs(endDate) : null}
+                  onChange={(newValue) => {
+                    setEndDate(newValue ? newValue.format('YYYY-MM-DD') : '')
+                    setEndPickerOpen(false)
+                  }}
+                  open={endPickerOpen}
+                  onOpen={() => setEndPickerOpen(true)}
+                  onClose={() => setEndPickerOpen(false)}
+                  disabled={isLoading}
+                  minDate={startDate ? dayjs(startDate) : undefined}
+                  slotProps={{
+                    textField: {
+                      size: 'small',
+                      fullWidth: true,
+                      sx: oswaldInputSx,
+                      inputProps: { readOnly: true },
+                      onClick: () => !isLoading && setEndPickerOpen(true),
+                    },
+                  }}
+                />
+              </Box>
+            </Box>
+
+            {(startDate || endDate) && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography sx={{ fontFamily: OSWALD, fontSize: '0.8rem', color: '#666' }}>
+                  Filtering by raised date: {startDate || '...'} → {endDate || '...'}
+                </Typography>
+                <Button
+                  size="small"
+                  onClick={() => { setStartDate(''); setEndDate('') }}
+                  sx={{ fontFamily: OSWALD, fontSize: '0.75rem', minWidth: 'auto', color: '#e74c3c' }}
                 >
-                  <CardContent sx={{ pb: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
-                      <Checkbox
-                        checked={selectedSystems[system.id] || false}
-                        onChange={(e) => handleSelectSystem(system.id, e.target.checked)}
-                        disabled={isLoading || !canExportSystem(system)}
-                      />
-                      <Box sx={{ flex: 1 }}>
-                        <Typography sx={{ fontFamily: OSWALD, fontWeight: 600, fontSize: '1rem', color: !canExportSystem(system) ? '#999' : '#000' }}>
-                          {system.systemName}
-                        </Typography>
-                        <Typography sx={{ fontFamily: OSWALD, fontSize: '0.85rem', color: '#666', mt: 0.5 }}>
-                          Teams: {system.team.map((t) => t.name).join(', ')}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <Typography sx={{ fontFamily: OSWALD, textAlign: 'center', color: '#999', py: 3 }}>
-                {systemsForSelectedTeam.length === 0
-                  ? 'No systems available for this team'
-                  : 'No systems match the selected filters'}
-              </Typography>
+                  Clear
+                </Button>
+              </Box>
             )}
+
+            <Divider />
+
+            {/* Select All */}
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={
+                    filteredSystemsByStatus.length > 0 &&
+                    selectedCount === filteredSystemsByStatus.filter((s) => canExportSystem(s)).length &&
+                    selectedCount > 0
+                  }
+                  onChange={(e) => handleSelectAll(e.target.checked)}
+                  disabled={isLoading || filteredSystemsByStatus.length === 0}
+                />
+              }
+              label={
+                <Typography sx={{ fontFamily: OSWALD }}>
+                  Select All ({selectedCount}/{filteredSystemsByStatus.filter((s) => canExportSystem(s)).length})
+                </Typography>
+              }
+            />
+
+            {/* Systems List */}
+            <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
+              {allSystemsLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 5 }}>
+                  <CircularProgress />
+                </Box>
+              ) : filteredSystemsByStatus && filteredSystemsByStatus.length > 0 ? (
+                filteredSystemsByStatus.map((system) => (
+                  <Card
+                    key={system.id}
+                    sx={{
+                      mb: 2,
+                      backgroundColor: canExportSystem(system) ? '#f8f9fa' : '#f5f5f5',
+                      opacity: canExportSystem(system) ? 1 : 0.6,
+                    }}
+                  >
+                    <CardContent sx={{ pb: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                        <Checkbox
+                          checked={selectedSystems[system.id] || false}
+                          onChange={(e) => handleSelectSystem(system.id, e.target.checked)}
+                          disabled={isLoading || !canExportSystem(system)}
+                        />
+                        <Box sx={{ flex: 1 }}>
+                          <Typography sx={{ fontFamily: OSWALD, fontWeight: 600, fontSize: '1rem', color: !canExportSystem(system) ? '#999' : '#000' }}>
+                            {system.systemName}
+                          </Typography>
+                          <Typography sx={{ fontFamily: OSWALD, fontSize: '0.85rem', color: '#666', mt: 0.5 }}>
+                            Teams: {system.team.map((t) => t.name).join(', ')}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Typography sx={{ fontFamily: OSWALD, textAlign: 'center', color: '#999', py: 3 }}>
+                  {systemsForSelectedTeam.length === 0
+                    ? 'No systems available for this team'
+                    : 'No systems match the selected filters'}
+                </Typography>
+              )}
+            </Box>
           </Box>
-        </Box>
-      </DialogContent>
+        </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose} disabled={isLoading} sx={{ fontFamily: OSWALD }}>
-          Cancel
-        </Button>
-        <Button
-          onClick={handleExport}
-          variant="contained"
-          disabled={selectedCount === 0 || isLoading || selectedCategories.length === 0}
-          startIcon={isLoading && <CircularProgress size={20} />}
-          sx={{ backgroundColor: '#2c3e50', fontFamily: OSWALD, '&:hover': { backgroundColor: '#34495e' } }}
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={onClose} disabled={isLoading} sx={{ fontFamily: OSWALD }}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleExport}
+            variant="contained"
+            disabled={selectedCount === 0 || isLoading || selectedCategories.length === 0}
+            startIcon={isLoading && <CircularProgress size={20} />}
+            sx={{ backgroundColor: '#2c3e50', fontFamily: OSWALD, '&:hover': { backgroundColor: '#34495e' } }}
+          >
+            {isLoading ? 'Exporting...' : `Export (${selectedCount})`}
+          </Button>
+        </DialogActions>
+
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={3000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
-          {isLoading ? 'Exporting...' : `Export (${selectedCount})`}
-        </Button>
-      </DialogActions>
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert severity={snackbar.severity} variant="filled" onClose={handleCloseSnackbar} sx={{ fontFamily: OSWALD }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Dialog>
+          <Alert severity={snackbar.severity} variant="filled" onClose={handleCloseSnackbar} sx={{ fontFamily: OSWALD }}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </Dialog>
+    </LocalizationProvider>
   )
 }
 

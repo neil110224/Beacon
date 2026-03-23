@@ -364,7 +364,7 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
           <Button
             onClick={onClose}
             disabled={isLoading || localLoading || justSaved}
-            sx={{ textTransform: 'none', color: '#666', fontFamily: OSWALD, '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' } }}
+            sx={{ textTransform: 'none', color: '#5a6ac4', fontFamily: OSWALD, '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' } }}
           >
             Cancel
           </Button>
@@ -375,13 +375,13 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
             startIcon={(isLoading || localLoading || justSaved) && <CircularProgress size={20} />}
             sx={{
               textTransform: 'none',
-              backgroundColor: '#2c3e50',
+              backgroundColor: '#03346E',
               fontFamily: OSWALD,
-              '&:hover': { backgroundColor: '#34495e' },
+              '&:hover': { backgroundColor: '#022d61' },
               '&:disabled': { backgroundColor: '#ccc' },
             }}
           >
-            {isLoading || localLoading || justSaved ? 'Saving...' : isEdit ? 'Update Role' : 'Create Role'}
+            {isLoading || localLoading || justSaved ? 'Saving...' : isEdit ? 'Update Role' : 'Create'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -466,9 +466,9 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
           variant="contained"
           disabled={apiLoading || isLoading || justSaved}
           startIcon={(apiLoading || isLoading || justSaved) && <CircularProgress size={20} />}
-          sx={{ fontFamily: OSWALD }}
+          sx={{ fontFamily: OSWALD, bgcolor: '#03346E', ":hover": { bgcolor: '#022E5B' } }}
         >
-          {apiLoading || isLoading || justSaved ? 'Saving...' : isEdit ? 'Update' : 'Save'}
+          {apiLoading || isLoading || justSaved ? 'Saving...' : isEdit ? 'Update' : 'CREATE'}
         </Button>
       </DialogActions>
 

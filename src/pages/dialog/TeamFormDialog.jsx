@@ -162,12 +162,12 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
           disabled={isLoading || justSaved}
           startIcon={(isLoading || justSaved) && <CircularProgress size={20} />}
           sx={{
-            backgroundColor: '#2c3e50',
+            backgroundColor: '#03346E',
             fontFamily: OSWALD,
-            '&:hover': { backgroundColor: '#34495e' },
+            '&:hover': { backgroundColor: '#022E5B' },
           }}
         >
-          {(isLoading || justSaved) ? 'Saving...' : isEdit ? 'Update' : 'Save'}
+          {(isLoading || justSaved) ? 'Saving...' : isEdit ? 'Update' : 'Create'}
         </Button>
       </DialogActions>
       {/* Snackbar for success/error messages */}

@@ -44,34 +44,69 @@ export const categoryApi = todoListApi.injectEndpoints({
         { type: "categories", id: arg?.status || "LIST" },
       ],
     }),
+
     deleteCategory: builder.mutation({
       query: (id) => ({
         url: `category/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: [
-        { type: "categories", id: "active" },
-        { type: "categories", id: "inactive" },
-      ],
+      // ✅ Only invalidate cache if the mutation succeeded
+      async onQueryStarted(id, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(
+            categoryApi.util.invalidateTags([
+              { type: "categories", id: "active" },
+              { type: "categories", id: "inactive" },
+            ]),
+          );
+        } catch {
+          // ❌ Error — do nothing, cache stays intact, no refetch
+        }
+      },
     }),
+
     createCategory: builder.mutation({
       query: (data) => ({
         url: "category",
         method: "POST",
         body: data,
       }),
-      invalidatesTags: [{ type: "categories", id: "active" }],
+      // ✅ Only invalidate cache if the mutation succeeded
+      async onQueryStarted(data, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(
+            categoryApi.util.invalidateTags([
+              { type: "categories", id: "active" },
+            ]),
+          );
+        } catch {
+          // ❌ Error (e.g. "name already taken") — do nothing, no refetch
+        }
+      },
     }),
+
     updateCategory: builder.mutation({
       query: ({ id, ...data }) => ({
         url: `category/${id}`,
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: [
-        { type: "categories", id: "active" },
-        { type: "categories", id: "inactive" },
-      ],
+      // ✅ Only invalidate cache if the mutation succeeded
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(
+            categoryApi.util.invalidateTags([
+              { type: "categories", id: "active" },
+              { type: "categories", id: "inactive" },
+            ]),
+          );
+        } catch {
+          // ❌ Error — do nothing, cache stays intact, no refetch
+        }
+      },
     }),
   }),
 });

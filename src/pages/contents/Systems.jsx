@@ -460,6 +460,15 @@ const Systems = () => {
         onImportSuccess={refetchAllSystems}
       />
 
+      <ImportSystemDialog
+  open={importDialogOpen}
+  onClose={() => setImportDialogOpen(false)}
+  selectedTeam={selectedTeam}
+  onImportSuccess={async () => {
+    await refetch()
+  }}
+/>
+
       <ExportSystemDialog
         open={exportDialogOpen}
         onClose={() => setExportDialogOpen(false)}

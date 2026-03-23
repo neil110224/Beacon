@@ -55,17 +55,21 @@ const Category = () => {
     if (!selectedCategory) return
     try {
       await deleteCategory(selectedCategory.id).unwrap()
+      // ✅ Only runs on success
       setConfirmDialogOpen(false)
       handleMenuClose()
       setSnackbarMessage(selectedCategory.deleted_at ? 'Category restored successfully!' : 'Category archived successfully!')
       setSnackbarSeverity('success')
       setSnackbarOpen(true)
+      refetch() // ✅ Refetch only on success
     } catch (err) {
+      // ❌ Error path — no refetch
       const errorMessage = err?.data?.errors?.[0]?.detail || 'Failed to archive category. Please try again.'
       setSnackbarMessage(errorMessage)
       setSnackbarSeverity('error')
       setSnackbarOpen(true)
       setConfirmDialogOpen(false)
+      handleMenuClose()
     }
   }
 
@@ -118,7 +122,6 @@ const Category = () => {
         onRefresh={refetch}
       />
 
-      {/* Only show one empty state or table at a time */}
       {showNoData ? (
         <Box className="categoryEmptyStateWrapper">
           <Box className="categoryEmptyStateBox">
@@ -203,6 +206,7 @@ const Category = () => {
         onClose={() => { setCategoryDialogOpen(false); setSelectedCategory(null) }}
         category={null}
         onSave={createCategory}
+        refetch={refetch}
         isLoading={false}
       />
 

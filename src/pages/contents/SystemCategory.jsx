@@ -1,4 +1,4 @@
-import { Box, CircularProgress, Accordion, AccordionSummary, AccordionDetails, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Select, MenuItem, Snackbar, Alert, TextField, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Menu, Tabs, Tab, FormControl, InputLabel, Tooltip, Checkbox, Collapse } from '@mui/material'
+import { Box, CircularProgress, Accordion, AccordionSummary, AccordionDetails, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Select, MenuItem, Snackbar, Alert, TextField, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Menu, Tabs, Tab, FormControl, InputLabel, Tooltip, Checkbox } from '@mui/material'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import AddIcon from '@mui/icons-material/Add'
@@ -6,12 +6,13 @@ import CheckIcon from '@mui/icons-material/Check'
 import DoneAllIcon from '@mui/icons-material/DoneAll'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
+import CloseIcon from '@mui/icons-material/Close'
 import React, { useMemo, useState, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { selectCurrentUser } from '../../features/api/slice/authSlice'
 import { useGetSystemsListQuery } from '../../features/api/system/systemApi'
-import { useUpdateProgressStatusMutation, useUpdateProgressMutation, useCreateProgressMutation } from '../../features/api/progress/progressApi'
+import { useUpdateProgressMutation, useCreateProgressMutation } from '../../features/api/progress/progressApi'
 import { useGetCategoriesListQuery } from '../../features/api/category/categoryApi'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
@@ -25,23 +26,24 @@ import SettingsSystemDaydreamIcon from '@mui/icons-material/SettingsSystemDaydre
 const OSWALD = '"Oswald", sans-serif'
 const PAGE_SIZE = 10
 
+const EMPTY_ENTRY = () => ({ description: '' })
+
 const SystemCategory = () => {
   const navigate = useNavigate()
   const { systemName } = useParams()
   const user = useSelector(selectCurrentUser)
 
   const buildQueryParams = () => {
-    const isUserRole = user?.role?.name?.toLowerCase() === "user"
+    const isUserRole = user?.role?.name?.toLowerCase() === 'user'
     if (isUserRole && user?.team?.id) {
-      return { status: "active", scope: "per_team", team_id: user.team.id }
+      return { status: 'active', scope: 'per_team', team_id: user.team.id }
     } else {
-      return { status: "active", scope: "global" }
+      return { status: 'active', scope: 'global' }
     }
   }
 
   const queryParams = buildQueryParams()
   const { data: systemsData, isLoading, error, refetch } = useGetSystemsListQuery(queryParams)
-  const [updateProgressStatus] = useUpdateProgressStatusMutation()
   const [updateProgress] = useUpdateProgressMutation()
   const [createProgress] = useCreateProgressMutation()
   const { data: categoriesData } = useGetCategoriesListQuery({ status: 'active', pagination: 'none' })
@@ -51,6 +53,7 @@ const SystemCategory = () => {
   const [editingRemarks, setEditingRemarks] = useState({})
   const [editingRemarksMode, setEditingRemarksMode] = useState({})
   const [selectedRemarksItem, setSelectedRemarksItem] = useState(null)
+  const [selectedDescriptionItem, setSelectedDescriptionItem] = useState(null)
   const [loadingStatusId, setLoadingStatusId] = useState(null)
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' })
   const [anchorEl, setAnchorEl] = useState(null)
@@ -58,10 +61,20 @@ const SystemCategory = () => {
   const [markAsDoneDialog, setMarkAsDoneDialog] = useState({ open: false, item: null, action: null })
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('pending')
   const [dateEditDialog, setDateEditDialog] = useState({ open: false, item: null, raised_date: null, target_date: null, end_date: null })
-  const [createDialog, setCreateDialog] = useState({ open: false, selectedCategory: '', description: '', raisedDate: null, targetDate: null, remarks: '' })
+
+  // ── Create dialog — shared fields + multiple descriptions ─────────────────
+  const [createDialog, setCreateDialog] = useState({
+    open: false,
+    selectedCategory: '',
+    raisedDate: null,
+    targetDate: null,
+    remarks: '',
+    entries: [EMPTY_ENTRY()]
+  })
   const [createLoading, setCreateLoading] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState(null)
   const [editDialog, setEditDialog] = useState({ open: false, item: null, remarks: '' })
+  const [createError, setCreateError] = useState(false)
 
   // Per-category "show all" toggle (key = category index)
   const [expandedCategories, setExpandedCategories] = useState({})
@@ -160,13 +173,11 @@ const SystemCategory = () => {
   const handleConfirmBulkDone = useCallback(async () => {
     const { categoryIdx, end_date } = bulkDoneDialog
     if (categoryIdx === null || !end_date) return
-    const ids = Array.from(getSelected(categoryIdx))
+    const ids = Array.from(getSelected(categoryIdx)).map(Number)
     if (!ids.length) return
     setBulkLoading(true)
     try {
-      await Promise.all(ids.map(id =>
-        updateProgress({ progressId: id, status: 'done', end_date: end_date.format('YYYY-MM-DD') }).unwrap()
-      ))
+      await updateProgress({ ids, status: 'done', end_date: end_date.format('YYYY-MM-DD') }).unwrap()
       await refetch()
       clearSelection(categoryIdx)
       setSnackbar({ open: true, message: `${ids.length} item(s) marked as done!`, severity: 'success' })
@@ -187,7 +198,7 @@ const SystemCategory = () => {
     setEditingStatus(prev => ({ ...prev, [itemId]: newStatus }))
     setLoadingStatusId(itemId)
     try {
-      await updateProgressStatus({ progressId: itemId, status: newStatus }).unwrap()
+      await updateProgress({ ids: [Number(itemId)], status: newStatus }).unwrap()
       await refetch()
       setEditingStatus(prev => { const s = { ...prev }; delete s[itemId]; return s })
       setSnackbar({ open: true, message: 'Status updated successfully!', severity: 'success' })
@@ -197,7 +208,7 @@ const SystemCategory = () => {
     } finally {
       setLoadingStatusId(null)
     }
-  }, [updateProgressStatus, refetch])
+  }, [updateProgress, refetch])
 
   const handleRemarksChange = useCallback(async (item, newRemarks) => {
     setEditingRemarks(prev => ({ ...prev, [item.id]: newRemarks }))
@@ -217,7 +228,7 @@ const SystemCategory = () => {
     }
     setLoadingStatusId(item.id)
     try {
-      await updateProgress({ progressId: item.id, remarks: newRemarks, status: item.status }).unwrap()
+      await updateProgress({ ids: [Number(item.id)], remarks: newRemarks, status: item.status }).unwrap()
       await refetch()
       setEditingRemarksMode(prev => { const s = { ...prev }; delete s[item.id]; return s })
       setEditingRemarks(prev => { const s = { ...prev }; delete s[item.id]; return s })
@@ -237,6 +248,9 @@ const SystemCategory = () => {
 
   const handleRemarksDialogOpen = useCallback((item) => { setSelectedRemarksItem(item) }, [])
   const handleRemarksDialogClose = useCallback(() => { setSelectedRemarksItem(null) }, [])
+
+  const handleDescriptionDialogOpen = useCallback((item) => { setSelectedDescriptionItem(item) }, [])
+  const handleDescriptionDialogClose = useCallback(() => { setSelectedDescriptionItem(null) }, [])
 
   const handleActionMenuOpen = useCallback((event, item) => {
     event.stopPropagation()
@@ -276,7 +290,7 @@ const SystemCategory = () => {
     if (editDialog.remarks === editDialog.item.remarks) { handleCloseEditDialog(); return }
     setLoadingStatusId(editDialog.item.id)
     try {
-      await updateProgress({ progressId: editDialog.item.id, remarks: editDialog.remarks, status: editDialog.item.status }).unwrap()
+      await updateProgress({ ids: [Number(editDialog.item.id)], remarks: editDialog.remarks, status: editDialog.item.status }).unwrap()
       await refetch()
       setSnackbar({ open: true, message: 'Remarks updated successfully!', severity: 'success' })
       handleCloseEditDialog()
@@ -297,7 +311,7 @@ const SystemCategory = () => {
       const statusLabel = newStatus === 'hold' ? 'On Hold' : 'Pending'
       setLoadingStatusId(markAsDoneDialog.item.id)
       try {
-        await updateProgress({ progressId: markAsDoneDialog.item.id, status: newStatus }).unwrap()
+        await updateProgress({ ids: [Number(markAsDoneDialog.item.id)], status: newStatus }).unwrap()
         await refetch()
         setSnackbar({ open: true, message: `Marked as ${statusLabel} successfully!`, severity: 'success' })
       } catch (err) {
@@ -328,66 +342,86 @@ const SystemCategory = () => {
     setDateEditDialog({ open: false, item: null, raised_date: null, target_date: null, end_date: null })
   }, [])
 
+  // ── Create dialog handlers ─────────────────────────────────────────────────
+
   const handleOpenCreateDialog = useCallback(() => {
-    setCreateDialog({ open: true, selectedCategory: '', description: '', raisedDate: null, targetDate: null, remarks: '' })
+    setCreateDialog({ open: true, selectedCategory: '', raisedDate: null, targetDate: null, remarks: '', entries: [EMPTY_ENTRY()] })
   }, [])
 
   const handleCloseCreateDialog = useCallback(() => {
-    setCreateDialog({ open: false, selectedCategory: '', description: '', raisedDate: null, targetDate: null, remarks: '' })
+    setCreateDialog({ open: false, selectedCategory: '', raisedDate: null, targetDate: null, remarks: '', entries: [EMPTY_ENTRY()] })
+  }, [])
+
+  const handleAddEntry = useCallback(() => {
+    setCreateDialog(prev => ({ ...prev, entries: [...prev.entries, EMPTY_ENTRY()] }))
+  }, [])
+
+  const handleRemoveEntry = useCallback((index) => {
+    setCreateDialog(prev => ({
+      ...prev,
+      entries: prev.entries.filter((_, i) => i !== index)
+    }))
+  }, [])
+
+  const handleEntryDescriptionChange = useCallback((index, value) => {
+    setCreateDialog(prev => {
+      const entries = [...prev.entries]
+      entries[index] = { description: value }
+      return { ...prev, entries }
+    })
   }, [])
 
   const handleCreateSubmit = useCallback(async () => {
-    if (!createDialog.selectedCategory || !createDialog.description || !createDialog.raisedDate) {
-      setSnackbar({ open: true, message: 'Please fill in all required fields (Category, Description, Raised Date)', severity: 'error' })
+    const hasInvalid = createDialog.entries.some(e => !e.description)
+    if (!createDialog.selectedCategory || !createDialog.raisedDate || hasInvalid) {
+      setSnackbar({ open: true, message: 'Please fill in Category, Raised Date, and all Description fields', severity: 'error' })
       return
     }
     setCreateLoading(true)
     setLoadingStatusId('creating')
+    setCreateError(false)
     try {
-      if (!currentSystem) {
-        setSnackbar({ open: true, message: 'System not found.', severity: 'error' })
-        setCreateLoading(false); setLoadingStatusId(null); return
-      }
+      if (!currentSystem) throw new Error('System not found.')
       const systemId = currentSystem.id || currentSystem.system_id
-      if (!systemId) {
-        setSnackbar({ open: true, message: 'System ID not found.', severity: 'error' })
-        setCreateLoading(false); setLoadingStatusId(null); return
-      }
+      if (!systemId) throw new Error('System ID not found.')
       const selectedCategoryObj = allCategories.find(cat => cat.id === createDialog.selectedCategory)
-      if (!selectedCategoryObj) {
-        setSnackbar({ open: true, message: 'Selected category not found', severity: 'error' })
-        setCreateLoading(false); setLoadingStatusId(null); return
-      }
+      if (!selectedCategoryObj) throw new Error('Selected category not found')
+
       const payload = {
         system_id: systemId,
         categories: [{
           categoryName: selectedCategoryObj.categoryName || selectedCategoryObj.name,
-          progress: [{
-            description: createDialog.description,
+          progress: createDialog.entries.map(e => ({
+            description: e.description,
             raised_date: createDialog.raisedDate.format('YYYY-MM-DD'),
             target_date: createDialog.targetDate ? createDialog.targetDate.format('YYYY-MM-DD') : null,
             end_date: null,
             status: 'pending',
             remarks: createDialog.remarks || ''
-          }]
+          }))
         }]
       }
       setNewCategoryName(selectedCategoryObj.categoryName || selectedCategoryObj.name)
       await createProgress(payload).unwrap()
       await refetch()
-      setSnackbar({ open: true, message: 'Progress item created successfully!', severity: 'success' })
-      setTimeout(() => { handleCloseCreateDialog(); setNewCategoryName(null) }, 800)
+      handleCloseCreateDialog()
+      setSnackbar({ open: true, message: `${createDialog.entries.length} item(s) created successfully!`, severity: 'success' })
+      setNewCategoryName(null)
     } catch (err) {
-      let errorMessage = 'Failed to create progress item'
+      let errorMessage = err?.message || 'Failed to create progress item'
       if (err?.data?.errors?.length > 0) errorMessage = err.data.errors[0]?.detail || err.data.errors[0]?.message || errorMessage
       else if (err?.data?.detail) errorMessage = err.data.detail
       else if (err?.data?.message) errorMessage = err.data.message
       setSnackbar({ open: true, message: errorMessage, severity: 'error' })
       setNewCategoryName(null)
+      setCreateError(true)
     } finally {
-      setCreateLoading(false); setLoadingStatusId(null)
+      setCreateLoading(false)
+      setLoadingStatusId(null)
     }
   }, [createDialog, currentSystem, allCategories, createProgress, refetch])
+
+  // ── Status counts ──────────────────────────────────────────────────────────
 
   const statusCounts = useMemo(() => {
     const counts = { pending: 0, hold: 0, done: 0 }
@@ -410,7 +444,7 @@ const SystemCategory = () => {
         setSnackbar({ open: true, message: 'End date cannot be before raised date.', severity: 'error' })
         return
       }
-      const updatePayload = { progressId: dateEditDialog.item.id, status: 'done', end_date: dateEditDialog.end_date.format('YYYY-MM-DD') }
+      const updatePayload = { ids: [Number(dateEditDialog.item.id)], status: 'done', end_date: dateEditDialog.end_date.format('YYYY-MM-DD') }
       setLoadingStatusId(dateEditDialog.item.id)
       try {
         await updateProgress(updatePayload).unwrap()
@@ -457,6 +491,11 @@ const SystemCategory = () => {
 
   const isDoneTab = selectedStatusFilter === 'done'
   const centeredColumns = ['Status']
+
+  const isCreateSubmitDisabled =
+    !createDialog.selectedCategory ||
+    !createDialog.raisedDate ||
+    createDialog.entries.some(e => !e.description)
 
   return (
     <Box className="systemCategoryContainer">
@@ -538,7 +577,7 @@ const SystemCategory = () => {
                     </Typography>
 
                     {/* Selection toolbar — only show on non-done tabs when items exist */}
-                    {!isDoneTab && filteredProgress.length > 0 && selectedCount > 0 && (
+                    {filteredProgress.length > 0 && selectedCount > 0 && (
                       <Box
                         onClick={e => e.stopPropagation()}
                         sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
@@ -548,20 +587,80 @@ const SystemCategory = () => {
                           size="small"
                           sx={{ fontFamily: OSWALD, backgroundColor: '#03346E', color: '#fff', fontWeight: 600 }}
                         />
-                        <Button
-                          size="small"
-                          variant="contained"
-                          startIcon={<DoneAllIcon />}
-                          onClick={() => handleOpenBulkDone(idx)}
-                          sx={{ backgroundColor: '#4caf50', fontFamily: OSWALD, fontSize: '0.75rem', py: 0.4 }}
-                        >
-                          Mark as Done
-                        </Button>
+                        {selectedStatusFilter === 'hold' ? (
+                          <Button
+                            size="small"
+                            variant="contained"
+                            onClick={async () => {
+                              const ids = Array.from(getSelected(idx)).map(Number)
+                              if (!ids.length) return
+                              setBulkLoading(true)
+                              try {
+                                await updateProgress({ ids, status: 'pending' }).unwrap()
+                                await refetch()
+                                clearSelection(idx)
+                                setSnackbar({ open: true, message: `${ids.length} item(s) marked as pending!`, severity: 'success' })
+                              } catch (err) {
+                                let msg = 'Failed to mark items as pending'
+                                if (err?.data?.errors?.length > 0) msg = err.data.errors[0]?.detail || msg
+                                else if (err?.data?.message) msg = err.data.message
+                                setSnackbar({ open: true, message: msg, severity: 'error' })
+                              } finally {
+                                setBulkLoading(false)
+                              }
+                            }}
+                            sx={{ backgroundColor: '#ff9800', fontFamily: OSWALD, fontSize: '0.75rem', py: 0.4 }}
+                            disabled={bulkLoading}
+                          >
+                            {bulkLoading ? <CircularProgress size={16} sx={{ mr: 1, color: '#fff' }} /> : null}
+                            Mark as Pending
+                          </Button>
+                        ) : (
+                          <>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              startIcon={<DoneAllIcon />}
+                              onClick={() => handleOpenBulkDone(idx)}
+                              sx={{ backgroundColor: '#4caf50', fontFamily: OSWALD, fontSize: '0.75rem', py: 0.4 }}
+                            >
+                              Mark as Done
+                            </Button>
+                            <Button
+                              size="small"
+                              variant="contained"
+                              onClick={async () => {
+                                const ids = Array.from(getSelected(idx)).map(Number)
+                                if (!ids.length) return
+                                setBulkLoading(true)
+                                try {
+                                  await updateProgress({ ids, status: 'hold' }).unwrap()
+                                  await refetch()
+                                  clearSelection(idx)
+                                  setSnackbar({ open: true, message: `${ids.length} item(s) marked as on hold!`, severity: 'success' })
+                                } catch (err) {
+                                  let msg = 'Failed to mark items as on hold'
+                                  if (err?.data?.errors?.length > 0) msg = err.data.errors[0]?.detail || msg
+                                  else if (err?.data?.message) msg = err.data.message
+                                  setSnackbar({ open: true, message: msg, severity: 'error' })
+                                } finally {
+                                  setBulkLoading(false)
+                                }
+                              }}
+                              sx={{ backgroundColor: '#2196f3', fontFamily: OSWALD, fontSize: '0.75rem', py: 0.4 }}
+                              disabled={bulkLoading}
+                            >
+                              {bulkLoading ? <CircularProgress size={16} sx={{ mr: 1, color: '#fff' }} /> : null}
+                              Mark as On Hold
+                            </Button>
+                          </>
+                        )}
                         <Button
                           size="small"
                           variant="text"
                           onClick={() => clearSelection(idx)}
                           sx={{ fontFamily: OSWALD, fontSize: '0.75rem', color: '#888' }}
+                          disabled={bulkLoading}
                         >
                           Clear
                         </Button>
@@ -585,7 +684,7 @@ const SystemCategory = () => {
                                     indeterminate={someSelected}
                                     checked={allVisibleSelected}
                                     onChange={() => toggleSelectAll(idx, visibleItems)}
-                                    sx={{ color: '#fff', '&.Mui-checked': { color: '#fff' }, '&.MuiCheckbox-indeterminate': { color: '#fff' } }}
+                                    sx={{ color: '#03346E', '&.Mui-checked': { color: '#03346E' }, '&.MuiCheckbox-indeterminate': { color: '#03346E' } }}
                                   />
                                 </TableCell>
                               )}
@@ -630,7 +729,26 @@ const SystemCategory = () => {
                                   )}
 
                                   <TableCell sx={{ fontFamily: OSWALD }}>{item.id}</TableCell>
-                                  <TableCell sx={{ fontFamily: OSWALD }}>{item.description}</TableCell>
+                                  <TableCell className="systemCategoryRemarks">
+                                    <Typography
+                                      variant="body2"
+                                      onClick={(e) => { e.stopPropagation(); handleDescriptionDialogOpen(item) }}
+                                      sx={{
+                                        fontFamily: OSWALD,
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: 'vertical',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        wordBreak: 'break-word',
+                                        maxWidth: '100%',
+                                        cursor: 'pointer',
+                                        '&:hover': { textDecoration: 'underline', color: '#03346E' }
+                                      }}
+                                    >
+                                      {item.description || '-'}
+                                    </Typography>
+                                  </TableCell>
 
                                   {/* Remarks */}
                                   <TableCell className="systemCategoryRemarks">
@@ -747,9 +865,7 @@ const SystemCategory = () => {
                             onClick={() => setExpandedCategories(prev => ({ ...prev, [idx]: !prev[idx] }))}
                             sx={{ fontFamily: OSWALD, color: '#03346E', fontWeight: 600, fontSize: '0.8rem' }}
                           >
-                            {isExpanded
-                              ? 'Show less'
-                              : `Show all ${filteredProgress.length} items`}
+                            {isExpanded ? 'Show less' : `Show all ${filteredProgress.length} items`}
                           </Button>
                         </Box>
                       )}
@@ -804,6 +920,21 @@ const SystemCategory = () => {
         </DialogActions>
       </Dialog>
 
+      {/* Description Detail Dialog */}
+      <Dialog open={!!selectedDescriptionItem} onClose={handleDescriptionDialogClose} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 600, color: '#03346E', fontFamily: OSWALD }}>Description Details</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 2 }}>
+            <Typography variant="body2" sx={{ fontFamily: OSWALD, whiteSpace: 'pre-wrap', wordBreak: 'break-word', backgroundColor: '#f5f5f5', p: 2, borderRadius: '4px' }}>
+              {selectedDescriptionItem?.description || 'No description'}
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDescriptionDialogClose} color="primary" sx={{ fontFamily: OSWALD }}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Date Edit Dialog (single item mark as done) */}
       <Dialog open={dateEditDialog.open} onClose={handleCloseDateEditDialog} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 600, color: '#03346E', fontFamily: OSWALD }}>Mark As Done?</DialogTitle>
@@ -818,7 +949,24 @@ const SystemCategory = () => {
                 <DatePicker
                   value={dateEditDialog.end_date}
                   onChange={(newDate) => setDateEditDialog(prev => ({ ...prev, end_date: newDate }))}
-                  slotProps={{ textField: { size: "small", fullWidth: true, sx: oswaldInputSx } }}
+                  slotProps={{
+                    textField: {
+                      size: 'small',
+                      fullWidth: true,
+                      sx: oswaldInputSx,
+                      inputProps: { readOnly: true },
+                      onFocus: (e) => {
+                        e.target.blur();
+                        const pickerButton = e.target.parentElement.querySelector('button[aria-label="Choose date"]');
+                        if (pickerButton) pickerButton.click();
+                      },
+                      onClick: (e) => {
+                        e.stopPropagation();
+                        const pickerButton = e.currentTarget.parentElement.querySelector('button[aria-label="Choose date"]');
+                        if (pickerButton) pickerButton.click();
+                      },
+                    }
+                  }}
                   minDate={dateEditDialog.raised_date}
                 />
               </Box>
@@ -854,8 +1002,9 @@ const SystemCategory = () => {
                 <DatePicker
                   value={bulkDoneDialog.end_date}
                   onChange={(newDate) => setBulkDoneDialog(prev => ({ ...prev, end_date: newDate }))}
-                  slotProps={{ textField: { size: "small", fullWidth: true, sx: oswaldInputSx } }}
+                  slotProps={{ textField: { size: 'small', fullWidth: true, sx: oswaldInputSx } }}
                   disabled={bulkLoading}
+                  minDate={dayjs().startOf('day')}
                 />
               </Box>
             </LocalizationProvider>
@@ -879,8 +1028,8 @@ const SystemCategory = () => {
         open={markAsDoneDialog.open}
         onClose={handleClosMarkAsDoneDialog}
         onConfirm={handleConfirmMarkAsDone}
-        title={markAsDoneDialog.action === 'hold' ? "Mark as On Hold?" : "Mark as Pending?"}
-        message={markAsDoneDialog.action === 'hold' ? "The status will be changed to On Hold." : "The status will be changed to Pending."}
+        title={markAsDoneDialog.action === 'hold' ? 'Mark as On Hold?' : 'Mark as Pending?'}
+        message={markAsDoneDialog.action === 'hold' ? 'The status will be changed to On Hold.' : 'The status will be changed to Pending.'}
         isLoading={loadingStatusId === markAsDoneDialog.item?.id}
       />
 
@@ -927,11 +1076,15 @@ const SystemCategory = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Create Progress Item Dialog */}
+      {/* ── Create Progress Item Dialog (multi-description) ─────────────────── */}
       <Dialog open={createDialog.open} onClose={handleCloseCreateDialog} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600, color: '#03346E', fontFamily: OSWALD }}>Create New Progress Item</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 600, color: '#03346E', fontFamily: OSWALD }}>
+          Create New Progress Item{createDialog.entries.length > 1 ? ` (${createDialog.entries.length} entries)` : ''}
+        </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+
+            {/* Category */}
             <FormControl fullWidth size="small" sx={oswaldInputSx}>
               <InputLabel sx={{ fontFamily: OSWALD }}>Category *</InputLabel>
               <Select
@@ -949,46 +1102,66 @@ const SystemCategory = () => {
               </Select>
             </FormControl>
 
-            <TextField
-              label="Description *"
-              value={createDialog.description}
-              onChange={(e) => setCreateDialog(prev => ({ ...prev, description: e.target.value }))}
-              fullWidth
-              size="small"
-              multiline
-              rows={3}
-              disabled={createLoading}
-              sx={oswaldInputSx}
-            />
-
+            {/* Shared dates */}
             <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <Box>
-                <Typography variant="caption" sx={{ color: '#666', fontWeight: 500, fontFamily: OSWALD }}>Raised Date *</Typography>
-                <DatePicker
-                  value={createDialog.raisedDate}
-                  onChange={(newDate) => setCreateDialog(prev => ({ ...prev, raisedDate: newDate }))}
-                  slotProps={{ textField: { size: "small", fullWidth: true, sx: oswaldInputSx } }}
-                  disabled={createLoading}
-                  disablePast
-                />
-              </Box>
-              <Box>
-                <Typography variant="caption" sx={{ color: '#666', fontWeight: 500, fontFamily: OSWALD }}>Target Date</Typography>
-                <DatePicker
-                  value={createDialog.targetDate}
-                  onChange={(newDate) => setCreateDialog(prev => ({ ...prev, targetDate: newDate }))}
-                  slotProps={{ textField: { size: "small", fullWidth: true, sx: oswaldInputSx } }}
-                  disabled={createLoading}
-                  minDate={createDialog.raisedDate}
-                />
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="caption" sx={{ color: '#666', fontWeight: 500, fontFamily: OSWALD }}>Raised Date *</Typography>
+                  <DatePicker
+                    value={createDialog.raisedDate}
+                    onChange={(newDate) => setCreateDialog(prev => ({ ...prev, raisedDate: newDate }))}
+                    slotProps={{
+                      textField: {
+                        size: 'small',
+                        fullWidth: true,
+                        sx: oswaldInputSx,
+                        inputProps: { readOnly: true },
+                        onFocus: (e) => {
+                          e.target.blur();
+                          const pickerButton = e.target.parentElement.querySelector('button[aria-label="Choose date"]');
+                          if (pickerButton) pickerButton.click();
+                        },
+                        onClick: (e) => {
+                          e.stopPropagation();
+                          const pickerButton = e.currentTarget.parentElement.querySelector('button[aria-label="Choose date"]');
+                          if (pickerButton) pickerButton.click();
+                        },
+                      }
+                    }}
+                    disabled={createLoading}
+                  />
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="caption" sx={{ color: '#666', fontWeight: 500, fontFamily: OSWALD }}>Target Date</Typography>
+                  <DatePicker
+                    value={createDialog.targetDate}
+                    onChange={(newDate) => setCreateDialog(prev => ({ ...prev, targetDate: newDate }))}
+                    slotProps={{
+                      textField: {
+                        size: 'small',
+                        fullWidth: true,
+                        sx: oswaldInputSx,
+                        inputProps: { readOnly: true },
+                        onFocus: (e) => {
+                          e.target.blur();
+                          const pickerButton = e.target.parentElement.querySelector('button[aria-label="Choose date"]');
+                          if (pickerButton) pickerButton.click();
+                        },
+                        onClick: (e) => {
+                          e.stopPropagation();
+                          const pickerButton = e.currentTarget.parentElement.querySelector('button[aria-label="Choose date"]');
+                          if (pickerButton) pickerButton.click();
+                        },
+                      }
+                    }}
+                    disabled={createLoading}
+                    minDate={createDialog.raisedDate}
+                  />
+                </Box>
               </Box>
             </LocalizationProvider>
 
-            <Box>
-              <Typography variant="caption" sx={{ color: '#666', fontWeight: 500, fontFamily: OSWALD }}>Status</Typography>
-              <TextField value="Pending" fullWidth size="small" disabled variant="outlined" sx={oswaldInputSx} />
-            </Box>
-
+            {/* Shared remarks */}
             <TextField
               label="Remarks"
               value={createDialog.remarks}
@@ -1000,6 +1173,68 @@ const SystemCategory = () => {
               disabled={createLoading}
               sx={oswaldInputSx}
             />
+
+            {/* Status (read-only) */}
+            <Box>
+              <Typography variant="caption" sx={{ color: '#666', fontWeight: 500, fontFamily: OSWALD }}>Status</Typography>
+              <TextField value="Pending" fullWidth size="small" disabled variant="outlined" sx={oswaldInputSx} />
+            </Box>
+
+            {/* Divider label */}
+            <Box sx={{ borderTop: '1px solid #e0e0e0', pt: 1 }}>
+              <Typography variant="caption" sx={{ fontFamily: OSWALD, fontWeight: 600, color: '#03346E', fontSize: '0.8rem' }}>
+                Descriptions
+              </Typography>
+            </Box>
+
+            {/* Description entries — only description duplicates */}
+            {createDialog.entries.map((entry, index) => (
+              <Box
+                key={index}
+                sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}
+              >
+                <TextField
+                  label={`Description ${createDialog.entries.length > 1 ? `#${index + 1}` : ''} *`}
+                  value={entry.description}
+                  onChange={(e) => handleEntryDescriptionChange(index, e.target.value)}
+                  fullWidth
+                  size="small"
+                  multiline
+                  rows={2}
+                  disabled={createLoading}
+                  sx={oswaldInputSx}
+                />
+                {createDialog.entries.length > 1 && (
+                  <IconButton
+                    size="small"
+                    onClick={() => handleRemoveEntry(index)}
+                    disabled={createLoading}
+                    sx={{ color: '#f44336', mt: 0.5 }}
+                    title="Remove"
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                )}
+              </Box>
+            ))}
+
+            {/* Add another description */}
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={handleAddEntry}
+              disabled={createLoading}
+              sx={{
+                fontFamily: OSWALD,
+                borderColor: '#03346E',
+                color: '#03346E',
+                alignSelf: 'flex-start',
+                '&:hover': { backgroundColor: 'rgba(3,52,110,0.05)', borderColor: '#03346E' }
+              }}
+            >
+              Add Description
+            </Button>
+
           </Box>
         </DialogContent>
         <DialogActions>
@@ -1008,9 +1243,11 @@ const SystemCategory = () => {
             onClick={handleCreateSubmit}
             variant="contained"
             sx={{ backgroundColor: '#03346E', fontFamily: OSWALD }}
-            disabled={createLoading || !createDialog.selectedCategory || !createDialog.description || !createDialog.raisedDate}
+            disabled={isCreateSubmitDisabled}
           >
-            {createLoading ? <><CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />Creating...</> : 'Create'}
+            {createLoading
+              ? <><CircularProgress size={20} sx={{ mr: 1, color: 'white' }} />Creating...</>
+              : `Create${createDialog.entries.length > 1 ? ` (${createDialog.entries.length})` : ''}`}
           </Button>
         </DialogActions>
       </Dialog>

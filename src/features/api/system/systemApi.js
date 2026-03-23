@@ -4,7 +4,6 @@ export const systemApi = todoListApi.injectEndpoints({
   endpoints: (builder) => ({
     getSystemsList: builder.query({
       query: (params = {}) => {
-        // Dynamic parameters: status, scope, team_id
         const {
           status = "active",
           scope = "global",
@@ -17,12 +16,10 @@ export const systemApi = todoListApi.injectEndpoints({
           scope,
         };
 
-        // Only add team_id if provided (for per_team scope)
         if (team_id) {
           queryParams.team_id = team_id;
         }
 
-        // Add any other params
         Object.entries(otherParams).forEach(([key, value]) => {
           if (value !== undefined && value !== null) {
             queryParams[key] = value;
@@ -56,6 +53,14 @@ export const systemApi = todoListApi.injectEndpoints({
       }),
       invalidatesTags: ["systems"],
     }),
+    importSystems: builder.mutation({
+      query: (formData) => ({
+        url: "import",
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["systems"],
+    }),
   }),
 });
 
@@ -63,4 +68,5 @@ export const {
   useGetSystemsListQuery,
   useCreateSystemMutation,
   useUpdateSystemMutation,
+  useImportSystemsMutation,
 } = systemApi;
