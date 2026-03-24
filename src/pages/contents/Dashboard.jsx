@@ -3,7 +3,7 @@ import { Box, Typography, Paper, IconButton, Button, FormControl, Select, MenuIt
 import Loading from '../../component/reuseable/Loading'
 import nodataImg from '../../assets/alh.png'
 import Nodata from '../../component/reuseable/Nodata'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo, useRef } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import '../contentscss/Dashboard.scss'
 import { useSelector } from 'react-redux'
@@ -212,9 +212,25 @@ const SystemProgress = ({ system, onNavigate }) => {
   const recentItems = getRecentItems(system)
 
   const getStatusColor = (status) => {
-    const colors = { pending: '#89D4FF', done: '#281C59', hold: '#261CC1' }
+    const colors = { pending: '#89D4FF', done: '#1f7a04', hold: '#9898d3' }
     return colors[status?.toLowerCase()] || '#9e9e9e'
   }
+
+  // Count total pending tasks for this system
+  let totalPending = 0;
+  let pendingTasks = [];
+  system.categories?.forEach(cat => {
+    cat.progress?.forEach(item => {
+      if (item.status !== 'done') {
+        totalPending++;
+        pendingTasks.push({ ...item, category: cat.categoryName });
+      }
+    });
+  });
+
+  // Only show up to 1 pending task, and show 'View All' if there are 2 or more
+  const showViewAll = totalPending >= 2;
+  const tasksToShow = showViewAll ? pendingTasks.slice(0, 1) : pendingTasks;
 
   return (
     <Box className="systemProgressContainer">
@@ -253,13 +269,13 @@ const SystemProgress = ({ system, onNavigate }) => {
         </Box>
       </Box>
 
-      {recentItems.length > 0 && (
+      {pendingTasks.length > 0 && (
         <Box className="pendingTasksSection">
           <Typography variant="caption" className="pendingTasksTitle" sx={{ fontFamily: '"Oswald", sans-serif' }}>
             Pending Tasks
           </Typography>
           <Box component="ul" className="pendingTasksList" sx={{ fontSize: '0.55rem', fontFamily: '"Oswald", sans-serif' }}>
-            {recentItems.map((item, idx) => (
+            {tasksToShow.map((item, idx) => (
               <Box key={idx} component="li" className="pendingTaskItem">
                 <Typography className="pendingTaskDescription" sx={{ fontFamily: '"Oswald", sans-serif' }}>
                   {item.description}
@@ -272,23 +288,16 @@ const SystemProgress = ({ system, onNavigate }) => {
               </Box>
             ))}
           </Box>
-          {(() => {
-            let totalPending = 0
-            system.categories?.forEach(cat => {
-              cat.progress?.forEach(item => { if (item.status !== 'done') totalPending++ })
-            })
-            return totalPending > 2 ? (
-              <Typography className="pendingTasksEllipsis" sx={{ fontFamily: '"Oswald", sans-serif' }}>......</Typography>
-            ) : null
-          })()}
-          <Button
-            size="small"
-            onClick={onNavigate}
-            className="viewAllButton"
-            sx={{ fontSize: '10px', fontFamily: '"Oswald", sans-serif' }}
-          >
-            View All
-          </Button>
+          {showViewAll && (
+            <Button
+              size="small"
+              onClick={onNavigate}
+              className="viewAllButton"
+              sx={{ fontSize: '10px', fontFamily: '"Oswald", sans-serif' }}
+            >
+              View All
+            </Button>
+          )}
         </Box>
       )}
     </Box>
@@ -305,8 +314,16 @@ const Dashboard = () => {
 
   const isAdminRole = user?.role?.name?.toLowerCase() !== 'user'
 
-  // ✅ Default to the user's own team ID; admins start with '' (All Teams)
+  // selectedTeam = what the dropdown currently shows (changes instantly on click)
   const [selectedTeam, setSelectedTeam] = useState(
+    () => isAdminRole ? '' : (user?.team?.id ?? '')
+  )
+  
+
+  // ✅ committedTeam = the team whose data is actually displayed in stats + content.
+  //    It only advances to match selectedTeam AFTER the fetch for that team completes.
+  //    This prevents stale data from the old team flashing while the new fetch is in flight.
+  const [committedTeam, setCommittedTeam] = useState(
     () => isAdminRole ? '' : (user?.team?.id ?? '')
   )
 
@@ -332,38 +349,50 @@ const Dashboard = () => {
     ? teamsData
     : []
 
-  // ✅ Sync selectedTeam if user data loads after component mounts
+  // Sync selectedTeam + committedTeam if user data loads after component mounts
   useEffect(() => {
     if (!isAdminRole && user?.team?.id && selectedTeam === '') {
       setSelectedTeam(user.team.id)
+      setCommittedTeam(user.team.id)
     }
   }, [user?.team?.id])
 
-  const buildQueryParams = () => {
+  // Build query params from selectedTeam (fires the fetch immediately on change)
+  const queryParams = useMemo(() => {
     const baseParams = {}
-
     if (selectedTeam) {
-      // A specific team is selected (works for both admin picking a team and regular user)
       baseParams.status = 'active'
       baseParams.scope = 'per_team'
       baseParams.team_id = selectedTeam
     } else if (isAdminRole) {
-      // Admin with "All Teams" selected
       baseParams.status = 'active'
       baseParams.scope = 'global'
     } else {
-      // Fallback for regular user with no team assigned yet
       baseParams.status = 'active'
       baseParams.scope = 'per_team'
       if (user?.team?.id) baseParams.team_id = user.team.id
     }
-
     if (debouncedSystemsSearch) baseParams.search = debouncedSystemsSearch
     return baseParams
-  }
+  }, [selectedTeam, isAdminRole, user?.team?.id, debouncedSystemsSearch])
 
-  const queryParams = buildQueryParams()
-  const { data: systemsData, isLoading: systemsLoading, error: systemsError, refetch: refetchSystems } = useGetSystemsListQuery(queryParams)
+  const {
+    data: systemsData,
+    isLoading: systemsLoading,
+    isFetching: systemsFetching,
+    error: systemsError,
+    refetch: refetchSystems,
+  } = useGetSystemsListQuery(queryParams)
+
+  // ✅ When the fetch finishes (isFetching goes false), advance committedTeam.
+  //    Until then committedTeam stays on the OLD value, so filteredSystems = []
+  //    and stats = 0/0% immediately upon switching — no stale flash.
+  useEffect(() => {
+    if (!systemsFetching) {
+      setCommittedTeam(selectedTeam)
+    }
+  }, [systemsFetching, selectedTeam])
+
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   const handleRefresh = async () => {
@@ -371,30 +400,44 @@ const Dashboard = () => {
     try { await refetchSystems() } finally { setIsRefreshing(false) }
   }
 
-  const filteredSystems = Array.isArray(systemsData) ? systemsData : []
 
+
+
+  // Always show stats/content for the selected team. If fetching or no data, show zero.
+  // This ensures stats and content are always in sync and never show stale data.
+  const isTeamFetching = systemsFetching || committedTeam !== selectedTeam;
+  const filteredSystems = (!isTeamFetching && Array.isArray(systemsData)) ? systemsData : [];
+
+  // Calculate stats for summary cards
   const calculateOverallStats = () => {
-    let totalSum = 0, completedSum = 0, pendingSum = 0
-    if (Array.isArray(filteredSystems)) {
-      filteredSystems.forEach((system) => {
-        if (system.categories && Array.isArray(system.categories)) {
-          system.categories.forEach((category) => {
-            if (category.progress && Array.isArray(category.progress)) {
-              category.progress.forEach((item) => {
-                totalSum++
-                if (item.status === 'done') completedSum++
-                else if (item.status === 'pending') pendingSum++
-              })
-            }
-          })
-        }
-      })
+    if (isTeamFetching || !Array.isArray(filteredSystems) || filteredSystems.length === 0) {
+      return { pending: 0, completed: 0, percentage: 0 };
     }
-    const percentage = totalSum > 0 ? Math.round((completedSum / totalSum) * 100) : 0
-    return { pending: pendingSum, completed: completedSum, percentage }
-  }
+    let totalSum = 0, completedSum = 0, pendingSum = 0;
+    filteredSystems.forEach((system) => {
+      if (system.categories && Array.isArray(system.categories)) {
+        system.categories.forEach((category) => {
+          if (category.progress && Array.isArray(category.progress)) {
+            category.progress.forEach((item) => {
+              totalSum++;
+              if (item.status === 'done') completedSum++;
+              else if (item.status === 'pending') pendingSum++;
+            });
+          }
+        });
+      }
+    });
+    const percentage = totalSum > 0 ? Math.round((completedSum / totalSum) * 100) : 0;
+    return { pending: pendingSum, completed: completedSum, percentage };
+  };
+  const stats = calculateOverallStats();
 
-  const stats = calculateOverallStats()
+  // Team name for the empty state and stats
+  const selectedTeamName = useMemo(() => {
+    if (!selectedTeam) return 'All Teams';
+    const found = teams.find(t => t.id === selectedTeam);
+    return found?.name || user?.team?.name || 'Projects';
+  }, [selectedTeam, teams, user?.team?.name]);
 
   const StatCard = ({ title, count, icon: Icon, color, isPercentage = false }) => (
     <Paper elevation={0} className="statCard" sx={{ bgcolor: '#f3f3f3' }}>
@@ -453,12 +496,13 @@ const Dashboard = () => {
 
             <FormControl className="filterSelect" size="small">
               <Select
+                id="dashboard-team-filter"
+                name="dashboard-team-filter"
                 value={selectedTeam}
                 onChange={(e) => setSelectedTeam(e.target.value)}
                 displayEmpty
                 className="filterSelectInput"
               >
-                {/* ✅ Only admins see "All Teams" option */}
                 {isAdminRole && (
                   <MenuItem value="">
                     <Typography className="filterMenuItemText" sx={{ fontFamily: '"Oswald", sans-serif' }}>All Teams</Typography>
@@ -473,6 +517,8 @@ const Dashboard = () => {
             </FormControl>
 
             <TextField
+              id="dashboard-systems-search"
+              name="dashboard-systems-search"
               placeholder="Search systems..."
               value={systemsSearchQuery}
               onChange={(e) => setSystemsSearchQuery(e.target.value)}
@@ -492,20 +538,44 @@ const Dashboard = () => {
 
       <Box className="summarySectionWrapper">
         <Box className="summaryCardBox">
-          <StatCard title="Pending" count={stats.pending} icon={PendingActionsIcon} color="#857fe0" />
+          <StatCard
+            title="Pending"
+            count={
+              (!Array.isArray(filteredSystems) || filteredSystems.length === 0 || systemsFetching || systemsError)
+                ? 0
+                : stats.pending
+            }
+            icon={PendingActionsIcon}
+            color="#857fe0"
+          />
         </Box>
         <Box className="summaryCardBox">
-          <StatCard title="Progress" count={parseInt(stats.percentage)} icon={CheckCircleIcon} color="#160d92" isPercentage={true} />
+          <StatCard
+            title="Progress"
+            count={
+              (!Array.isArray(filteredSystems) || filteredSystems.length === 0 || systemsFetching || systemsError)
+                ? 0
+                : parseInt(stats.percentage)
+            }
+            icon={CheckCircleIcon}
+            color="#160d92"
+            isPercentage={true}
+          />
         </Box>
       </Box>
 
-      {systemsError ? (
+      {/* Show spinner while fetching a different team */}
+      {systemsFetching ? (
+        <Box className="dashboardLoadingContainer">
+          <Loading />
+        </Box>
+      ) : systemsError ? (
         <Box className="emptyStateContainer">
           <Box className="emptyStateContent">
             <Box><Nodata /></Box>
             <Box className="emptyStateText">
               <Typography variant="h6" className="emptyStateTitle" sx={{ fontFamily: '"Oswald", sans-serif' }}>
-                {user?.team?.name || 'Your Team'}
+                {selectedTeamName}
               </Typography>
               <Typography variant="body2" className="emptyStateDescription" sx={{ fontFamily: '"Oswald", sans-serif' }}>
                 Currently no system
@@ -519,7 +589,7 @@ const Dashboard = () => {
             <Box component="img" src={nodataImg} alt="No data" className="emptyStateImage" />
             <Box className="emptyStateText">
               <Typography variant="h6" className="emptyStateTitle" sx={{ fontFamily: '"Oswald", sans-serif' }}>
-                {user?.team?.name || 'Projects'}
+                {selectedTeamName}
               </Typography>
               <Typography variant="body2" className="emptyStateDescription">
                 Currently no system

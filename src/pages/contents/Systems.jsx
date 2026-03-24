@@ -361,8 +361,8 @@ const Systems = () => {
                     <Typography variant="h6" className="systemsCardTitle" sx={{ color: '#f4f4f4', fontFamily: '"Oswald", sans-serif' }}>
                       {system.systemName}
                     </Typography>
-                    <Typography variant="body2" className="systemsCardDescription" sx={{ fontFamily: '"Oswald", sans-serif' }}>
-                      {system.description || 'No description'}
+                    <Typography variant="body2" className="systemsCardDescription" sx={{ fontFamily: '"Oswald", sans-serif',color:'#f4f4f4' }}>
+                      {system.description || `${Array.isArray(system.categories) ? system.categories.reduce((sum, cat) => sum + (Array.isArray(cat.progress) ? cat.progress.filter(item => item.status === 'pending').length : 0), 0) : 0} pending`}
                     </Typography>
                   </CardContent>
                 </Card>

@@ -223,7 +223,7 @@ const Team = () => {
       )}
 
       {!showNoData && !showArchiveNoData && (filteredTeams.length > 0 || isLoading) ? (
-        <Box className="teamCardsGrid">
+        <Box className="teamCardsGrid" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
           {filteredTeams.map(team => (
             <Card key={team.id} className="teamCard" style={{ backgroundColor: teamColorMap[team.id] }} onClick={() => handleOpenMembersDialog(team)}>
               <CardContent>
@@ -311,6 +311,9 @@ const Team = () => {
         team={selectedTeam}
         onSave={selectedTeam ? updateTeam : createTeam}
         isLoading={isDialogLoading}
+        onShowSnackbar={({ message, severity }) => {
+          setSnackbar({ open: true, message, severity });
+        }}
       />
 
       <Snackbar

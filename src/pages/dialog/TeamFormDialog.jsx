@@ -34,9 +34,8 @@ const teamValidationSchema = yup.object().shape({
  * @param {function} props.onSave - Save mutation function
  * @param {boolean} props.isLoading - Loading state
  */
-export default function TeamFormDialog({ open, onClose, team = null, onSave, isLoading = false }) {
+export default function TeamFormDialog({ open, onClose, team = null, onSave, isLoading = false, onShowSnackbar }) {
   const isEdit = !!team;
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [justSaved, setJustSaved] = useState(false);
 
   const {
@@ -73,11 +72,12 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
         await onSave(payload).unwrap();
       }
 
-      setSnackbar({
-        open: true,
-        message: isEdit ? 'Team updated successfully!' : 'Team created successfully!',
-        severity: 'success',
-      });
+      if (onShowSnackbar) {
+        onShowSnackbar({
+          message: isEdit ? 'Team updated successfully!' : 'Team created successfully!',
+          severity: 'success',
+        });
+      }
 
       setJustSaved(true);
       setTimeout(() => {
@@ -99,26 +99,22 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
         errorMessage = error.message;
       }
 
-      setSnackbar({
-        open: true,
-        message: errorMessage,
-        severity: 'error',
-      });
+      if (onShowSnackbar) {
+        onShowSnackbar({
+          message: errorMessage,
+          severity: 'error',
+        });
+      }
     }
   };
 
   const handleDialogClose = () => {
     if (justSaved) return;
     reset({ name: '', code: '' }, { keepDirty: false, keepTouched: false });
-    setSnackbar({ open: false, message: '', severity: 'success' });
     setJustSaved(false);
     onClose();
   };
 
-  const handleCloseSnackbar = (_, reason) => {
-    if (reason === 'clickaway') return;
-    setSnackbar(prev => ({ ...prev, open: false }));
-  };
 
   return (
     <Dialog open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth>
@@ -128,23 +124,29 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
           <TextField
             {...register('code')}
+            id="team-code"
+            name="code"
             label="Team Code"
             fullWidth
             placeholder="e.g., FE-001"
-            error={isSubmitted && !!errors.name}
-  helperText={isSubmitted ? errors.name?.message : ''}
+            error={isSubmitted && !!errors.code}
+            helperText={isSubmitted ? errors.code?.message : ''}
             disabled={isLoading}
+            autoComplete="organization"
             sx={{ '& input, & label': { fontFamily: OSWALD } }}
           />
           <TextField
             {...register('name')}
+            id="team-name"
+            name="name"
             label="Team Name"
             fullWidth
             placeholder="e.g., Frontend Team"
             error={isSubmitted && !!errors.name}
-  helperText={isSubmitted ? errors.name?.message : ''}
+            helperText={isSubmitted ? errors.name?.message : ''}
             disabled={isLoading}
             autoFocus
+            autoComplete="organization-title"
             sx={{ '& input, & label': { fontFamily: OSWALD } }}
           />
 
@@ -170,29 +172,7 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
           {(isLoading || justSaved) ? 'Saving...' : isEdit ? 'Update' : 'Create'}
         </Button>
       </DialogActions>
-      {/* Snackbar for success/error messages */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
-          sx={{
-            width: '100%',
-            backgroundColor: snackbar.severity === 'success' ? '#4caf50' : '#f44336',
-            color: '#fff',
-            fontWeight: 'bold',
-            fontFamily: OSWALD,
-            '& .MuiAlert-icon': {
-              color: '#fff',
-            },
-          }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>    </Dialog>
+      {/* Snackbar removed; now handled in parent Team.jsx */}
+    </Dialog>
   );
 }

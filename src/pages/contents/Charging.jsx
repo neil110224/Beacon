@@ -6,9 +6,8 @@ import Nodata from '../../component/reuseable/Nodata'
 import { useDebounce } from "../../hooks/useDebounce";
 import DataTable from "../../component/reuseable/DataTable";
 import Snackbar from "../../component/reuseable/Snackbar";
-import ChargingFormDialog from "../dialog/ChargingFormDialog";
 import "../contentscss/Charging.scss";
-import { useGetChargingQuery } from "../../features/api/charging/chargingApi";
+import { useGetChargingQuery, useSyncChargingMutation } from "../../features/api/charging/chargingApi";
 import MasterlistTab from "../../component/reuseable/MasterlistTab";
 
 const Charging = () => {
@@ -83,6 +82,18 @@ const Charging = () => {
   // Only show empty state if there is no data to show, otherwise show DataTable
   const showEmptyState = (!isLoading && ((isError && error?.errors?.[0]?.status === 404) || (!isError && filteredData.length === 0)));
 
+  // Sync handler
+  const [syncCharging, { isLoading: isSyncing }] = useSyncChargingMutation();
+  const handleSync = async () => {
+    try {
+      await syncCharging({ status: showArchived ? "inactive" : "active", term: debouncedSearchTerm }).unwrap();
+      setSnackbar({ open: true, message: 'Data synced successfully!', severity: 'success' });
+      refetch();
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Failed to sync data.', severity: 'error' });
+    }
+  };
+
   return (
     <Box className="chargingContainer">
       <MasterlistTab
@@ -92,6 +103,8 @@ const Charging = () => {
         onRefresh={refetch}
         hideTabs={true}
         showCreateButton={false}
+        onSync={handleSync}
+        isSyncing={isSyncing}
       />
 
       {showEmptyState ? (

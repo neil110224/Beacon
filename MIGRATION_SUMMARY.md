@@ -71,23 +71,12 @@ All content pages have been successfully migrated to use the new merged form dia
 **Changes:**
 
 - ❌ Removed: `AddNewChargingDialog` import
-- ✅ Added: `ChargingFormDialog` import
 - ✅ Added: `useUpdateChargingMutation` hook
 - ✅ Renamed: `addDialogOpen` → `chargingDialogOpen`
 - ✅ Added: `handleEdit()` handler to open dialog for edit
 - ✅ Menu now includes Edit option for active records
 
 **Usage:**
-
-```jsx
-<ChargingFormDialog
-  open={chargingDialogOpen}
-  onClose={() => setChargingDialogOpen(false)}
-  charging={selectedRow} // null = add, object = edit
-  onSave={selectedRow ? updateCharging : createCharging}
-  isLoading={isDeleting}
-/>
-```
 
 **API Note:** Charging add wraps in `{ departments: [...] }`, edit sends directly
 
@@ -163,12 +152,6 @@ All content pages have been successfully migrated to use the new merged form dia
 - Validates: name, code
 - Wraps payload for API compatibility
 
-### 3. **ChargingFormDialog.jsx**
-
-- Handles charging creation & editing
-- Validates: name, code
-- Wraps payload for API compatibility
-
 ### 4. **CategoryFormDialog.jsx**
 
 - Handles category creation & editing
@@ -231,7 +214,6 @@ src/pages/
 └── dialog/
     ├── UserFormDialog.jsx       (New)
     ├── TeamFormDialog.jsx       (New)
-    ├── ChargingFormDialog.jsx   (New)
     ├── CategoryFormDialog.jsx   (New)
     ├── SystemFormDialog.jsx     (New)
     │

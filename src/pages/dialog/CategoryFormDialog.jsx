@@ -31,9 +31,8 @@ const categoryValidationSchema = yup.object().shape({
  * @param {function} props.onSave - Save mutation function
  * @param {boolean} props.isLoading - Loading state
  */
-export default function CategoryFormDialog({ open, onClose, category = null, onSave, refetch, isLoading = false }) {
+export default function CategoryFormDialog({ open, onClose, category = null, onSave, refetch, isLoading = false, onShowSnackbar }) {
   const isEdit = !!category;
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [localLoading, setLocalLoading] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
 
@@ -59,9 +58,6 @@ export default function CategoryFormDialog({ open, onClose, category = null, onS
     }
   }, [open, category, isEdit, reset]);
 
-  const handleCloseSnackbar = () => {
-    setSnackbar((prev) => ({ ...prev, open: false }));
-  };
 
   const onSubmit = async (data) => {
     setLocalLoading(true);
@@ -72,38 +68,35 @@ export default function CategoryFormDialog({ open, onClose, category = null, onS
         await onSave({ name: data.name.trim() }).unwrap();
       }
 
-      // ✅ Success path — show success snackbar, refetch, then close
-      setSnackbar({
-        open: true,
-        message: isEdit ? 'Category updated successfully!' : 'Category created successfully!',
-        severity: 'success',
-      });
-
+      // ✅ Success path — notify parent, refetch, then close
+      if (onShowSnackbar) {
+        onShowSnackbar({
+          message: isEdit ? 'Category updated successfully!' : 'Category created successfully!',
+          severity: 'success',
+        });
+      }
       setJustSaved(true);
       reset();
-
-      if (refetch) refetch(); // ✅ Refetch only on success
-
+      if (refetch) refetch();
       setTimeout(() => {
         setLocalLoading(false);
         setJustSaved(false);
         onClose();
       }, 500);
     } catch (error) {
-      // ❌ Error path — show error snackbar, do NOT refetch
+      // ❌ Error path — notify parent, do NOT refetch
       console.error('Error saving category:', error);
       const errorMessage =
         error?.data?.errors?.[0]?.detail ||
         error?.data?.message ||
         error?.message ||
         'Failed to save category. Please try again.';
-
-      setSnackbar({
-        open: true,
-        message: errorMessage,
-        severity: 'error',
-      });
-
+      if (onShowSnackbar) {
+        onShowSnackbar({
+          message: errorMessage,
+          severity: 'error',
+        });
+      }
       setLocalLoading(false);
       // ❌ No refetch on error — dialog stays open so user can fix and retry
     }
@@ -165,12 +158,7 @@ export default function CategoryFormDialog({ open, onClose, category = null, onS
         </Button>
       </DialogActions>
 
-      <Snackbar
-        open={snackbar.open}
-        message={snackbar.message}
-        severity={snackbar.severity}
-        onClose={handleCloseSnackbar}
-      />
+      {/* Snackbar removed; now handled in parent Category.jsx */}
     </Dialog>
   );
 }

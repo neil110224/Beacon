@@ -32,7 +32,7 @@ const Role = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
-  const [isTabSwitching, setIsTabSwitching] = useState(false) // ← add this
+  const [isTabSwitching, setIsTabSwitching] = useState(false)
 
   const { data, isLoading, isError, error, refetch } = useGetRolesQuery({
     status: showArchived ? 'inactive' : 'active',
@@ -100,6 +100,22 @@ const Role = () => {
   const handleTabChange = (event, newValue) => {
     setShowArchived(newValue === 1);
   };
+
+  // ─── Handlers passed to RoleFormDialog ───────────────────────────────────────
+
+  const handleDialogSuccess = (message) => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
+  };
+
+  const handleDialogError = (message) => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity('error');
+    setSnackbarOpen(true);
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
 
   const roles = Array.isArray(data) ? data : [];
 
@@ -275,6 +291,8 @@ const Role = () => {
         role={selectedRole}
         onSave={selectedRole ? updateRole : createRole}
         isLoading={false}
+        onSuccess={handleDialogSuccess}
+        onError={handleDialogError}
       />
 
       {/* Confirmation Dialog */}
@@ -287,7 +305,7 @@ const Role = () => {
         isLoading={isDeleting}
       />
 
-      {/* Snackbar */}
+      {/* Snackbar — handles both archive/restore AND dialog create/update messages */}
       <Snackbar
         open={snackbarOpen}
         message={snackbarMessage}

@@ -200,6 +200,7 @@ const Category = () => {
         message={selectedCategory?.deleted_at ? 'Are you sure you want to restore this category?' : 'Are you sure you want to archive this category?'}
       />
 
+
       <CategoryFormDialog
         key="add-category"
         open={categoryDialogOpen}
@@ -208,6 +209,11 @@ const Category = () => {
         onSave={createCategory}
         refetch={refetch}
         isLoading={false}
+        onShowSnackbar={({ message, severity }) => {
+          setSnackbarMessage(message);
+          setSnackbarSeverity(severity);
+          setSnackbarOpen(true);
+        }}
       />
 
       <Snackbar

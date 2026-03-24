@@ -1,4 +1,15 @@
 import React, { useState } from 'react';
+// Helper to format date and time
+function useCurrentDateTime() {
+  const [now, setNow] = React.useState(new Date());
+  React.useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+  const date = now.toLocaleDateString();
+  const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  return { date, time };
+}
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Box, List, ListItemButton, ListItemIcon, ListItemText, Collapse, Menu, MenuItem, Tooltip, IconButton } from '@mui/material';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
@@ -72,6 +83,8 @@ const Sidebar = ({
   onCloseMobileDrawer = null
 }) => {
   const location = useLocation();
+  // Add current time and date state
+  const { date, time } = useCurrentDateTime();
   const userPermissions = user?.role?.access_permissions || [];
   const [sidebarWidth, setSidebarWidth] = useState(300);
   const [isResizing, setIsResizing] = useState(false);
@@ -330,6 +343,28 @@ const Sidebar = ({
           Change Information
         </MenuItem>
       </Menu>
+
+      {/* Time and Date at the bottom */}
+      <Box sx={{
+        width: '100%',
+        textAlign: 'flex-start',
+        color: '#03346E',
+        fontFamily: '"Oswald", sans-serif',
+        fontWeight: 600,
+        fontSize: isCollapsed ? '0.875rem' : '0.9rem',
+        letterSpacing: '0.5px',
+        mb: 2,
+        mt: 1,
+        userSelect: 'none',
+        ml: isCollapsed ? '0.4rem' : '1rem',
+
+      }}>
+        <div>{time}</div>
+        <div style={{ fontSize: '0.15rem',
+          fontWeight: 400,
+          fontSize: isCollapsed ? '0.8rem' : '0.9rem',
+           }}>{date}</div>
+      </Box>
     </Box>
   );
 };

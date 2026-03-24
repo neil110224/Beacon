@@ -9,19 +9,23 @@
   min-height: 500px;
 }
 
-// Main Dashboard Container
+// Main Dashboard Container - FIXED SCROLLING
 .dashboardContainer {
   padding: 1rem;
   width: 100%;
-  max-width: 100%;
-  min-height: 100vh;
-  overflow: auto;
+  height: 100%; // Changed from min-height: 100vh
+  max-height: 100%; // Prevent overflow beyond parent
+  overflow-y: auto; // Enable vertical scrolling
+  overflow-x: hidden; // Prevent horizontal scroll
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 // Welcome Section
 .welcomeSection {
   margin-bottom: 1.5rem;
+  flex-shrink: 0; // Prevent compression
 }
 
 .welcomeTitle {
@@ -38,7 +42,8 @@
   width: 100%;
   max-width: 100%;
   flex-wrap: nowrap;
-  
+  flex-shrink: 0; // Prevent compression
+  margin-bottom: 2rem;
 }
 
 .summaryCardBox {
@@ -56,7 +61,6 @@
   max-width: 100%;
   box-sizing: border-box;
   box-shadow: 20px 4px 12px rgba(0, 0, 0, 0.1);
-  
 
   &:hover {
     transform: translateY(-2px);
@@ -70,7 +74,6 @@
   align-items: center;
   gap: 1.5rem;
   color: $primary-text-light;
-
 }
 
 .statCardIcon {
@@ -122,7 +125,6 @@
   & .MuiOutlinedInput-root {
     &:hover fieldset {
       border-color: $primary-text-light;
-      
     }
 
     &.Mui-focused fieldset {
@@ -177,88 +179,115 @@
   font-size: 18px;
 }
 
-// Systems Grid
+// Systems Grid - FIXED GAPS & COLLISIONS
 .systemsGrid {
   margin-top: 1rem;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2rem;
+  grid-template-columns: repeat(2, 1fr); // ALWAYS 2 PER ROW
+  gap: 2rem; // INCREASED GAP - prevents collision
   width: 100%;
+  flex: 1;
+  min-height: 400px;
+  padding-bottom: 1rem; // Extra bottom padding for last row
   transition: all 0.3s ease;
+  
+  @include bp.sm {
+    gap: 2rem;
+  }
+  
+  @include bp.xs {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
 }
 
-// System Card
+// System Card - FIXED HEIGHT & SPACING
 .systemCard {
   background-color: transparent;
-  height: auto;
+  min-height: 380px; // FIXED MINIMUM - prevents overlap
+  max-height: none; // Remove height restrictions
+  height: auto; // Let content determine height
   border-radius: 16px;
   position: relative;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
+  padding: 1.75rem; // Slightly more padding
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   cursor: pointer;
   transition: all 0.3s ease;
-  min-height: 280px;
   color: $primary-text-light;
+  margin-bottom: 0 !important; // Remove any margin conflicts
 
   @include bp.sm {
-    min-height: 350px;
+    min-height: 400px;
+    padding: 2rem;
+  }
+
+  @include bp.xs {
+    min-height: 340px;
+    padding: 1.5rem;
   }
 
   &:hover {
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
-    transform: translateY(-4px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    transform: translateY(-6px);
   }
 }
 
 .projectName {
   font-weight: 600;
-  margin: 0.5rem 0;
-  font-size: 0.95rem;
+  margin: 0 0 1rem 0; // More bottom margin
+  font-size: 1rem;
   color: $primary-text-light;
+  flex-shrink: 0;
 }
 
 .systemCardContent {
   background-color: transparent;
   width: 100%;
-  flex: 1;
+  flex: 1; // Fill available space
   padding: 0;
-  margin-top: 0.5rem;
+  margin-top: 0;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: flex-start;
+  justify-content: flex-start; // Changed from space-between
   position: relative;
   overflow: hidden;
+  min-height: 0; // Allow flex shrinking
 }
 
-// System Progress Component
+// System Progress Container - BETTER DISTRIBUTION
 .systemProgressContainer {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 1rem; // Increased gap
   width: 100%;
   height: 100%;
+  justify-content: flex-start;
 }
 
+// Progress Percentage Box
 .progressPercentageBox {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.2rem;
   background-color: #f9fafb;
   border-radius: 12px;
-  padding: 0.8rem;
+  padding: 1rem; // More padding
   border: 1px solid #e5e7eb;
+  flex-shrink: 0;
+  width: 100%;
 }
 
 .progressPercentageCircle {
   background-color: #3b82f6;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 44px; // Slightly larger
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -266,7 +295,7 @@
 }
 
 .progressPercentageText {
-  font-size: 0.55rem;
+  font-size: 0.65rem;
   font-weight: 700;
   color: #fff;
 }
@@ -274,224 +303,159 @@
 .progressInfoBox {
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 
 .progressLabel {
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   color: #6b7280;
-  display: block;
-  margin-bottom: 0;
+  margin-bottom: 0.2rem;
 }
 
 .progressCompleted {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #1f2937;
 }
 
-// Stats Grid
+// Stats Grid - FIXED SIZING
 .statsGridContainer {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.8rem;
+  gap: 1rem; // Increased gap
+  flex-shrink: 0;
+  margin: 1rem 0;
 }
 
 .statItem {
-  border-radius: 8px;
-  padding: 0.6rem;
+  border-radius: 10px;
+  padding: 0.8rem 0.5rem; // More padding
   background-color: #f3f4f6;
   border-bottom: 3px solid #6594B1;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
+  min-height: 48px; // Consistent height
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 
   &:hover {
     box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
   }
 
   .statItemLabel {
-    font-size: 0.55rem;
+    font-size: 0.6rem;
     color: #6b7280;
-    display: block;
-    margin-bottom: 0.15rem;
+    margin-bottom: 0.1rem;
     font-weight: 600;
+    text-align: center;
   }
 
   .statItemValue {
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 700;
     color: #1f2937;
+    line-height: 1;
   }
 }
 
-.statItemTotal {
-  background-color: #f3f4f6;
-  border-bottom: 3px solid #6594B1;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
-
-  .statItemLabel {
-    color: #6b7280;
-  }
-
-  .statItemValue {
-    color: #1f2937;
-  }
-}
-
-.statItemDone {
-  background-color: #f3f4f6;
-  border-bottom: 3px solid #6594B1;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
-
-  .statItemLabel {
-    color: #6b7280;
-  }
-
-  .statItemValue {
-    color: #1f2937;
-  }
-}
-
-.statItemRemaining {
-  background-color: #f3f4f6;
-  border-bottom: 3px solid #6594B1;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
-
-  .statItemLabel {
-    color: #6b7280;
-  }
-
-  .statItemValue {
-    color: #1f2937;
-  }
-}
-
-.statItemHold {
-  background-color: #f3f4f6;
-  border-bottom: 3px solid #6594B1;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
-
-  .statItemLabel {
-    color: #6b7280;
-  }
-
-  .statItemValue {
-    color: #1f2937;
-  }
-}
-
-// Pending Tasks Section
+// Pending Tasks Section - BETTER SPACING
 .pendingTasksSection {
-  margin-top: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb; // Visual separator
+  flex-shrink: 0;
+  width: 100%;
 }
 
 .pendingTasksTitle {
-  font-size: 1rem;
-  color: #6b7280;
+  font-size: 0.85rem;
+  color: #374151;
   font-weight: 600;
-  margin-bottom: 0.3rem;
-  display: block;
+  margin-bottom: 0.5rem;
 }
 
 .pendingTasksList {
   margin: 0;
-  padding-left: 2rem;
+  padding-left: 1.2rem; // Reduced padding
   list-style-type: disc;
   color: #000;
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  font-size: 0.55rem;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  max-height: 80px; // Limit height
+  overflow: hidden;
 }
 
 .pendingTaskItem {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #1f2937;
   display: flex;
-  gap: 0.3rem;
+  gap: 0.5rem;
   align-items: flex-start;
+  margin-bottom: 0.2rem;
 }
 
 .pendingTaskDescription {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #1f2937;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.2;
+  line-height: 1.3;
+  white-space: nowrap;
 }
 
 .pendingTaskChip {
   background-color: inherit;
   color: #fff;
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   font-weight: 600;
-  height: auto;
+  height: 18px;
+  flex-shrink: 0;
 
   & :global(.MuiChip-label) {
-    padding: 2px 6px;
-    font-size: 0.6rem;
-    font-weight: 400;
+    padding: 1px 4px;
+    font-size: 0.55rem;
   }
 }
 
 .pendingTasksEllipsis {
-  font-size: 0.6rem;
-  color: #6b7280;
-  margin-top: 0.15rem;
+  font-size: 0.65rem;
+  color: #9ca3af;
+  margin: 0.3rem 0 0.5rem 0;
 }
 
 .viewAllButton {
-  margin-top: 0.3rem;
+  margin-top: 0.5rem;
   text-transform: none;
-  font-size: 0.5rem;
+  font-size: 0.65rem;
   color: #3b82f6;
-  padding: 0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #3b82f6;
+  background: transparent;
 
   &:hover {
-    text-decoration: underline;
+    background: #3b82f6;
+    color: white;
   }
 }
 
-// Empty State
+// Dashboard Container - EXTRA BOTTOM SPACING
+.dashboardContainer {
+  padding-bottom: 1rem; // Extra bottom padding for last cards
+}
+
+// Empty State Adjustments
 .emptyStateContainer {
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.emptyStateContent {
-  padding: 3rem;
-  display: flex;
-  align-items: center;
-  gap: 4rem;
-  max-width: 700px;
-}
-
-.emptyStateImage {
-  width: 300px;
-  height: auto;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.emptyStateText {
-  text-align: left;
-  color: #6c757d;
-}
-
-.emptyStateTitle {
-  margin-bottom: 1rem;
-  font-weight: 500;
-}
-
-.emptyStateDescription {
-  font-size: 0.875rem;
-}
-
-// Loading Container
-.loadingContainer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  min-height: 500px;
+  padding: 4rem 2rem;
+  width: 100%;
 }

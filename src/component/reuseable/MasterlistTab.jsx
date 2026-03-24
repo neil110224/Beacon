@@ -22,6 +22,8 @@ const MasterlistTab = ({
   addLabel = "Create",  // default value
   onRefresh,
   refreshing,
+  onSync, // New prop for sync button
+  isSyncing = false, // Show loading on sync button
 }) => {
   // Use parent refreshing prop if provided, otherwise fallback to internal state
   const [internalRefreshing, setInternalRefreshing] = useState(false);
@@ -57,7 +59,7 @@ const MasterlistTab = ({
         </Tabs>
       )}
       <Box className="masterlistActionBar">
-<Tooltip title="Refresh data" placement="top" sx={{fontFamily: '"Oswald", sans-serif'}}>
+        <Tooltip title="Refresh data" placement="top" sx={{fontFamily: '"Oswald", sans-serif'}}>
           <IconButton
             onClick={handleRefresh}
             disabled={isRefreshing}
@@ -69,6 +71,25 @@ const MasterlistTab = ({
             <CachedIcon sx={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none', '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } } }} />
           </IconButton>
         </Tooltip>
+
+        {/* Sync Button */}
+        {onSync && (
+          <Button
+            variant="outlined"
+            onClick={onSync}
+            disabled={isSyncing}
+            sx={{ mx: 1, fontFamily: '"Oswald", sans-serif', color: '#03346E', borderColor: '#03346E', minWidth: 90 }}
+          >
+            {isSyncing ? (
+              <span style={{ display: 'flex', alignItems: 'center' }}>
+                <span className="syncSpinner" style={{ marginRight: 6 }}>
+                  <svg width="18" height="18" viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none" stroke="#03346E" strokeWidth="5" strokeDasharray="90,150" strokeLinecap="round"><animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="1s" repeatCount="indefinite"/></circle></svg>
+                </span>
+                Syncing...
+              </span>
+            ) : 'Sync'}
+          </Button>
+        )}
 
         {canAdd && (
           <Button

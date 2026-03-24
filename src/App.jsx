@@ -101,11 +101,9 @@ function App() {
 
     // Listen for tab close
     window.addEventListener('beforeunload', handleBeforeUnload);
-    window.addEventListener('unload', handleBeforeUnload);
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      window.removeEventListener('unload', handleBeforeUnload);
     };
   }, []);
 

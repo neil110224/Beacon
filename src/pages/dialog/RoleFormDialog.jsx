@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -10,8 +10,6 @@ import {
   Typography,
   Checkbox,
   FormControlLabel,
-  Snackbar,
-  Alert,
   CircularProgress,
   Divider,
   Collapse,
@@ -254,11 +252,11 @@ function MasterlistSection({ selected, onChange }) {
 
 // ─── Main Dialog ──────────────────────────────────────────────────────────────
 
-export default function RoleFormDialog({ open, onClose, role = null, onSave, isLoading = false }) {
+export default function RoleFormDialog({ open, onClose, role = null, onSave, isLoading = false, onSuccess, onError }) {
   const isEdit = !!role;
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [localLoading, setLocalLoading] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
+  const isSubmittingRef = useRef(false); // immediate lock — prevents duplicate submissions before state re-renders
 
   const {
     register,
@@ -275,19 +273,25 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
   const selectedPermissions = watch('permissions') || [];
   const handlePermChange = (newPerms) => setValue('permissions', newPerms);
 
+  // Reset all state only when the dialog opens — never on close.
+  // This ensures justSaved keeps the button disabled until the dialog fully closes
+  // and reopens fresh for the next operation.
   useEffect(() => {
     if (open) {
+      isSubmittingRef.current = false;
+      setJustSaved(false);
+      setLocalLoading(false);
       reset(
         isEdit && role
           ? { name: role.name || '', permissions: role.access_permissions || [] }
           : { name: '', permissions: [] }
       );
-    } else {
-      setLocalLoading(false);
     }
   }, [open, role, isEdit, reset]);
 
   const onSubmit = async (data) => {
+    if (isSubmittingRef.current) return; // block any subsequent clicks
+    isSubmittingRef.current = true;
     setLocalLoading(true);
     try {
       if (isEdit) {
@@ -295,107 +299,96 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
       } else {
         await onSave({ name: data.name, access_permissions: data.permissions }).unwrap();
       }
-      setSnackbar({ open: true, message: isEdit ? 'Role updated successfully!' : 'Role created successfully!', severity: 'success' });
       setJustSaved(true);
-      setTimeout(() => { setLocalLoading(false); setJustSaved(false); onClose(); }, 1000);
-    } catch (error) {
       setLocalLoading(false);
-      setSnackbar({ open: true, message: error?.data?.message || error.message || 'An error occurred', severity: 'error' });
+      onSuccess?.(isEdit ? 'Role updated successfully!' : 'Role created successfully!');
+      setTimeout(() => { onClose(); }, 1000);
+    } catch (error) {
+      isSubmittingRef.current = false; // release lock so user can retry
+      setLocalLoading(false);
+      onError?.(error?.data?.message || error.message || 'An error occurred');
     }
   };
 
   return (
-    <>
-      <Dialog
-        open={open}
-        onClose={onClose}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.1)' } }}
-      >
-        <DialogTitle sx={{ fontWeight: 600, fontSize: '1.25rem', color: '#2c3e50', fontFamily: OSWALD }}>
-          {isEdit ? 'Edit Role' : 'Add New Role'}
-        </DialogTitle>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{ sx: { borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.1)' } }}
+    >
+      <DialogTitle sx={{ fontWeight: 600, fontSize: '1.25rem', color: '#2c3e50', fontFamily: OSWALD }}>
+        {isEdit ? 'Edit Role' : 'Add New Role'}
+      </DialogTitle>
 
-        <DialogContent sx={{ pt: 1 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mt: 1 }}>
+      <DialogContent sx={{ pt: 1 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, mt: 1 }}>
 
-            {/* Role Name */}
-            <TextField
-              label="Role Name"
-              fullWidth
-              placeholder="Enter role name"
-              error={!!errors.name}
-              helperText={errors.name?.message}
-              {...register('name')}
-              sx={{
-                '& input, & label': { fontFamily: OSWALD },
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '8px',
-                  '&:hover fieldset': { borderColor: '#2c3e50' },
-                  '&.Mui-focused fieldset': { borderColor: '#2c3e50' },
-                },
-              }}
-            />
+          {/* Role Name */}
+          <TextField
+            label="Role Name"
+            fullWidth
+            placeholder="Enter role name"
+            error={!!errors.name}
+            helperText={errors.name?.message}
+            {...register('name')}
+            sx={{
+              '& input, & label': { fontFamily: OSWALD },
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '8px',
+                '&:hover fieldset': { borderColor: '#2c3e50' },
+                '&.Mui-focused fieldset': { borderColor: '#2c3e50' },
+              },
+            }}
+          />
 
-            {/* Permissions */}
-            <Box>
-              <Typography sx={{ fontWeight: 600, mb: 1.5, color: '#2c3e50', fontFamily: OSWALD }}>
-                Permissions
-              </Typography>
+          {/* Permissions */}
+          <Box>
+            <Typography sx={{ fontWeight: 600, mb: 1.5, color: '#2c3e50', fontFamily: OSWALD }}>
+              Permissions
+            </Typography>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                <DashboardSection selected={selectedPermissions} onChange={handlePermChange} />
-                <SystemsSection selected={selectedPermissions} onChange={handlePermChange} />
-                <MasterlistSection selected={selectedPermissions} onChange={handlePermChange} />
-              </Box>
-
-              {errors.permissions && (
-                <Typography sx={{ color: '#d32f2f', fontSize: '0.75rem', mt: 1, fontFamily: OSWALD }}>
-                  {errors.permissions.message}
-                </Typography>
-              )}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              <DashboardSection selected={selectedPermissions} onChange={handlePermChange} />
+              <SystemsSection selected={selectedPermissions} onChange={handlePermChange} />
+              <MasterlistSection selected={selectedPermissions} onChange={handlePermChange} />
             </Box>
 
+            {errors.permissions && (
+              <Typography sx={{ color: '#d32f2f', fontSize: '0.75rem', mt: 1, fontFamily: OSWALD }}>
+                {errors.permissions.message}
+              </Typography>
+            )}
           </Box>
-        </DialogContent>
 
-        <DialogActions sx={{ padding: 2, gap: 1 }}>
-          <Button
-            onClick={onClose}
-            disabled={isLoading || localLoading || justSaved}
-            sx={{ textTransform: 'none', color: '#5a6ac4', fontFamily: OSWALD, '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' } }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit(onSubmit)}
-            variant="contained"
-            disabled={isLoading || localLoading || justSaved}
-            startIcon={(isLoading || localLoading || justSaved) && <CircularProgress size={20} />}
-            sx={{
-              textTransform: 'none',
-              backgroundColor: '#03346E',
-              fontFamily: OSWALD,
-              '&:hover': { backgroundColor: '#022d61' },
-              '&:disabled': { backgroundColor: '#ccc' },
-            }}
-          >
-            {isLoading || localLoading || justSaved ? 'Saving...' : isEdit ? 'Update Role' : 'Create'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        </Box>
+      </DialogContent>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert severity={snackbar.severity} sx={{ width: '100%', fontFamily: OSWALD }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </>
+      <DialogActions sx={{ padding: 2, gap: 1 }}>
+        <Button
+          onClick={onClose}
+          disabled={isLoading || localLoading || justSaved}
+          sx={{ textTransform: 'none', color: '#5a6ac4', fontFamily: OSWALD, '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' } }}
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={handleSubmit(onSubmit)}
+          variant="contained"
+          disabled={isLoading || localLoading || justSaved || selectedPermissions.length === 0}
+          startIcon={(isLoading || localLoading || justSaved) && <CircularProgress size={20} />}
+          sx={{
+            textTransform: 'none',
+            backgroundColor: '#03346E',
+            fontFamily: OSWALD,
+            '&:hover': { backgroundColor: '#022d61' },
+            '&:disabled': { backgroundColor: '#ccc' },
+          }}
+        >
+          {localLoading ? 'Saving...' : justSaved ? 'Saved!' : isEdit ? 'Update Role' : 'Create'}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }

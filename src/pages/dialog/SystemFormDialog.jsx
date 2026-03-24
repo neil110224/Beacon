@@ -130,7 +130,7 @@ export default function SystemFormDialog({
   return (
     <>
       <Dialog open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{isEdit ? 'Edit System' : 'Add New System'}</DialogTitle>
+      <DialogTitle>{isEdit ? 'Edit System' : 'Create New System'}</DialogTitle>
 
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
@@ -242,8 +242,14 @@ export default function SystemFormDialog({
           variant="contained"
           disabled={busy}
           startIcon={busy ? <CircularProgress size={20} color="inherit" /> : null}
+          sx={{
+            bgcolor: '#03346E',
+            '&:hover': {
+              bgcolor: '#02295a'
+            }
+          }}
         >
-          {busy ? 'Saving...' : isEdit ? 'Update' : 'Save'}
+          {busy ? 'Saving...' : isEdit ? 'Update' : 'CREATE'}
         </Button>
       </DialogActions>
       </Dialog>

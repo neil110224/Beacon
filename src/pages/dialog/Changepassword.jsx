@@ -63,7 +63,7 @@ const Changepassword = ({ open, onClose, user }) => {
   return (
     <>
       <Dialog open={open} onClose={handleDialogClose} maxWidth="xs" fullWidth>
-        <DialogTitle>Change Password</DialogTitle>
+        <DialogTitle sx={{ fontFamily: '"Oswald", sans-serif' }}>Change Password</DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
             <Box display="flex" flexDirection="column" gap={2}>
@@ -75,6 +75,9 @@ const Changepassword = ({ open, onClose, user }) => {
                 fullWidth
                 required
                 autoFocus
+                sx={{ fontFamily: '"Oswald", sans-serif' }}
+                InputLabelProps={{ sx: { fontFamily: '"Oswald", sans-serif' } }}
+                inputProps={{ style: { fontFamily: 'Oswald, sans-serif' } }}
               />
               <TextField
                 label="New Password"
@@ -83,6 +86,9 @@ const Changepassword = ({ open, onClose, user }) => {
                 onChange={e => setNewPassword(e.target.value)}
                 fullWidth
                 required
+                sx={{ fontFamily: '"Oswald", sans-serif' }}
+                InputLabelProps={{ sx: { fontFamily: '"Oswald", sans-serif' } }}
+                inputProps={{ style: { fontFamily: 'Oswald, sans-serif' } }}
               />
               <TextField
                 label="Confirm New Password"
@@ -91,19 +97,22 @@ const Changepassword = ({ open, onClose, user }) => {
                 onChange={e => setConfirmPassword(e.target.value)}
                 fullWidth
                 required
+                sx={{ fontFamily: '"Oswald", sans-serif' }}
+                InputLabelProps={{ sx: { fontFamily: '"Oswald", sans-serif' } }}
+                inputProps={{ style: { fontFamily: 'Oswald, sans-serif' } }}
               />
               {error && (
-                <Box color="error.main" fontSize={14} mt={1}>
+                <Box color="error.main" fontSize={14} mt={1} sx={{ fontFamily: '"Oswald", sans-serif' }}>
                   {error}
                 </Box>
               )}
             </Box>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleDialogClose} color="secondary" disabled={isLoading}>
+            <Button onClick={handleDialogClose} color="secondary" disabled={isLoading} sx={{ fontFamily: '"Oswald", sans-serif' }}>
               Cancel
             </Button>
-            <Button type="submit" variant="contained" color="primary" disabled={isLoading}>
+            <Button type="submit" variant="contained" color="primary" disabled={isLoading} sx={{ fontFamily: '"Oswald", sans-serif', bgcolor: '#03346E' }}>
               {isLoading ? <CircularProgress size={20} color="inherit" /> : 'Change Password'}
             </Button>
           </DialogActions>
@@ -115,7 +124,7 @@ const Changepassword = ({ open, onClose, user }) => {
         onClose={handleSnackbarClose}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <MuiAlert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%' }} elevation={6} variant="filled">
+        <MuiAlert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%', fontFamily: '"Oswald", sans-serif' }} elevation={6} variant="filled">
           {snackbar.message}
         </MuiAlert>
       </Snackbar>

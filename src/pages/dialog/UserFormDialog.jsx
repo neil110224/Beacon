@@ -15,8 +15,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Snackbar,
-  Alert,
   Typography,
   Chip,
   Paper,
@@ -59,11 +57,11 @@ const createUserValidationSchema = (isEdit) => {
  * @param {function} props.onSave - Save mutation function
  * @param {boolean} props.isLoading - Loading state
  */
-export default function UserFormDialog({ open, onClose, user = null, onSave, isLoading = false }) {
+export default function UserFormDialog({ open, onClose, user = null, onSave, isLoading = false, onShowSnackbar }) {
   const isEdit = !!user;
   const [apiLoading, setApiLoading] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  // Snackbar state removed; now handled in parent Users.jsx
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [selectedRoleForEdit, setSelectedRoleForEdit] = useState(null);
   const [chargingSearchInput, setChargingSearchInput] = useState('');
@@ -200,12 +198,12 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
         ? await onSave({ id: user.id, data: payload }).unwrap()
         : await onSave(payload).unwrap();
 
-      // Show success message
-      setSnackbar({
-        open: true,
-        message: isEdit ? 'User updated successfully!' : 'User created successfully!',
-        severity: 'success',
-      });
+      if (onShowSnackbar) {
+        onShowSnackbar({
+          message: isEdit ? 'User updated successfully!' : 'User created successfully!',
+          severity: 'success',
+        });
+      }
 
       // For new user creation, set flag for force password change on first login
       // Use user ID (from response) to create a unique flag per user
@@ -252,11 +250,12 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
         errorMessage = error.message;
       }
 
-      setSnackbar({
-        open: true,
-        message: errorMessage,
-        severity: 'error',
-      });
+      if (onShowSnackbar) {
+        onShowSnackbar({
+          message: errorMessage,
+          severity: 'error',
+        });
+      }
     } finally {
       setApiLoading(false);
     }
@@ -265,7 +264,6 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
   const handleDialogClose = () => {
     reset();
     setChargingSearchInput('');
-    setSnackbar({ open: false, message: '', severity: 'success' });
     setJustSaved(false);
     onClose();
   };
@@ -284,10 +282,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
     refetchRoles();
   };
 
-  const handleCloseSnackbar = (_, reason) => {
-    if (reason === 'clickaway') return;
-    setSnackbar(prev => ({ ...prev, open: false }));
-  };
+  // Snackbar close handler removed
 
   return (
     <Dialog key={user ? `edit-${user.id}` : 'add'} open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth>
@@ -471,18 +466,6 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
           {apiLoading || isLoading || justSaved ? 'Saving...' : isEdit ? 'Update' : 'CREATE'}
         </Button>
       </DialogActions>
-
-      {/* Snackbar for success/error messages */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert severity={snackbar.severity} variant="filled" onClose={handleCloseSnackbar} sx={{ fontFamily: OSWALD }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
 
       {/* Role Form Dialog for editing the user's role */}
       {isEdit && selectedRoleForEdit && (

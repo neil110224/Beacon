@@ -104,47 +104,6 @@ function TeamsPage() {
 }
 
 // ============================================
-// 3. CHARGING FORM DIALOG (ChargingFormDialog.jsx)
-// ============================================
-import ChargingFormDialog from "./pages/dialog/ChargingFormDialog";
-import {
-  useAddChargingMutation,
-  useUpdateChargingMutation,
-} from "./features/api/charging/chargingApi";
-
-function ChargingPage() {
-  const [addCharging] = useAddChargingMutation();
-  const [updateCharging] = useUpdateChargingMutation();
-
-  const [chargingDialogOpen, setChargingDialogOpen] = useState(false);
-  const [selectedCharging, setSelectedCharging] = useState(null);
-
-  const handleAddCharging = () => {
-    setSelectedCharging(null);
-    setChargingDialogOpen(true);
-  };
-
-  const handleEditCharging = (charging) => {
-    setSelectedCharging(charging);
-    setChargingDialogOpen(true);
-  };
-
-  return (
-    <>
-      <button onClick={handleAddCharging}>Add Charging</button>
-
-      <ChargingFormDialog
-        open={chargingDialogOpen}
-        onClose={() => setChargingDialogOpen(false)}
-        charging={selectedCharging} // null = add mode
-        onSave={selectedCharging ? updateCharging : addCharging}
-        isLoading={false}
-      />
-    </>
-  );
-}
-
-// ============================================
 // 4. CATEGORY FORM DIALOG (CategoryFormDialog.jsx)
 // ============================================
 import CategoryFormDialog from "./pages/dialog/CategoryFormDialog";

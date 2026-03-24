@@ -44,9 +44,25 @@ export const chargingApi = todoListApi.injectEndpoints({
 
     deleteCharging: builder.mutation({
       query: (id) => ({
-        url: `charging/${id}`, // ✅ make sure this route exists in Laravel
+        url: `charging/${id}`,
         method: "DELETE",
       }),
+      invalidatesTags: ["Charging"],
+    }),
+
+    syncCharging: builder.mutation({
+      query: (params = {}) => {
+        const queryParams = {};
+        if (params.status) queryParams.status = params.status;
+        if (params.paginate !== undefined)
+          queryParams.paginate = params.paginate;
+        if (params.term) queryParams.term = params.term;
+        return {
+          url: "sync_charging",
+          method: "POST",
+          body: queryParams,
+        };
+      },
       invalidatesTags: ["Charging"],
     }),
   }),
@@ -58,4 +74,5 @@ export const {
   useCreateChargingMutation,
   useUpdateChargingMutation,
   useDeleteChargingMutation,
+  useSyncChargingMutation,
 } = chargingApi;

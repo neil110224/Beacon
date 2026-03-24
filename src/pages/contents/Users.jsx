@@ -267,6 +267,11 @@ const Users = () => {
           user={selectedUser}
           onSave={selectedUser ? updateUser : createUser}
           isLoading={false}
+          onShowSnackbar={({ message, severity }) => {
+            setSnackbarMessage(message);
+            setSnackbarSeverity(severity);
+            setSnackbarOpen(true);
+          }}
         />
 
         <Confirmation
