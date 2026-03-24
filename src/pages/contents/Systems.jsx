@@ -43,12 +43,14 @@ const Systems = () => {
   const currentUser = useSelector(selectCurrentUser)
   const userPermissions = currentUser?.role?.access_permissions || []
   const canAddSystem = userPermissions.includes('Systems.Add')
-  const canImportSystem = userPermissions.includes('Systems.Import')
-  const isUserRole = user?.role?.name?.toLowerCase() === 'user'
+
+  // ── Role check: admin sees everything, non-admin sees only their team ──
+  const isAdminRole = user?.role?.name?.toLowerCase() === 'admin'
+  const isUserRole = !isAdminRole
 
   const { data: teamsData, isLoading: teamsLoading } = useGetTeamsQuery(
-    !isUserRole ? { status: 'active', paginate: 'none', pagination: 'none' } : undefined,
-    { skip: isUserRole }
+    isAdminRole ? { status: 'active', paginate: 'none', pagination: 'none' } : undefined,
+    { skip: !isAdminRole }
   )
 
   const [createSystem] = useCreateSystemMutation()
@@ -71,7 +73,7 @@ const Systems = () => {
   const [systemEditDialogOpen, setSystemEditDialogOpen] = React.useState(false)
   const [isDownloadingTemplate, setIsDownloadingTemplate] = React.useState(false)
 
-  // ── Fix: store anchor + team together so each card menu is independent ──
+  // ── Per-card menu state ──
   const [menuState, setMenuState] = React.useState({ anchor: null, team: null })
 
   const handleMoreMenuOpen = (event, team) => {
@@ -85,12 +87,12 @@ const Systems = () => {
 
   const handleEditTeam = (event) => {
     event.stopPropagation()
-    setSystemForEdit(menuState.team)   // use the team captured when menu was opened
+    setSystemForEdit(menuState.team)
     setSystemEditDialogOpen(true)
     handleMoreMenuClose()
   }
 
-  // Refresh handler
+  // ── Refresh ──
   const handleRefresh = async () => {
     setIsRefreshing(true)
     try {
@@ -104,11 +106,13 @@ const Systems = () => {
     }
   }
 
+  // ── Admin: fetch all systems globally ──
   const { data: allSystemsData, isLoading: allSystemsLoading, refetch: refetchAllSystems } = useGetSystemsListQuery(
-    !isUserRole ? { status: 'active', scope: 'global', paginate: 'none', pagination: 'none' } : undefined,
-    { skip: isUserRole }
+    isAdminRole ? { status: 'active', scope: 'global', paginate: 'none', pagination: 'none' } : undefined,
+    { skip: !isAdminRole }
   )
 
+  // ── User: fetch only their team's systems ──
   const { data: userTeamSystemsData, isLoading: userTeamSystemsLoading, refetch: refetchUserTeamSystems } = useGetSystemsListQuery(
     isUserRole && user?.team?.id ? {
       status: 'active',
@@ -144,8 +148,9 @@ const Systems = () => {
     return userTeamSystems.filter(s => s.systemName?.toLowerCase().includes(debouncedSystemsSearch.toLowerCase()))
   }, [userTeamSystems, debouncedSystemsSearch])
 
+  // ── Admin: fetch systems for a specific selected team (used in dialog) ──
   const { data: teamSystemsData, isLoading: teamSystemsLoading, refetch: refetchTeamSystems } = useGetSystemsListQuery(
-    !isUserRole && selectedTeam?.id ? {
+    isAdminRole && selectedTeam?.id ? {
       status: 'active',
       scope: 'global',
       team_id: selectedTeam.id,
@@ -153,7 +158,7 @@ const Systems = () => {
       paginate: 'none',
       pagination: 'none',
     } : undefined,
-    { skip: isUserRole || !selectedTeam?.id }
+    { skip: !isAdminRole || !selectedTeam?.id }
   )
 
   const teams = React.useMemo(() => {
@@ -210,15 +215,15 @@ const Systems = () => {
   const handleDialogRefresh = async () => { await refetchTeamSystems() }
 
   const handleFileMenuOpen  = e => setFileMenuAnchor(e.currentTarget)
-  const handleFileMenuClose = ()  => setFileMenuAnchor(null)
+  const handleFileMenuClose = () => setFileMenuAnchor(null)
 
   const handleAddSystem = () => {
     setSelectedSystem(null)
     setSystemDialogOpen(true)
   }
 
-  const handleImportSystem = () => { setImportDialogOpen(true);  handleFileMenuClose() }
-  const handleExportSystem = () => { setExportDialogOpen(true);  handleFileMenuClose() }
+  const handleImportSystem = () => { setImportDialogOpen(true); handleFileMenuClose() }
+  const handleExportSystem = () => { setExportDialogOpen(true); handleFileMenuClose() }
 
   const handleDownloadTemplate = async () => {
     setIsDownloadingTemplate(true)
@@ -276,13 +281,11 @@ const Systems = () => {
   }
 
   return (
-    <Box className="systemsContainer"> 
+    <Box className="systemsContainer">
       {/* Header */}
       <Box className="systemsHeader" sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1 }}>
-        
-
         <Box className="systemsHeaderActions" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Tooltip title="Refresh systems" placement="top">
+          <Tooltip title="Refresh" placement="top">
             <IconButton
               onClick={handleRefresh}
               disabled={isRefreshing}
@@ -334,7 +337,7 @@ const Systems = () => {
         </Box>
       </Box>
 
-      {/* USER VIEW */}
+      {/* ── USER VIEW: only their team's systems ── */}
       {isUserRole ? (
         <>
           {filteredUserTeamSystems.length === 0 ? (
@@ -361,8 +364,8 @@ const Systems = () => {
                     <Typography variant="h6" className="systemsCardTitle" sx={{ color: '#f4f4f4', fontFamily: '"Oswald", sans-serif' }}>
                       {system.systemName}
                     </Typography>
-                    <Typography variant="body2" className="systemsCardDescription" sx={{ fontFamily: '"Oswald", sans-serif',color:'#f4f4f4' }}>
-                      {system.description || `${Array.isArray(system.categories) ? system.categories.reduce((sum, cat) => sum + (Array.isArray(cat.progress) ? cat.progress.filter(item => item.status === 'pending').length : 0), 0) : 0} pending`}
+                    <Typography variant="body2" className="systemsCardDescription" sx={{ fontFamily: '"Oswald", sans-serif', color: '#f4f4f4' }}>
+                      {system.description || 'No description'}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -372,7 +375,7 @@ const Systems = () => {
         </>
       ) : (
         <>
-          {/* ADMIN VIEW */}
+          {/* ── ADMIN VIEW: all teams, each card shows system count ── */}
           {filteredTeams.length === 0 ? (
             <Box className="systemsEmptyStateContainer">
               <Box className="systemsEmptyStateBox">
@@ -419,7 +422,7 @@ const Systems = () => {
                 )
               })}
 
-              {/* Single Menu rendered OUTSIDE the map — uses menuState.team */}
+              {/* Single Menu rendered outside map */}
               <Menu
                 anchorEl={menuState.anchor}
                 open={Boolean(menuState.anchor)}
@@ -459,15 +462,6 @@ const Systems = () => {
         selectedTeam={selectedTeam}
         onImportSuccess={refetchAllSystems}
       />
-
-      <ImportSystemDialog
-  open={importDialogOpen}
-  onClose={() => setImportDialogOpen(false)}
-  selectedTeam={selectedTeam}
-  onImportSuccess={async () => {
-    await refetch()
-  }}
-/>
 
       <ExportSystemDialog
         open={exportDialogOpen}

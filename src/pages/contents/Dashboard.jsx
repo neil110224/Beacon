@@ -20,7 +20,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useUpdateUserMutation } from '../../features/api/user/userApi'
 
-// ─── Validation schema ───────────────────────────────────────────────────────
+// ─── Validation schema ────────────────────────────────────────────────────────
 const changePasswordSchema = yup.object().shape({
   new_password: yup.string()
     .required('New password is required'),
@@ -49,7 +49,7 @@ const fieldSx = {
   },
 }
 
-// ─── Force Change Password Dialog ────────────────────────────────────────────
+// ─── Force Change Password Dialog ─────────────────────────────────────────────
 const ForceChangePasswordDialog = ({ open, onClose, user }) => {
   const [apiLoading, setApiLoading] = useState(false)
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' })
@@ -169,7 +169,7 @@ const ForceChangePasswordDialog = ({ open, onClose, user }) => {
   )
 }
 
-// ─── System Progress Card ─────────────────────────────────────────────────────
+// ─── System Progress Card ──────────────────────────────────────────────────────
 const SystemProgress = ({ system, onNavigate }) => {
   const calculateStats = (sys) => {
     let total = 0, done = 0, pending = 0, hold = 0
@@ -192,45 +192,24 @@ const SystemProgress = ({ system, onNavigate }) => {
 
   const stats = calculateStats(system)
 
-  const getRecentItems = (sys) => {
-    const items = []
-    if (sys.categories && Array.isArray(sys.categories)) {
-      for (let i = 0; i < sys.categories.length && items.length < 2; i++) {
-        const category = sys.categories[i]
-        if (category.progress && Array.isArray(category.progress)) {
-          for (let j = 0; j < category.progress.length && items.length < 2; j++) {
-            if (category.progress[j].status !== 'done') {
-              items.push({ ...category.progress[j], category: category.categoryName })
-            }
-          }
-        }
-      }
-    }
-    return items
-  }
-
-  const recentItems = getRecentItems(system)
-
   const getStatusColor = (status) => {
     const colors = { pending: '#89D4FF', done: '#1f7a04', hold: '#9898d3' }
     return colors[status?.toLowerCase()] || '#9e9e9e'
   }
 
-  // Count total pending tasks for this system
-  let totalPending = 0;
-  let pendingTasks = [];
+  let totalPending = 0
+  let pendingTasks = []
   system.categories?.forEach(cat => {
     cat.progress?.forEach(item => {
       if (item.status !== 'done') {
-        totalPending++;
-        pendingTasks.push({ ...item, category: cat.categoryName });
+        totalPending++
+        pendingTasks.push({ ...item, category: cat.categoryName })
       }
-    });
-  });
+    })
+  })
 
-  // Only show up to 1 pending task, and show 'View All' if there are 2 or more
-  const showViewAll = totalPending >= 2;
-  const tasksToShow = showViewAll ? pendingTasks.slice(0, 1) : pendingTasks;
+  const showViewAll = totalPending >= 2
+  const tasksToShow = showViewAll ? pendingTasks.slice(0, 1) : pendingTasks
 
   return (
     <Box className="systemProgressContainer">
@@ -312,17 +291,15 @@ const Dashboard = () => {
   const canFilterByTeam = userPermissions.includes('Dashboard.FilterTeam')
   const { isSidebarCollapsed = false, isSidebarLocked = false } = useOutletContext() || {}
 
-  const isAdminRole = user?.role?.name?.toLowerCase() !== 'user'
+  // ── Role check: admin sees all teams, user sees only their own team ──
+  const isAdminRole = user?.role?.name?.toLowerCase() === 'admin'
+  const isUserRole = !isAdminRole
 
-  // selectedTeam = what the dropdown currently shows (changes instantly on click)
+  // Admin starts with '' (All Teams); user is locked to their team ID
   const [selectedTeam, setSelectedTeam] = useState(
     () => isAdminRole ? '' : (user?.team?.id ?? '')
   )
-  
 
-  // ✅ committedTeam = the team whose data is actually displayed in stats + content.
-  //    It only advances to match selectedTeam AFTER the fetch for that team completes.
-  //    This prevents stale data from the old team flashing while the new fetch is in flight.
   const [committedTeam, setCommittedTeam] = useState(
     () => isAdminRole ? '' : (user?.team?.id ?? '')
   )
@@ -335,43 +312,54 @@ const Dashboard = () => {
 
   const debouncedSystemsSearch = useDebounce(systemsSearchQuery, 500)
 
-  const { data: teamsData } = useGetTeamsQuery({
-    status: 'active',
-    paginate: 'none',
-    pagination: 'none',
-  })
+  // Only fetch teams list if admin (user has no need for team switcher)
+  const { data: teamsData } = useGetTeamsQuery(
+    isAdminRole ? { status: 'active', paginate: 'none', pagination: 'none' } : undefined,
+    { skip: !isAdminRole }
+  )
 
-  const teams = Array.isArray(teamsData?.data?.data)
-    ? teamsData.data.data
-    : Array.isArray(teamsData?.data)
-    ? teamsData.data
-    : Array.isArray(teamsData)
-    ? teamsData
-    : []
+  const teams = useMemo(() => {
+    if (!isAdminRole) return []
+    return Array.isArray(teamsData?.data?.data)
+      ? teamsData.data.data
+      : Array.isArray(teamsData?.data)
+      ? teamsData.data
+      : Array.isArray(teamsData)
+      ? teamsData
+      : []
+  }, [teamsData, isAdminRole])
 
-  // Sync selectedTeam + committedTeam if user data loads after component mounts
+  // Sync selectedTeam if user data loads after mount (user role only)
   useEffect(() => {
-    if (!isAdminRole && user?.team?.id && selectedTeam === '') {
+    if (isUserRole && user?.team?.id && selectedTeam === '') {
       setSelectedTeam(user.team.id)
       setCommittedTeam(user.team.id)
     }
   }, [user?.team?.id])
 
-  // Build query params from selectedTeam (fires the fetch immediately on change)
+  // Build query params:
+  // - Admin with no team selected → global scope (all systems)
+  // - Admin with a team selected  → per_team scope for that team
+  // - User                        → per_team scope locked to their own team
   const queryParams = useMemo(() => {
     const baseParams = {}
-    if (selectedTeam) {
-      baseParams.status = 'active'
-      baseParams.scope = 'per_team'
-      baseParams.team_id = selectedTeam
-    } else if (isAdminRole) {
-      baseParams.status = 'active'
-      baseParams.scope = 'global'
+
+    if (isAdminRole) {
+      if (selectedTeam) {
+        baseParams.status = 'active'
+        baseParams.scope = 'per_team'
+        baseParams.team_id = selectedTeam
+      } else {
+        baseParams.status = 'active'
+        baseParams.scope = 'global'
+      }
     } else {
+      // Non-admin: always locked to their own team
       baseParams.status = 'active'
       baseParams.scope = 'per_team'
       if (user?.team?.id) baseParams.team_id = user.team.id
     }
+
     if (debouncedSystemsSearch) baseParams.search = debouncedSystemsSearch
     return baseParams
   }, [selectedTeam, isAdminRole, user?.team?.id, debouncedSystemsSearch])
@@ -384,9 +372,7 @@ const Dashboard = () => {
     refetch: refetchSystems,
   } = useGetSystemsListQuery(queryParams)
 
-  // ✅ When the fetch finishes (isFetching goes false), advance committedTeam.
-  //    Until then committedTeam stays on the OLD value, so filteredSystems = []
-  //    and stats = 0/0% immediately upon switching — no stale flash.
+  // Advance committedTeam only after fetch completes to avoid stale data flash
   useEffect(() => {
     if (!systemsFetching) {
       setCommittedTeam(selectedTeam)
@@ -400,44 +386,38 @@ const Dashboard = () => {
     try { await refetchSystems() } finally { setIsRefreshing(false) }
   }
 
+  const isTeamFetching = systemsFetching || committedTeam !== selectedTeam
+  const filteredSystems = (!isTeamFetching && Array.isArray(systemsData)) ? systemsData : []
 
-
-
-  // Always show stats/content for the selected team. If fetching or no data, show zero.
-  // This ensures stats and content are always in sync and never show stale data.
-  const isTeamFetching = systemsFetching || committedTeam !== selectedTeam;
-  const filteredSystems = (!isTeamFetching && Array.isArray(systemsData)) ? systemsData : [];
-
-  // Calculate stats for summary cards
   const calculateOverallStats = () => {
     if (isTeamFetching || !Array.isArray(filteredSystems) || filteredSystems.length === 0) {
-      return { pending: 0, completed: 0, percentage: 0 };
+      return { pending: 0, completed: 0, percentage: 0 }
     }
-    let totalSum = 0, completedSum = 0, pendingSum = 0;
+    let totalSum = 0, completedSum = 0, pendingSum = 0
     filteredSystems.forEach((system) => {
       if (system.categories && Array.isArray(system.categories)) {
         system.categories.forEach((category) => {
           if (category.progress && Array.isArray(category.progress)) {
             category.progress.forEach((item) => {
-              totalSum++;
-              if (item.status === 'done') completedSum++;
-              else if (item.status === 'pending') pendingSum++;
-            });
+              totalSum++
+              if (item.status === 'done') completedSum++
+              else if (item.status === 'pending') pendingSum++
+            })
           }
-        });
+        })
       }
-    });
-    const percentage = totalSum > 0 ? Math.round((completedSum / totalSum) * 100) : 0;
-    return { pending: pendingSum, completed: completedSum, percentage };
-  };
-  const stats = calculateOverallStats();
+    })
+    const percentage = totalSum > 0 ? Math.round((completedSum / totalSum) * 100) : 0
+    return { pending: pendingSum, completed: completedSum, percentage }
+  }
+  const stats = calculateOverallStats()
 
-  // Team name for the empty state and stats
   const selectedTeamName = useMemo(() => {
-    if (!selectedTeam) return 'All Teams';
-    const found = teams.find(t => t.id === selectedTeam);
-    return found?.name || user?.team?.name || 'Projects';
-  }, [selectedTeam, teams, user?.team?.name]);
+    if (isUserRole) return user?.team?.name || 'My Team'
+    if (!selectedTeam) return 'All Teams'
+    const found = teams.find(t => t.id === selectedTeam)
+    return found?.name || 'Projects'
+  }, [selectedTeam, teams, user?.team?.name, isUserRole])
 
   const StatCard = ({ title, count, icon: Icon, color, isPercentage = false }) => (
     <Paper elevation={0} className="statCard" sx={{ bgcolor: '#f3f3f3' }}>
@@ -479,21 +459,22 @@ const Dashboard = () => {
           Welcome back, {user?.first_name || 'User'}!
         </Typography>
 
-        {canFilterByTeam && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Tooltip title="Refresh systems" placement="top">
-              <IconButton
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                sx={{ color: '#03346E', '&:hover': { backgroundColor: 'rgba(3, 52, 110, 0.08)' } }}
-              >
-                <CachedIcon sx={{
-                  animation: isRefreshing ? 'spin 1s linear infinite' : 'none',
-                  '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } }
-                }} />
-              </IconButton>
-            </Tooltip>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Tooltip title="Refresh systems" placement="top">
+            <IconButton
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              sx={{ color: '#03346E', '&:hover': { backgroundColor: 'rgba(3, 52, 110, 0.08)' } }}
+            >
+              <CachedIcon sx={{
+                animation: isRefreshing ? 'spin 1s linear infinite' : 'none',
+                '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } }
+              }} />
+            </IconButton>
+          </Tooltip>
 
+          {/* Team filter dropdown — admin only */}
+          {isAdminRole && canFilterByTeam && (
             <FormControl className="filterSelect" size="small">
               <Select
                 id="dashboard-team-filter"
@@ -503,11 +484,9 @@ const Dashboard = () => {
                 displayEmpty
                 className="filterSelectInput"
               >
-                {isAdminRole && (
-                  <MenuItem value="">
-                    <Typography className="filterMenuItemText" sx={{ fontFamily: '"Oswald", sans-serif' }}>All Teams</Typography>
-                  </MenuItem>
-                )}
+                <MenuItem value="">
+                  <Typography className="filterMenuItemText" sx={{ fontFamily: '"Oswald", sans-serif' }}>All Teams</Typography>
+                </MenuItem>
                 {teams.map((team) => (
                   <MenuItem key={team.id} value={team.id}>
                     <Typography sx={{ fontFamily: '"Oswald", sans-serif' }}>{team.name}</Typography>
@@ -515,7 +494,10 @@ const Dashboard = () => {
                 ))}
               </Select>
             </FormControl>
+          )}
 
+          {/* Search — show for admin always; show for user only if they have a team */}
+          {(isAdminRole || user?.team?.id) && (
             <TextField
               id="dashboard-systems-search"
               name="dashboard-systems-search"
@@ -532,8 +514,8 @@ const Dashboard = () => {
               }}
               sx={{ minWidth: 250 }}
             />
-          </Box>
-        )}
+          )}
+        </Box>
       </Box>
 
       <Box className="summarySectionWrapper">
@@ -564,7 +546,6 @@ const Dashboard = () => {
         </Box>
       </Box>
 
-      {/* Show spinner while fetching a different team */}
       {systemsFetching ? (
         <Box className="dashboardLoadingContainer">
           <Loading />
