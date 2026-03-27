@@ -109,6 +109,7 @@ export const teamApi = todoListApi.injectEndpoints({
 
 export const {
   useGetTeamsQuery,
+  useLazyGetTeamsQuery,
   useGetTeamByIdQuery,
   useCreateTeamMutation,
   useUpdateTeamMutation,

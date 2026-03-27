@@ -3,17 +3,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  Box,
-  CircularProgress,
-  Alert,
-  Snackbar,
-} from '@mui/material';
+  Dialog,DialogTitle,DialogContent,DialogActions,Button,TextField,Box,CircularProgress,Alert,Snackbar,} from '@mui/material';
 import { useSelector } from 'react-redux';
 import { selectCurrentUser } from '../../features/api/slice/authSlice';
 import { useUpdateUserMutation } from '../../features/api/user/userApi';

@@ -567,7 +567,7 @@ const Dashboard = () => {
       ) : !Array.isArray(filteredSystems) || filteredSystems.length === 0 ? (
         <Box className="emptyStateContainer">
           <Box className="emptyStateContent">
-            <Box component="img" src={nodataImg} alt="No data" className="emptyStateImage" />
+            <Box component="img" src={nodataImg} alt="No data" className="emptyStateImage"  />
             <Box className="emptyStateText">
               <Typography variant="h6" className="emptyStateTitle" sx={{ fontFamily: '"Oswald", sans-serif' }}>
                 {selectedTeamName}

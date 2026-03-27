@@ -46,15 +46,54 @@ const CHILD_LABEL_SX = {
   },
 };
 
-// ─── Permission definitions ───────────────────────────────────────────────────
 
+// ─── Permission definitions ───────────────────────────────────────────────────
 const DASHBOARD_SUBCHILDREN = ['Dashboard.FilterTeam'];
 const SYSTEMS_SUBCHILDREN = ['Systems.Add', 'Systems.Import'];
 const MASTERLIST_CHILDREN = ['Users', 'Category', 'Team', 'Charging', 'Role'];
+// System Category permission: only 'Access' (if off, view-only)
+const SYSTEM_CATEGORY_CHILDREN = ['SystemCategory.Access'];
 
 const ALL_DASHBOARD_PERMS = ['Dashboard', ...DASHBOARD_SUBCHILDREN];
 const ALL_SYSTEMS_PERMS = ['Systems', ...SYSTEMS_SUBCHILDREN];
 const ALL_MASTERLIST_PERMS = ['Masterlist', ...MASTERLIST_CHILDREN];
+const ALL_SYSTEM_CATEGORY_PERMS = ['SystemCategory', ...SYSTEM_CATEGORY_CHILDREN];
+// ─── Section: System Category ────────────────────────────────────────────────
+function SystemCategorySection({ selected, onChange }) {
+  const [open, setOpen] = useState(true);
+  const perm = 'SystemCategory.Access';
+  const checked = selected.includes(perm);
+
+  return (
+    <CollapsibleSection
+      title="System Category"
+      isOpen={open}
+      onToggle={() => setOpen((v) => !v)}
+      isChecked={checked}
+      isIndeterminate={false}
+      onParentChange={() => onChange(checked ? selected.filter((p) => p !== perm) : [...selected, perm])}
+    >
+      <Box sx={{ display: 'flex', flexDirection: 'column', ml: 2 }}>
+        <FormControlLabel
+          key={perm}
+          label={
+            checked
+              ? 'Access (can edit, mark as done/on hold/pending, create)'
+              : 'Viewing only (cannot edit or mark)'
+          }
+          sx={CHILD_LABEL_SX}
+          control={
+            <Checkbox
+              checked={checked}
+              onChange={() => onChange(checked ? selected.filter((p) => p !== perm) : [...selected, perm])}
+              sx={CHECKBOX_SX}
+            />
+          }
+        />
+      </Box>
+    </CollapsibleSection>
+  );
+}
 
 // ─── Validation ───────────────────────────────────────────────────────────────
 
@@ -352,6 +391,7 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               <DashboardSection selected={selectedPermissions} onChange={handlePermChange} />
               <SystemsSection selected={selectedPermissions} onChange={handlePermChange} />
+              <SystemCategorySection selected={selectedPermissions} onChange={handlePermChange} />
               <MasterlistSection selected={selectedPermissions} onChange={handlePermChange} />
             </Box>
 

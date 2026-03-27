@@ -24,6 +24,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import { usePatchTeamMutation } from '../../features/api/team/teamApi'
 import { useGetSystemsListQuery } from '../../features/api/system/systemApi'
+import CachedIcon from '@mui/icons-material/Cached'
 import Snackbar from '../../component/reuseable/Snackbar' // adjust path as needed
 
 export default function SystemteamEditDialog({
@@ -34,10 +35,27 @@ export default function SystemteamEditDialog({
 }) {
   const [patchTeam, { isLoading: isUpdating }] = usePatchTeamMutation()
 
-  const { data: systemsData, isLoading: systemsLoading } = useGetSystemsListQuery(
+  const {
+    data: systemsData,
+    isLoading: systemsLoading,
+    refetch: refetchSystems
+  } = useGetSystemsListQuery(
     { status: 'active', paginate: 'none', pagination: 'none' },
     { skip: !open }
   )
+
+  // Local state for manual refresh animation
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      await refetchSystems();
+    } finally {
+      setTimeout(() => setRefreshing(false), 600); // allow animation to be visible
+    }
+  };
 
   const [assignedIds, setAssignedIds] = useState([])
   const [initialized, setInitialized] = useState(false)
@@ -252,13 +270,33 @@ export default function SystemteamEditDialog({
         fullWidth
         PaperProps={{ sx: { borderRadius: '8px', boxShadow: '0 5px 15px rgba(0,0,0,0.3)' } }}
       >
-        <DialogTitle sx={{ fontFamily: '"Oswald", sans-serif', fontWeight: 600, pb: 0.5 }}>
-          Manage Systems
-          {team && (
-            <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 400, fontFamily: 'inherit', mt: 0.25 }}>
-              Team: <strong>{team.name}</strong>
-            </Typography>
-          )}
+        <DialogTitle sx={{ fontFamily: '"Oswald", sans-serif', fontWeight: 600, pb: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box>
+            Manage Systems
+            {team && (
+              <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 400, fontFamily: 'inherit', mt: 0.25 }}>
+                Team: <strong>{team.name}</strong>
+              </Typography>
+            )}
+          </Box>
+          <Tooltip title="Refresh systems list">
+            <span>
+              <IconButton
+                onClick={handleRefresh}
+                disabled={refreshing || systemsLoading}
+                sx={{ ml: 1 }}
+                size="small"
+              >
+                <CachedIcon sx={{
+                  animation: refreshing ? 'spin 1s linear infinite' : 'none',
+                  '@keyframes spin': {
+                    '0%': { transform: 'rotate(0deg)' },
+                    '100%': { transform: 'rotate(360deg)' }
+                  }
+                }} />
+              </IconButton>
+            </span>
+          </Tooltip>
         </DialogTitle>
 
         <DialogContent sx={{ pt: 1.5 }}>

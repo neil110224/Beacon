@@ -1,19 +1,67 @@
+// import { todoListApi } from "../../api";
+
+// export const chargingApi = todoListApi.injectEndpoints({
+//   endpoints: (builder) => ({
+//     getCharging: builder.query({
+//       query: (params = {}) => {
+//         const searchParams = new URLSearchParams();
+//         if (params.status) searchParams.append("status", params.status);
+//         searchParams.append("pagination", "none");
+//         if (params.term) searchParams.append("term", params.term);
+//         return {
+//           url: `charging?${searchParams.toString()}`,
+//           method: "GET",
+//         };
+//       },
+//       providesTags: ["Charging"],
+//     }),
+
+//     getChargingById: builder.query({
+//       query: (id) => `charging/${id}`,
+//       providesTags: (result, error, id) => [{ type: "Charging", id }],
+//     }),
+
+//     // getSyncCharging: builder.query({
+//     //   query: () => ({
+//     //     url: "sync_charging",
+//     //     method: "GET",
+//     //   }),
+//     //   invalidatesTags: ["Charging"],
+//     // }),
+//     getSyncCharging: builder.query({
+//       query: (params) => ({
+//         url: "sync_charging",
+//         params,
+//       }),
+//       method: "GET",
+//       providesTags: ["Users"],
+//     }),
+//   }),
+// });
+
+// export const {
+//   useGetChargingQuery,
+//   useLazyGetChargingQuery,
+//   useGetChargingByIdQuery,
+//   useCreateChargingMutation,
+//   useUpdateChargingMutation,
+//   useDeleteChargingMutation,
+//   useGetSyncChargingQuery,
+//   useLazySyncChargingQuery,
+// } = chargingApi;
 import { todoListApi } from "../../api";
 
 export const chargingApi = todoListApi.injectEndpoints({
   endpoints: (builder) => ({
     getCharging: builder.query({
       query: (params = {}) => {
-        const queryParams = {};
-        if (params.status) queryParams.status = params.status;
-        if (params.paginate !== undefined)
-          queryParams.paginate = params.paginate;
-        if (params.term) queryParams.term = params.term;
-
+        const searchParams = new URLSearchParams();
+        if (params.status) searchParams.append("status", params.status);
+        searchParams.append("pagination", "none");
+        if (params.term) searchParams.append("term", params.term);
         return {
-          url: "sync_charging",
-          method: "POST",
-          body: queryParams,
+          url: `charging?${searchParams.toString()}`,
+          method: "GET",
         };
       },
       providesTags: ["Charging"],
@@ -26,7 +74,7 @@ export const chargingApi = todoListApi.injectEndpoints({
 
     createCharging: builder.mutation({
       query: (newCharging) => ({
-        url: "charging", // ✅ make sure this route exists in Laravel
+        url: "charging",
         method: "POST",
         body: newCharging,
       }),
@@ -50,29 +98,23 @@ export const chargingApi = todoListApi.injectEndpoints({
       invalidatesTags: ["Charging"],
     }),
 
-    syncCharging: builder.mutation({
-      query: (params = {}) => {
-        const queryParams = {};
-        if (params.status) queryParams.status = params.status;
-        if (params.paginate !== undefined)
-          queryParams.paginate = params.paginate;
-        if (params.term) queryParams.term = params.term;
-        return {
-          url: "sync_charging",
-          method: "POST",
-          body: queryParams,
-        };
-      },
-      invalidatesTags: ["Charging"],
+    syncCharging: builder.query({
+      query: () => ({
+        url: "sync_charging",
+        method: "GET",
+      }),
+      providesTags: ["Charging"],
     }),
   }),
 });
 
 export const {
   useGetChargingQuery,
+  useLazyGetChargingQuery,
   useGetChargingByIdQuery,
   useCreateChargingMutation,
   useUpdateChargingMutation,
   useDeleteChargingMutation,
-  useSyncChargingMutation,
+  useSyncChargingQuery,
+  useLazySyncChargingQuery, // ✅ add this
 } = chargingApi;

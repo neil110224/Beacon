@@ -1,16 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  Avatar,
-  Box,
-  Typography,
-  CircularProgress,
-} from '@mui/material';
+import {Dialog,DialogTitle,DialogContent,DialogActions,Button,TextField,Avatar,Box,Typography,CircularProgress,} from '@mui/material';
 import { useDispatch } from 'react-redux';
 import { updateUser } from '../../features/api/slice/authSlice'; // Your authSlice action
 import { useUpdateUserMutation } from '../../features/api/user/userApi'; // Import from userApi.js (adjust path if needed)
@@ -32,8 +21,6 @@ const ChangeProfileDialog = ({ open, onClose, user }) => {
       setSuffix(user.suffix || '');
     }
   }, [user]);
-
-  // Removed handleFileChange and handleRemovePicture
 
 const handleSave = async () => {
   // Only send text fields, make suffix optional

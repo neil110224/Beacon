@@ -189,6 +189,46 @@ const Users = () => {
   const showNoData = !isLoading && users.length === 0 && searchTerm && !showArchived;
   const showArchiveNoData = !isLoading && users.length === 0 && searchTerm && showArchived;
 
+  // Only show one empty state at a time
+  let emptyState = null;
+  if (showNoData) {
+    emptyState = (
+      <Box className="usersEmptyStateWrapper">
+        <Box className="usersEmptyStateBox">
+          <Box style={{ width: 300, margin: '0 auto' }}><Nodata /></Box>
+          <Box className="usersEmptyTextBox">
+            <Typography variant="h6" className="usersEmptyTitle">Users</Typography>
+            <Typography variant="body2">Currently no "{searchTerm}" data.</Typography>
+          </Box>
+        </Box>
+      </Box>
+    );
+  } else if (showArchiveNoData) {
+    emptyState = (
+      <Box className="usersEmptyStateWrapper">
+        <Box className="usersEmptyStateBox">
+          <Box style={{ width: 300, margin: '0 auto' }}><Nodata /></Box>
+          <Box className="usersEmptyTextBox">
+            <Typography variant="h6" className="usersEmptyTitle">Users</Typography>
+            <Typography variant="body2">Currently no "{searchTerm}" data in the archive.</Typography>
+          </Box>
+        </Box>
+      </Box>
+    );
+  } else if ((!isLoading && users.length === 0 && !isError) || (isError && showArchived && !searchTerm)) {
+    emptyState = (
+      <Box className="usersEmptyStateWrapper">
+        <Box className="usersEmptyStateBox">
+          <Box style={{ width: 300, margin: '0 auto' }}><Nodata /></Box>
+          <Box className="usersEmptyTextBox">
+            <Typography variant="h6" className="usersEmptyTitle">Users</Typography>
+            <Typography variant="body2">{showArchived ? "Currently no users in the archive." : "No users data available."}</Typography>
+          </Box>
+        </Box>
+      </Box>
+    );
+  }
+
   return (
     <>
       <Box className="usersContainer">
@@ -204,41 +244,8 @@ const Users = () => {
           onRefresh={refetch}
         />
 
-        {showNoData && (
-          <Box className="usersEmptyStateWrapper">
-            <Box className="usersEmptyStateBox">
-              <Box style={{ width: 300, margin: '0 auto' }}><Nodata /></Box>
-              <Box className="usersEmptyTextBox">
-                <Typography variant="h6" className="usersEmptyTitle">Users</Typography>
-                <Typography variant="body2">Currently no "{searchTerm}" data.</Typography>
-              </Box>
-            </Box>
-          </Box>
-        )}
 
-        {showArchiveNoData && (
-          <Box className="usersEmptyStateWrapper">
-            <Box className="usersEmptyStateBox">
-              <Box style={{ width: 300, margin: '0 auto' }}><Nodata /></Box>
-              <Box className="usersEmptyTextBox">
-                <Typography variant="h6" className="usersEmptyTitle">Users</Typography>
-                <Typography variant="body2">Currently no "{searchTerm}" data in the archive.</Typography>
-              </Box>
-            </Box>
-          </Box>
-        )}
-
-        {!showNoData && !showArchiveNoData && (!isLoading && users.length === 0 && !isError) || (isError && showArchived && !searchTerm) ? (
-          <Box className="usersEmptyStateWrapper">
-            <Box className="usersEmptyStateBox">
-              <Box style={{ width: 300, margin: '0 auto' }}><Nodata /></Box>
-              <Box className="usersEmptyTextBox">
-                <Typography variant="h6" className="usersEmptyTitle">Users</Typography>
-                <Typography variant="body2">{showArchived ? "Currently no users in the archive." : "No users data available."}</Typography>
-              </Box>
-            </Box>
-          </Box>
-        ) : null}
+        {emptyState}
 
         {!isError && !showNoData && (
           <DataTable

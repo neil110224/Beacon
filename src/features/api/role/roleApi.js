@@ -72,6 +72,7 @@ export const roleApi = todoListApi.injectEndpoints({
 
 export const {
   useGetRolesQuery,
+  useLazyGetRolesQuery,
   useGetRoleByIdQuery,
   useCreateRoleMutation,
   useUpdateRoleMutation,

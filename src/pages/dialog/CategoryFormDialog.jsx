@@ -2,17 +2,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  Box,
-  CircularProgress,
-} from '@mui/material';
-import Snackbar from '../../component/reuseable/Snackbar';
+import {Dialog,DialogTitle,DialogContent,DialogActions,Button,TextField,Box,CircularProgress,} from '@mui/material';
 const OSWALD = '"Oswald", sans-serif';
 
 // Validation schema
@@ -21,9 +11,6 @@ const categoryValidationSchema = yup.object().shape({
 });
 
 /**
- * Unified Category Dialog Component
- * Handles both Create and Edit modes
- *
  * @param {Object} props
  * @param {boolean} props.open - Dialog visibility
  * @param {function} props.onClose - Close handler

@@ -96,7 +96,7 @@ const Login = () => {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        bgcolor: '#060827',
+        bgcolor: '#dadada',
       }}
     >
       <Box
@@ -111,7 +111,7 @@ const Login = () => {
           boxShadow: '0 8px 25px rgba(51, 47, 47, 0.12)',
           overflow: 'hidden',
           position: 'relative',
-          color: '#03346E'
+          color: '#03346E',
         }}
       >
         {/* LEFT PANEL */}
@@ -137,7 +137,7 @@ const Login = () => {
                 letterSpacing: 1,
                 textAlign: 'center',
                 fontSize: { xs: 18, md: 22 },
-                color: '#03346E', 
+                color: '#03346E',
               }}
             >
               Welcome to{' '}
