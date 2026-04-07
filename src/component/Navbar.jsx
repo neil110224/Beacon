@@ -226,7 +226,7 @@ const Navbar = () => {
               >
                 <IconButton onClick={handleToggleSidebarLock} className="sidebarToggleButton">
                   {isSidebarCollapsed ? (
-                    <ArrowForwardIosIcon className="toggleIcon" sx={{ fontSize: '1rem' }} />
+                    <ArrowForwardIosIcon className="toggleIcon" sx={{ fontSize: '1rem',  }} />
                   ) : (
                     <ArrowBackIosNewIcon className="toggleIcon" sx={{ fontSize: '1rem' }} />
                   )}

@@ -551,25 +551,27 @@ const Dashboard = () => {
           <Loading />
         </Box>
       ) : systemsError ? (
-        <Box className="emptyStateContainer">
-          <Box className="emptyStateContent">
-            <Box><Nodata /></Box>
-            <Box className="emptyStateText">
-              <Typography variant="h6" className="emptyStateTitle" sx={{ fontFamily: '"Oswald", sans-serif' }}>
+        <Box className="emptyStateContainer" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 290, padding: 0, width: '100%' }}>
+          <Box className="emptyStateContent" sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 0, width: 'auto', boxShadow: 'none', background: 'none', padding: 0 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 0, m: 0 }}>
+              <Nodata />
+            </Box>
+            <Box className="emptyStateText" sx={{ ml: 2, p: 0, m: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center' }}>
+              <Typography variant="h6" className="emptyStateTitle" sx={{ fontFamily: '"Oswald", sans-serif', m: 0, p: 0 }}>
                 {selectedTeamName}
               </Typography>
-              <Typography variant="body2" className="emptyStateDescription" sx={{ fontFamily: '"Oswald", sans-serif' }}>
+              <Typography variant="body2" className="emptyStateDescription" sx={{ fontFamily: '"Oswald", sans-serif', m: 0, p: 0,color:'#03346E' }}>
                 Currently no system
               </Typography>
             </Box>
           </Box>
         </Box>
       ) : !Array.isArray(filteredSystems) || filteredSystems.length === 0 ? (
-        <Box className="emptyStateContainer">
+        <Box className="emptyStateContainer" sx={{color:'#03346E'}}>
           <Box className="emptyStateContent">
             <Box component="img" src={nodataImg} alt="No data" className="emptyStateImage"  />
             <Box className="emptyStateText">
-              <Typography variant="h6" className="emptyStateTitle" sx={{ fontFamily: '"Oswald", sans-serif' }}>
+              <Typography variant="h6" className="emptyStateTitle" sx={{ fontFamily: '"Oswald", sans-serif',color:'#03346E' }}>
                 {selectedTeamName}
               </Typography>
               <Typography variant="body2" className="emptyStateDescription">

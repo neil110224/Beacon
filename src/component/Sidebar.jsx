@@ -246,8 +246,8 @@ const Sidebar = ({
                     />
                     <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
                       {openMasterlist
-                        ? <ExpandLess sx={{ color: 'var(--sidebar-icon-color)', fontSize: '1.25rem' }} />
-                        : <ExpandMore sx={{ color: 'var(--sidebar-icon-color)', fontSize: '1.25rem' }} />
+                        ? <ExpandLess sx={{ color: 'var(--sidebar-icon-color)', fontSize: '1.1rem' }} />
+                        : <ExpandMore sx={{ color: 'var(--sidebar-icon-color)', fontSize: '1.1rem' }} />
                       }
                     </Box>
                   </>
@@ -351,7 +351,7 @@ const Sidebar = ({
         color: '#03346E',
         fontFamily: '"Oswald", sans-serif',
         fontWeight: 600,
-        fontSize: isCollapsed ? '0.875rem' : '0.9rem',
+        fontSize: 'var(--sidebar-btn-font-size)',
         letterSpacing: '0.5px',
         mb: 2,
         mt: 1,
@@ -360,10 +360,11 @@ const Sidebar = ({
 
       }}>
         <div>{time}</div>
-        <div style={{ fontSize: '0.15rem',
+        <div style={{
+          fontSize: '0.15rem',
           fontWeight: 400,
-          fontSize: isCollapsed ? '0.8rem' : '0.9rem',
-           }}>{date}</div>
+          fontSize: 'var(--sidebar-btn-font-size)',
+        }}>{date}</div>
       </Box>
     </Box>
   );

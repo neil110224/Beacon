@@ -445,17 +445,20 @@
   }
 }
 
-// Dashboard Container - EXTRA BOTTOM SPACING
-.dashboardContainer {
-  padding-bottom: 1rem; // Extra bottom padding for last cards
-}
+
 
 // Empty State Adjustments
 .emptyStateContainer {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 500px;
-  padding: 4rem 2rem;
+  min-height: 400px;
+  padding: 1rem 1rem;
   width: 100%;
+}
+
+.emptyStateTitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #03346E;
 }

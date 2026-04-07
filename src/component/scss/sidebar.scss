@@ -2,8 +2,8 @@
 @use "../../styles/colors" as *;
 
 // ========== SIDEBAR FONT SIZE VARIABLES ==========
-$sidebar-button-font-size: 1rem;
-$sidebar-icon-font-size: 1.2rem;
+$sidebar-button-font-size: 0.875rem;
+$sidebar-icon-font-size: 1.1rem;
 // ============================================
 
 // ========== SIDEBAR COLOR VARIABLES ==========
@@ -94,8 +94,8 @@ $sidebar-text-color-active: #001835;
   margin-left: 0;
 
   img {
-    width: 55px;
-    height: 55px;
+    width: 45px;
+    height: 45px;
     object-fit: contain;
   }
 }
@@ -110,7 +110,7 @@ $sidebar-text-color-active: #001835;
 
 .title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: 900;
   letter-spacing: 1px;
   font-family: "Oswald", sans-serif;
