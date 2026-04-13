@@ -47,7 +47,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-
+  background-color: $primary-main;
 }
 
 /* ============================================
@@ -64,7 +64,7 @@
   margin-top: 5px;
   color: #f4f4f4;
   border-left: 1px solid rgba(255, 255, 255, 0.08);
-  background-color: #f4f4f4;
+  background-color: $primary-main;
 
 
   @include bp.xs {
@@ -108,7 +108,7 @@
   font-size: 0.4rem;
   font-weight: lighter;
   transition: transform 0.3s ease;
-  color: #313131;
+  color: $primary-text-light;
 }
 
 .mobileMenuButton {
@@ -129,6 +129,9 @@
   }
 }
 
+.activePageLabel {
+  color: $primary-text-light;
+}
 /* ============================================
    RIGHT SIDE - USER INFO
    ============================================ */
@@ -237,7 +240,6 @@
    ============================================ */
 .bodyContent {
   flex-grow: 1;
-  background-color: $primary-dark;
   border-radius: 0.85rem;
   overflow: hidden;
   display: flex;
@@ -254,19 +256,19 @@
 }
 
 .contentWrapper {
-  padding: 1rem;
+  margin:1;
   flex-grow: 1;
   overflow: hidden;
 
-  @include bp.xs {
-    padding: 0.25rem;
-  }
+//   @include bp.xs {
+//     padding: 0.25rem;
+//   }
 
-  @include bp.sm {
-    padding: 0.5rem;
-  }
+//   @include bp.sm {
+//     padding: 0.5rem;
+//   }
 
-  @include bp.md {
-    padding: 1rem;
-  }
+//   @include bp.md {
+//     padding: 1rem;
+//   }
 }

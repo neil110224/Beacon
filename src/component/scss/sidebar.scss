@@ -6,21 +6,15 @@ $sidebar-button-font-size: 0.875rem;
 $sidebar-icon-font-size: 1.1rem;
 // ============================================
 
-// ========== SIDEBAR COLOR VARIABLES ==========
-$sidebar-icon-color: #03346E;
-$sidebar-text-color: #03346E;
-$sidebar-text-color-active: #001835;
-// ============================================
-
 .sidebarWrapper {
   --sidebar-btn-font-size: #{$sidebar-button-font-size};
   --sidebar-icon-font-size: #{$sidebar-icon-font-size};
-  --sidebar-icon-color: #{$sidebar-icon-color};
-  --sidebar-text-color: #{$sidebar-text-color};
-  --sidebar-text-color-active: #{$sidebar-text-color-active};
+  --sidebar-icon-color: #{$primary-text-light};
+  --sidebar-text-color: #{$primary-text-light};
+  --sidebar-text-color-active: #{$primary-text-dark};
   background: $primary-dark;
   height: 100vh;
-  color: $nav-text;
+  color: $primary-text-dark;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -41,7 +35,7 @@ $sidebar-text-color-active: #001835;
 .sidebar {
   background: $primary-dark;
   height: 100vh;
-  color: $nav-text;
+  color: $primary-text-light;
   overflow: hidden;
   transition: width 0.5s ease, min-width 0.5s ease, max-width 0.5s ease;
   display: flex;
@@ -73,7 +67,7 @@ $sidebar-text-color-active: #001835;
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, $border-color, transparent);
+    background: linear-gradient(90deg, transparent, rgba($secondary-text-light, 0.25), transparent);
   }
 }
 
@@ -122,7 +116,7 @@ $sidebar-text-color-active: #001835;
   overflow-y: auto;
   overflow-x: hidden;
   padding: 0;
-  color: $primary-text-dark;
+  color: $primary-text-light;
 
   &::-webkit-scrollbar {
     display: none;
@@ -133,7 +127,7 @@ $sidebar-text-color-active: #001835;
 
 .listItemButton {
   background: transparent;
-  color: $primary-text-dark;
+  color: $primary-text-light;
   justify-content: flex-start;
   align-items: center;
   border-radius: 0;
@@ -153,11 +147,15 @@ $sidebar-text-color-active: #001835;
   width: 100%;
 
   &:hover {
-    background-color: rgba(137, 212, 255, 0.2);
+    background-color: rgba($primary-text-light, 0.12);
   }
 
   &--active {
-    background-color: rgba(137, 212, 255, 0.3);
+    background-color: rgba($primary-text-light, 0.24);
+
+    &:hover {
+      background-color: rgba($primary-text-light, 0.36);
+    }
   }
 
   &--collapsed {
@@ -166,7 +164,7 @@ $sidebar-text-color-active: #001835;
 }
 
 .listItemIcon {
-  color: $sidebar-icon-color;
+  color: $primary-text-light;
   height: 30px;
   display: flex;
   justify-content: flex-start;
@@ -176,11 +174,15 @@ $sidebar-text-color-active: #001835;
   flex-shrink: 0;
   svg {
     font-size: var(--sidebar-icon-font-size);
+    color: inherit;
+    fill: currentColor;
+    stroke: currentColor;
+    opacity: 1;
   }
 }
 
 .listItemText {
-  font-weight: 300;
+  font-weight: 200;
   font-size: $sidebar-button-font-size;
   font-family: "Oswald", sans-serif;
   flex: 1;
@@ -188,6 +190,7 @@ $sidebar-text-color-active: #001835;
   text-overflow: ellipsis;
   white-space: nowrap;
   margin-left: 0;
+  color: $primary-text-light;
 
   span {
     display: block;
@@ -200,42 +203,45 @@ $sidebar-text-color-active: #001835;
   padding-left: 0;
 
   &:hover {
-    background-color: rgba(82, 152, 114, 0.1);
-    border: 1px solid rgba(82, 152, 114, 0.2);
+    background-color: rgba($primary-text-light, 0.1);
+    border: 1px solid rgba($primary-text-light, 0.2);
 
     .listItemIcon {
-      color: $nav-icon;
+      color: $primary-text-light;
     }
   }
 
   &--open {
-    background-color: rgba(82, 152, 114, 0.1);
+    background-color: rgba($primary-text-light, 0.1);
   }
 }
 
 .nestedItem {
   background-color: transparent;
   color: $primary-text-dark;
-  padding-left: 3.5rem;
+  padding-left: 2.25rem !important;
+  margin-left: 0 !important;
+  width: 100%;
+  gap: 1rem;
   transition: all 0.5s ease;
   position: relative;
   font-size: $sidebar-button-font-size;
 
   &:hover {
-    background-color: rgba(137, 212, 255, 0.2);
+    background-color: rgba($primary-text-light, 0.12);
   }
 
   &--active {
-    background-color: #89D4FF;
-    color: $text-white;
+    background-color: rgba($primary-text-light, 0.24);
+    color: $primary-light;
 
     &:hover {
-      background-color: rgba(137, 212, 255, 0.85);
+      background-color: rgba($primary-text-light, 0.36);
     }
   }
 
   .listItemIcon {
-    color: $sidebar-icon-color;
+    color: $primary-text-light;
     font-size: var(--sidebar-icon-font-size);
   }
 }
@@ -247,20 +253,20 @@ $sidebar-text-color-active: #001835;
   font-size: $sidebar-button-font-size;
 
   &:hover {
-    background-color: rgba(137, 212, 255, 0.15);
+    background-color: rgba($primary-text-light, 0.12);
   }
 
   &--active {
-    background-color: #89D4FF;
-    color: $text-white;
+    background-color: rgba($primary-text-light, 0.24);
+    color: $primary-light;
 
     &:hover {
-      background-color: rgba(137, 212, 255, 0.85);
+      background-color: rgba($primary-text-light, 0.36);
     }
   }
 
   .listItemIcon {
-    color: $sidebar-icon-color;
+    color: $primary-text-light;
     min-width: 36px;
   }
 }
@@ -278,7 +284,7 @@ $sidebar-text-color-active: #001835;
   width: 8px;
   cursor: ew-resize;
   transition: all 0.3s ease;
-  background: linear-gradient(90deg, rgba(160, 160, 160, 0.2) 0%, rgba(160, 160, 160, 0.4) 50%, rgba(160, 160, 160, 0.2) 100%);
+  background: linear-gradient(90deg, rgba($secondary-text-light, 0.2) 0%, rgba($secondary-text-light, 0.4) 50%, rgba($secondary-text-light, 0.2) 100%);
 
   &::before {
     content: '';
@@ -290,8 +296,8 @@ $sidebar-text-color-active: #001835;
     height: 40px;
     background: repeating-linear-gradient(
       90deg,
-      rgba(150, 150, 150, 0.5),
-      rgba(150, 150, 150, 0.5) 2px,
+      rgba($secondary-text-light, 0.5),
+      rgba($secondary-text-light, 0.5) 2px,
       transparent 2px,
       transparent 4px
     );
@@ -300,14 +306,14 @@ $sidebar-text-color-active: #001835;
   }
 
   &:hover {
-    background: linear-gradient(90deg, rgba(130, 130, 130, 0.4) 0%, rgba(130, 130, 130, 0.6) 50%, rgba(130, 130, 130, 0.4) 100%);
-    box-shadow: -2px 0 8px rgba(130, 130, 130, 0.3);
+    background: linear-gradient(90deg, rgba($secondary-text-light, 0.4) 0%, rgba($secondary-text-light, 0.6) 50%, rgba($secondary-text-light, 0.4) 100%);
+    box-shadow: -2px 0 8px rgba($secondary-text-light, 0.3);
 
     &::before {
       background: repeating-linear-gradient(
         90deg,
-        rgba(120, 120, 120, 0.8),
-        rgba(120, 120, 120, 0.8) 2px,
+        rgba($secondary-text-light, 0.8),
+        rgba($secondary-text-light, 0.8) 2px,
         transparent 2px,
         transparent 4px
       );
@@ -316,9 +322,53 @@ $sidebar-text-color-active: #001835;
   }
 
   &:active {
-    background: linear-gradient(90deg, rgba(110, 110, 110, 0.5) 0%, rgba(110, 110, 110, 0.7) 50%, rgba(110, 110, 110, 0.5) 100%);
-    box-shadow: -4px 0 12px rgba(110, 110, 110, 0.4);
+    background: linear-gradient(90deg, rgba($secondary-text-light, 0.5) 0%, rgba($secondary-text-light, 0.7) 50%, rgba($secondary-text-light, 0.5) 100%);
+    box-shadow: -4px 0 12px rgba($secondary-text-light, 0.4);
   }
+}
+
+.mobileCloseButton {
+  color: $primary-text-light;
+}
+
+.masterlistChevron {
+  color: $primary-text-light;
+}
+
+.menuItemIcon {
+  color: $primary-text-light;
+  min-width: 36px;
+
+  svg {
+    font-size: var(--sidebar-icon-font-size);
+  }
+}
+
+.profileMenuIcon {
+  color: $primary-text-light;
+}
+
+.timeDateBox {
+  text-align: flex-start;
+  color: $primary-text-light;
+  font-family: "Oswald", sans-serif;
+  font-weight: 600;
+  font-size: var(--sidebar-btn-font-size);
+  letter-spacing: 0.5px;
+  user-select: none;
+
+  &--collapsed {
+    margin-left: 0.4rem;
+  }
+
+  &--expanded {
+    margin-left: 1rem;
+  }
+}
+
+.timeDateText {
+  font-weight: 400;
+  font-size: var(--sidebar-btn-font-size);
 }
 
 .tooltip {
@@ -365,4 +415,11 @@ $sidebar-text-color-active: #001835;
   .list {
     padding-top: 0.5rem;
   }
+}
+
+.listItemButton .listItemIcon,
+.listItemButton .listItemIcon svg {
+  color: $primary-text-light !important;
+  fill: currentColor;
+  stroke: currentColor;
 }

@@ -1,11 +1,9 @@
 import React, { useState, useMemo } from 'react'
-import { useSelector } from 'react-redux'
 import { Box, IconButton, Menu, MenuItem, Typography } from '@mui/material'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import ArchiveIcon from '@mui/icons-material/Archive'
 import RestoreIcon from '@mui/icons-material/Restore'
 import { useDebounce } from '../../hooks/useDebounce'
-import { selectCurrentUser } from '../../features/api/slice/authSlice'
 import { useGetCategoriesListQuery, useDeleteCategoryMutation, useCreateCategoryMutation } from '../../features/api/category/categoryApi'
 import DataTable from '../../component/reuseable/DataTable'
 import Confirmation from '../../component/reuseable/Confirmation'
@@ -16,10 +14,6 @@ import MasterlistTab from '../../component/reuseable/MasterlistTab'
 import '../contentscss/Category.scss'
 
 const Category = () => {
-  const currentUser = useSelector(selectCurrentUser)
-  const userPermissions = currentUser?.role?.access_permissions || []
-  const canAddCategory = userPermissions.includes('Category.Add')
-
   const [anchorEl, setAnchorEl] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -116,7 +110,7 @@ const Category = () => {
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         searchPlaceholder="Search categories..."
-        canAdd={canAddCategory}
+        canAdd={true}
         onAddClick={() => setCategoryDialogOpen(true)}
         addLabel="CREATE"
         onRefresh={refetch}

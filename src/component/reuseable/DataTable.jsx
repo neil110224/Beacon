@@ -65,9 +65,7 @@ const headerCellSx = (col) => ({
   width: col.width || "auto",
   minWidth: col.minWidth || "unset",
   maxWidth: col.maxWidth || col.width || "120px", // respects col.maxWidth, falls back to col.width, then 120px
-  fontSize: "1.1rem",
-  color: "#03346E",
-  fontWeight: 700,
+  fontSize: "0.9rem",
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
@@ -84,7 +82,6 @@ const bodyCellSx = (col, cellTextColor) => ({
   width: col.width || "auto",
   minWidth: col.minWidth || "unset",
   maxWidth: col.maxWidth || col.width || "120px", // same logic as header
-  color: cellTextColor,
   fontSize: "0.85rem",
   textAlign: "center",
   overflow: "hidden",
@@ -93,6 +90,7 @@ const bodyCellSx = (col, cellTextColor) => ({
   fontFamily: '"Oswald", sans-serif',
   "@media (max-width: 768px)": { fontSize: "0.875rem", padding: "8px 4px" },
   "@media (max-width: 575.98px)": { fontSize: "0.75rem", padding: "6px 2px" },
+  ...(cellTextColor ? { color: cellTextColor } : {}),
 });
 
 function DataTable({
@@ -102,7 +100,7 @@ function DataTable({
   isLoading = false,
   isError = false,
   error = null,
-  cellTextColor = "#03346E",
+  cellTextColor = null,
   tableSx = { minWidth: 1400 },
   headSx = { bgcolor: "#dadada" },
   onRowClick = null,
@@ -128,9 +126,13 @@ function DataTable({
     minHeight: 0,
   };
 
+  const tableTextStyle = cellTextColor
+    ? { "--datatable-cell-text-color": cellTextColor }
+    : undefined;
+
   if (isLoading) {
     return (
-      <Paper elevation={0} className="dataTablePaper" sx={paperSx}>
+      <Paper elevation={0} className="dataTablePaper" sx={paperSx} style={tableTextStyle}>
         <TableContainer className="dataTableContainer" sx={tableContainerSx}>
           <Table className="dataTableBase">
             <TableHead className="dataTableHead" sx={{ position: "sticky", top: 0, zIndex: 1 }}>
@@ -172,7 +174,7 @@ function DataTable({
           onPageChange={() => {}}
           onRowsPerPageChange={() => {}}
           ActionsComponent={TablePaginationActions}
-          sx={{ color: "#03346E", flexShrink: 0 }}
+          className="dataTablePagination"
         />
       </Paper>
     );
@@ -200,7 +202,7 @@ function DataTable({
   }
 
   return (
-    <Paper elevation={0} className="dataTablePaper" sx={paperSx}>
+      <Paper elevation={0} className="dataTablePaper" sx={paperSx} style={tableTextStyle}>
       <TableContainer className="dataTableContainer" sx={tableContainerSx}>
         <Table className="dataTableBase">
           <TableHead className="dataTableHead" sx={{ position: "sticky", top: 0, zIndex: 1 }}>
@@ -272,16 +274,7 @@ function DataTable({
           setPage(0);
         }}
         ActionsComponent={TablePaginationActions}
-        sx={{
-          color: "#03346E",
-          flexShrink: 0,
-          "@media (max-width: 768px)": { fontSize: "0.875rem", padding: "8px" },
-          "@media (max-width: 575.98px)": {
-            fontSize: "0.75rem",
-            padding: "4px",
-            "& .MuiToolbar-root": { padding: "4px 8px" },
-          },
-        }}
+        className="dataTablePagination"
       />
     </Paper>
   );

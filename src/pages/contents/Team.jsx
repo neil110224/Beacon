@@ -17,8 +17,6 @@ import {
   DialogActions,
 } from "@mui/material";
 import Loading from "../../component/reuseable/Loading";
-import { useSelector } from "react-redux";
-import { selectCurrentUser } from "../../features/api/slice/authSlice";
 import Nodata from '../../component/reuseable/Nodata'
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import ArchiveIcon from "@mui/icons-material/Archive";
@@ -35,9 +33,6 @@ import { useGetUsersQuery } from "../../features/api/user/userApi";
 import MasterlistTab from "../../component/reuseable/MasterlistTab";
 
 const Team = () => {
-  const currentUser = useSelector(selectCurrentUser);
-  const userPermissions = currentUser?.role?.access_permissions || [];
-  const canAddTeam = userPermissions.includes('Team.Add');
   const [teams, setTeams] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
@@ -185,7 +180,7 @@ const Team = () => {
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         searchPlaceholder="Search Team..."
-        canAdd={canAddTeam}
+        canAdd={true}
         onAddClick={() => setTeamDialogOpen(true)}
         addLabel="CREATE"
         onRefresh={handleRefresh}

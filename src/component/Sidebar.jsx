@@ -8,7 +8,7 @@ function useCurrentDateTime() {
   }, []);
   const date = now.toLocaleDateString();
   const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  return { date, time };
+  return { date, time };  
 }
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Box, List, ListItemButton, ListItemIcon, ListItemText, Collapse, Menu, MenuItem, Tooltip, IconButton } from '@mui/material';
@@ -23,7 +23,6 @@ import LocationCityIcon from '@mui/icons-material/LocationCity';
 import CategoryIcon from '@mui/icons-material/Category';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
-import logo from "../assets/logo.png";
 import plogo from "../assets/pl.png";
 import "./scss/sidebar.scss";
 
@@ -49,22 +48,14 @@ const MenuItem_ = ({ item, isActive, isCollapsed, onClick }) => {
       <ListItemButton
         className={`listItemButton ${isActive ? 'listItemButton--active' : ''} ${isCollapsed ? 'listItemButton--collapsed' : ''}`}
         onClick={onClick}
-        sx={{
-          gap: '1rem',
-          backgroundColor: isActive ? '#89D4FF' : 'transparent',
-          fontSize: 'var(--sidebar-btn-font-size)',
-          '&:hover': {
-            backgroundColor: isActive ? 'rgba(137, 212, 255, 0.85)' : 'rgba(137, 212, 255, 0.2)'
-          }
-        }}
       >
-        <ListItemIcon className="listItemIcon" sx={{ minWidth: '0', margin: '0', color: 'var(--sidebar-icon-color)', fontSize: 'var(--sidebar-icon-font-size)' }}>
+        <ListItemIcon className="listItemIcon" sx={{ minWidth: '0', margin: '0' }}>
           <Icon />
         </ListItemIcon>
         {!isCollapsed && (
           <ListItemText
             primary={item.label}
-            sx={{ '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', fontWeight: 500, display: 'flex', justifyContent: 'flex-start', color: 'var(--sidebar-text-color)', fontFamily: '"Oswald", sans-serif' } }}
+            sx={{ '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', fontWeight: 300, display: 'flex', justifyContent: 'flex-start' } }}
             className="listItemText"
           />
         )}
@@ -199,7 +190,7 @@ const Sidebar = ({
           <IconButton
             onClick={onCloseMobileDrawer}
             className="mobileCloseButton"
-            sx={{ position: 'absolute', top: '20px', right: '1px', color: '#03346E', width: '36px', height: '36px' }}
+            sx={{ position: 'absolute', top: '20px', right: '1px', width: '36px', height: '36px' }}
           >
             <ArrowBackIosNewIcon sx={{ fontSize: '0.9rem' }} />
           </IconButton>
@@ -227,14 +218,9 @@ const Sidebar = ({
               <ListItemButton
                 onClick={isCollapsed ? handleMasterlistMenuClick : handleMasterlistToggle}
                 className={`listItemButton ${openMasterlist && !isCollapsed ? 'listItemButton--active' : ''} ${isCollapsed ? 'listItemButton--collapsed' : ''}`}
-                sx={{
-                  gap: '1rem',
-                  backgroundColor: 'transparent',
-                  '&:hover': { backgroundColor: 'rgba(137, 212, 255, 0.2)' },
-                  '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', fontWeight: 500, color: 'var(--sidebar-text-color)' }
-                }}
+                sx={{ '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', fontWeight: 300 } }}
               >
-                <ListItemIcon className="listItemIcon" sx={{ minWidth: '0', margin: '0', color: 'var(--sidebar-icon-color)', fontSize: 'var(--sidebar-icon-font-size)' }}>
+                <ListItemIcon className="listItemIcon" sx={{ minWidth: '0', margin: '0' }}>
                   <LibraryBooksIcon />
                 </ListItemIcon>
                 {!isCollapsed && (
@@ -242,12 +228,12 @@ const Sidebar = ({
                     <ListItemText
                       primary="Masterlist"
                       className="listItemText"
-                      sx={{ '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', color: 'var(--sidebar-text-color)', fontFamily: '"Oswald", sans-serif' } }}
+                      sx={{ '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)' } }}
                     />
-                    <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
+                    <Box className="masterlistChevron" sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
                       {openMasterlist
-                        ? <ExpandLess sx={{ color: 'var(--sidebar-icon-color)', fontSize: '1.1rem' }} />
-                        : <ExpandMore sx={{ color: 'var(--sidebar-icon-color)', fontSize: '1.1rem' }} />
+                        ? <ExpandLess sx={{ fontSize: '1.1rem' }} />
+                        : <ExpandMore sx={{ fontSize: '1.1rem' }} />
                       }
                     </Box>
                   </>
@@ -266,20 +252,14 @@ const Sidebar = ({
                       {({ isActive }) => (
                         <ListItemButton
                           className={`nestedItem ${isActive ? 'nestedItem--active' : ''}`}
-                          sx={{
-                            paddingLeft: '3.5rem',
-                            gap: '1rem',
-                            backgroundColor: isActive ? '#89D4FF' : 'transparent',
-                            '&:hover': { backgroundColor: isActive ? 'rgba(137, 212, 255, 0.85)' : 'rgba(137, 212, 255, 0.2)' },
-                            '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', fontWeight: 500, color: 'var(--sidebar-text-color)' }
-                          }}
+                          sx={{ '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', fontWeight: 300 } }}
                         >
-                          <ListItemIcon className="listItemIcon" sx={{ color: 'var(--sidebar-icon-color)', minWidth: '0', margin: '0' }}>
+                          <ListItemIcon className="listItemIcon" sx={{ minWidth: '0', margin: '0' }}>
                             <item.icon />
                           </ListItemIcon>
                           <ListItemText
                             primary={item.label}
-                            sx={{ '& .MuiTypography-root': { color: 'var(--sidebar-text-color-active)', fontFamily: '"Oswald", sans-serif' } }}
+                            sx={{ '& .MuiTypography-root': { fontFamily: '"Oswald", sans-serif' } }}
                           />
                         </ListItemButton>
                       )}
@@ -306,7 +286,7 @@ const Sidebar = ({
                         onClick={handleMasterlistMenuClose}
                         className={`menuItem ${isActive ? 'menuItem--active' : ''}`}
                       >
-                        <ListItemIcon sx={{ color: 'var(--sidebar-icon-color)', minWidth: '36px', fontSize: 'var(--sidebar-icon-font-size)' }}>
+                        <ListItemIcon className="menuItemIcon" sx={{ minWidth: '36px', fontSize: 'var(--sidebar-icon-font-size)' }}>
                           <item.icon fontSize="small" />
                         </ListItemIcon>
                         {item.label}
@@ -337,7 +317,7 @@ const Sidebar = ({
 
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
         <MenuItem onClick={handleChangeProfile}>
-          <ListItemIcon sx={{ minWidth: '0', margin: '0', mr: 1, fontSize: 'var(--sidebar-icon-font-size)', color: 'var(--sidebar-icon-color)' }}>
+          <ListItemIcon className="profileMenuIcon" sx={{ minWidth: '0', margin: '0', mr: 1, fontSize: 'var(--sidebar-icon-font-size)' }}>
             <PersonIcon />
           </ListItemIcon>
           Change Information
@@ -345,26 +325,16 @@ const Sidebar = ({
       </Menu>
 
       {/* Time and Date at the bottom */}
-      <Box sx={{
-        width: '100%',
-        textAlign: 'flex-start',
-        color: '#03346E',
-        fontFamily: '"Oswald", sans-serif',
-        fontWeight: 600,
-        fontSize: 'var(--sidebar-btn-font-size)',
-        letterSpacing: '0.5px',
-        mb: 2,
-        mt: 1,
-        userSelect: 'none',
-        ml: isCollapsed ? '0.4rem' : '1rem',
-
-      }}>
+      <Box
+        className={`timeDateBox ${isCollapsed ? 'timeDateBox--collapsed' : 'timeDateBox--expanded'}`}
+        sx={{
+          width: '100%',
+          mb: 2,
+          mt: 1,
+        }}
+      >
         <div>{time}</div>
-        <div style={{
-          fontSize: '0.15rem',
-          fontWeight: 400,
-          fontSize: 'var(--sidebar-btn-font-size)',
-        }}>{date}</div>
+        <div className="timeDateText">{date}</div>
       </Box>
     </Box>
   );

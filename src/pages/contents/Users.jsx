@@ -7,8 +7,6 @@ import {
   useResetPasswordMutation,
 } from '../../features/api/user/userApi'
 import { useDebounce } from '../../hooks/useDebounce'
-import { useSelector } from 'react-redux'
-import { selectCurrentUser } from '../../features/api/slice/authSlice'
 
 import DataTable from '../../component/reuseable/DataTable'
 import Confirmation from '../../component/reuseable/Confirmation'
@@ -32,9 +30,6 @@ import MasterlistTab from '../../component/reuseable/MasterlistTab'
 import '../contentscss/Users.scss'
 
 const Users = () => {
-  const currentUser = useSelector(selectCurrentUser)
-  const userPermissions = currentUser?.role?.access_permissions || []
-  const canAddUser = userPermissions.includes('Users.Add')
   const [searchTerm, setSearchTerm] = useState('')
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
   const [anchorEl, setAnchorEl] = useState(null)
@@ -188,6 +183,7 @@ const Users = () => {
 
   const showNoData = !isLoading && users.length === 0 && searchTerm && !showArchived;
   const showArchiveNoData = !isLoading && users.length === 0 && searchTerm && showArchived;
+  const showUsersTable = !isError && users.length > 0;
 
   // Only show one empty state at a time
   let emptyState = null;
@@ -238,7 +234,7 @@ const Users = () => {
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           searchPlaceholder="Search users..."
-          canAdd={canAddUser}
+          canAdd={true}
           onAddClick={() => setUserDialogOpen(true)}
           addLabel="CREATE"
           onRefresh={refetch}
@@ -247,7 +243,7 @@ const Users = () => {
 
         {emptyState}
 
-        {!isError && !showNoData && (
+        {showUsersTable && (
           <DataTable
             columns={columns}
             rows={users}

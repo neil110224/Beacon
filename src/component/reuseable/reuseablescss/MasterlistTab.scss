@@ -44,12 +44,13 @@
     font-weight: 500;
     font-size: 1rem;
     min-height: 42px;
-    color: $primary-contrast;
+    color: $primary-text-light;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 8px 8px 0 0;
+    border-radius: 0;
+    border-bottom: 3px solid transparent;
     margin-right: 8px;
     position: relative;
-    background-color: #37C29A;
+    background-color: transparent;
 
     @include bp.xs {
       font-size: 0.85rem;
@@ -58,8 +59,9 @@
     }
 
     &.Mui-selected {
-      color: #ffffff;
-      background-color: $primary-text-light;
+      color: $primary-text-light;
+      background-color: transparent;
+      border-bottom-color: $primary-text-light;
 
       &:nth-of-type(1) {
         animation: slideInLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -71,9 +73,9 @@
     }
 
     &:not(.Mui-selected):hover {
-  background-color: rgba(255, 255, 255, 0.08);
-  color: $primary-text-dark; // or whatever color you want on hover
-}
+      background-color: rgba($primary-light, 0.08);
+      color: $primary-hover-light; // or whatever color you want on hover
+    }
   }
 
   & .MuiTabs-indicator {
@@ -109,6 +111,8 @@
   padding: 6px 20px;
   font-weight: 500;
   white-space: nowrap;
+  background-color: $primary-btn-light !important;
+  color: $primary-light !important;
 
   &:hover {
     background-color: $primary-text-dark;
@@ -131,7 +135,7 @@
 
   & .MuiOutlinedInput-root {
     border-radius: 8px;
-    background-color: #fff;
+    background-color: $primary-light;
 
     &:hover fieldset {
       border-color: #2c3e50;
@@ -160,4 +164,21 @@
 
 .masterlistSearchIcon {
   color: $primary-text-dark;
+}
+
+.masterlistRefreshButton {
+  color: $primary-text-light !important;
+
+  &:hover {
+    background-color: rgba($primary-text-light, 0.08);
+  }
+}
+
+.masterlistSyncButton {
+  color: $primary-text-light !important;
+  border-color: $primary-text-light !important;
+}
+
+.masterlistSyncSpinner {
+  color: $primary-text-light;
 }

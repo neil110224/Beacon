@@ -248,11 +248,10 @@ const Navbar = () => {
                 fontFamily: OSWALD,
                 fontWeight: 600,
                 fontSize: '1.1rem',
-                color: '#03346E',
                 ml: 1,
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px',
-                minWidth: '95px',
+                minWidth: '95px', 
                 display: (activePage || isMasterlist) ? 'block' : 'none',
               }}
             >

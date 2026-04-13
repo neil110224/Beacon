@@ -35,6 +35,23 @@
   font-size: 1.1rem;
 }
 
+.dashboardRefreshButton.MuiIconButton-root {
+  color: $dashboard-accent !important;
+
+  svg {
+    color: inherit;
+    fill: currentColor;
+  }
+
+  &:hover {
+    background-color: rgba($dashboard-accent, 0.08) !important;
+  }
+}
+
+.dashboardSearchSpinner {
+  color: $dashboard-accent;
+}
+
 // Summary Cards Section
 .summarySectionWrapper {
   display: flex;
@@ -53,19 +70,25 @@
 
 // Stat Card
 .statCard {
+  background-color: $primary-btn-light;
+
+  &.MuiPaper-root {
+    background-color: $primary-btn-light;
+  }
+
   padding: 1.5rem;
   border-radius: 8px;
-  border: 1px solid rgba(255, 0, 0, 0.08);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba($secondary-text-light, 0.25);
+  box-shadow: 0 2px 8px rgba($secondary-text-dark, 0.06);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   max-width: 100%;
   box-sizing: border-box;
-  box-shadow: 20px 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 20px 4px 12px rgba($secondary-text-dark, 0.1);
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    background-color: #d8d8d8;
+    box-shadow: 0 4px 12px rgba($secondary-text-dark, 0.1);
+    background-color: rgba($primary-light, 0.18);
   }
 }
 
@@ -86,6 +109,20 @@
   justify-content: center;
 }
 
+.statCardIconSvg {
+  color: inherit;
+}
+
+.statCardIcon--pending {
+  color: $dashboard-accent-strong;
+  background-color: rgba($dashboard-accent-strong, 0.15);
+}
+
+.statCardIcon--progress {
+  color: $dashboard-accent-strong;
+  background-color: rgba($dashboard-accent-strong, 0.15);
+}
+
 .statCardValue {
   min-width: 0;
   overflow: hidden;
@@ -93,7 +130,6 @@
 
 .statCardNumber {
   font-weight: 600;
-  color: #2c3e50;
   margin-bottom: 0;
   font-size: 1.25rem;
   color: $primary-text-light;
@@ -124,7 +160,7 @@
 
   & .MuiOutlinedInput-root {
     &:hover fieldset {
-      border-color: $primary-text-light;
+      border-color: $primary-btn-light;
     }
 
     &.Mui-focused fieldset {
@@ -134,13 +170,44 @@
 }
 
 .filterSelectInput {
-  background-color: #fff;
+  background-color: $primary-btn-light;
   border-radius: 8px;
   font-size: 0.9rem;
+
+  & .MuiSelect-icon {
+    color: $primary-text-light;
+  }
 }
 
 .filterMenuItemText {
   color: $primary-text-light;
+}
+
+.dashboardTeamSelectMenu.MuiPaper-root {
+  background-color: $primary-btn-light !important;
+  color: $primary-text-light !important;
+
+  .MuiList-root {
+    background-color: $primary-btn-light !important;
+    color: $primary-text-light !important;
+  }
+
+  .MuiMenuItem-root {
+    color: $primary-text-light !important;
+    background-color: transparent !important;
+
+    &:hover {
+      background-color: rgba($primary-text-light, 0.12) !important;
+    }
+
+    &.Mui-selected {
+      background-color: rgba($primary-text-light, 0.2) !important;
+    }
+
+    &.Mui-selected:hover {
+      background-color: rgba($primary-text-light, 0.28) !important;
+    }
+  }
 }
 
 .systemsSearchField {
@@ -149,7 +216,7 @@
   color: $primary-text-light;
 
   & .MuiOutlinedInput-root {
-    background-color: #fff;
+    background-color: $primary-btn-light;
     border-radius: 8px;
 
     &:hover fieldset {
@@ -167,7 +234,7 @@
     color: $primary-text-light;
 
     &::placeholder {
-      color: #999;
+      color: $secondary-text-light;
       opacity: 1;
     }
   }
@@ -175,7 +242,7 @@
 
 .searchIcon {
   margin-right: 8px;
-  color: #999;
+  color: $secondary-text-light;
   font-size: 18px;
 }
 
@@ -210,7 +277,7 @@
   height: auto; // Let content determine height
   border-radius: 16px;
   position: relative;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 16px rgba($secondary-text-dark, 0.1);
   padding: 1.75rem; // Slightly more padding
   display: flex;
   flex-direction: column;
@@ -231,7 +298,7 @@
   }
 
   &:hover {
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 32px rgba($secondary-text-dark, 0.15);
     transform: translateY(-6px);
   }
 }
@@ -275,16 +342,16 @@
   display: flex;
   align-items: center;
   gap: 1.2rem;
-  background-color: #f9fafb;
+  background-color: rgba($primary-light, 0.12);
   border-radius: 12px;
   padding: 1rem; // More padding
-  border: 1px solid #e5e7eb;
+  border: 1px solid rgba($primary-light, 0.25);
   flex-shrink: 0;
   width: 100%;
 }
 
 .progressPercentageCircle {
-  background-color: #3b82f6;
+  background-color: $primary-normal-light;
   border-radius: 50%;
   width: 44px; // Slightly larger
   height: 44px;
@@ -297,7 +364,7 @@
 .progressPercentageText {
   font-size: 0.65rem;
   font-weight: 700;
-  color: #fff;
+  color: $primary-light;
 }
 
 .progressInfoBox {
@@ -308,14 +375,14 @@
 
 .progressLabel {
   font-size: 0.7rem;
-  color: #6b7280;
+  color: $secondary-text-light;
   margin-bottom: 0.2rem;
 }
 
 .progressCompleted {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #1f2937;
+  color: $primary-text-dark;
 }
 
 // Stats Grid - FIXED SIZING
@@ -330,9 +397,9 @@
 .statItem {
   border-radius: 10px;
   padding: 0.8rem 0.5rem; // More padding
-  background-color: #f3f4f6;
-  border-bottom: 3px solid #6594B1;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+  background-color: $primary-contrast;
+  border-bottom: 3px solid $primary-normal-light;
+  box-shadow: 0 -4px 12px rgba($secondary-text-dark, 0.08);
   transition: all 0.3s ease;
   min-height: 48px; // Consistent height
   display: flex;
@@ -341,13 +408,13 @@
   align-items: center;
 
   &:hover {
-    box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 -8px 20px rgba($secondary-text-dark, 0.15);
     transform: translateY(-2px);
   }
 
   .statItemLabel {
     font-size: 0.6rem;
-    color: #6b7280;
+    color: $secondary-text-light;
     margin-bottom: 0.1rem;
     font-weight: 600;
     text-align: center;
@@ -356,7 +423,7 @@
   .statItemValue {
     font-size: 1rem;
     font-weight: 700;
-    color: #1f2937;
+    color: $primary-text-dark;
     line-height: 1;
   }
 }
@@ -365,14 +432,14 @@
 .pendingTasksSection {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #e5e7eb; // Visual separator
+  border-top: 1px solid rgba($primary-light, 0.25); // Visual separator
   flex-shrink: 0;
   width: 100%;
 }
 
 .pendingTasksTitle {
   font-size: 0.85rem;
-  color: #374151;
+  color: $primary-text-dark;
   font-weight: 600;
   margin-bottom: 0.5rem;
 }
@@ -381,7 +448,7 @@
   margin: 0;
   padding-left: 1.2rem; // Reduced padding
   list-style-type: disc;
-  color: #000;
+  color: $secondary-text-dark;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -392,7 +459,7 @@
 
 .pendingTaskItem {
   font-size: 0.75rem;
-  color: #1f2937;
+  color: $primary-text-dark;
   display: flex;
   gap: 0.5rem;
   align-items: flex-start;
@@ -401,7 +468,7 @@
 
 .pendingTaskDescription {
   font-size: 0.75rem;
-  color: #1f2937;
+  color: $primary-text-dark;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -411,7 +478,7 @@
 
 .pendingTaskChip {
   background-color: inherit;
-  color: #fff;
+  color: $primary-light;
   font-size: 0.55rem;
   font-weight: 600;
   height: 18px;
@@ -425,7 +492,7 @@
 
 .pendingTasksEllipsis {
   font-size: 0.65rem;
-  color: #9ca3af;
+  color: $secondary-text-light;
   margin: 0.3rem 0 0.5rem 0;
 }
 
@@ -433,15 +500,15 @@
   margin-top: 0.5rem;
   text-transform: none;
   font-size: 0.65rem;
-  color: #3b82f6;
+  color: $primary-normal-light;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
-  border: 1px solid #3b82f6;
+  border: 1px solid $primary-normal-light;
   background: transparent;
 
   &:hover {
-    background: #3b82f6;
-    color: white;
+    background: $primary-normal-light;
+    color: $primary-light;
   }
 }
 
@@ -460,5 +527,9 @@
 .emptyStateTitle {
   font-size: 1.2rem;
   font-weight: 600;
-  color: #03346E;
+  color: $primary-text-light;
+}
+
+.emptyStateDescription {
+  color: $dashboard-accent;
 }

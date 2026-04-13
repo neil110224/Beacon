@@ -32,7 +32,7 @@ const changePasswordSchema = yup.object().shape({
 const fieldSx = {
   '& .MuiInputLabel-root': {
     transform: 'translate(14px, -9px) scale(0.75) !important',
-    backgroundColor: '#fff',
+    backgroundColor: 'background.paper',
     px: 0.5,
   },
   '& .MuiInputLabel-root.MuiInputLabel-shrink': {
@@ -91,7 +91,7 @@ const ForceChangePasswordDialog = ({ open, onClose, user }) => {
   return (
     <>
       <Dialog open={open} onClose={() => {}} maxWidth="sm" fullWidth disableEscapeKeyDown>
-        <DialogTitle sx={{ fontWeight: 600, color: '#2c3e50' }}>
+        <DialogTitle className="forcePasswordDialogTitle" sx={{ fontWeight: 600 }}>
           Welcome! Change Your Password
         </DialogTitle>
         <DialogContent>
@@ -192,10 +192,7 @@ const SystemProgress = ({ system, onNavigate }) => {
 
   const stats = calculateStats(system)
 
-  const getStatusColor = (status) => {
-    const colors = { pending: '#89D4FF', done: '#1f7a04', hold: '#9898d3' }
-    return colors[status?.toLowerCase()] || '#9e9e9e'
-  }
+  const getStatusClass = (status) => `pendingTaskChip--${(status || 'default').toLowerCase()}`
 
   let totalPending = 0
   let pendingTasks = []
@@ -261,8 +258,7 @@ const SystemProgress = ({ system, onNavigate }) => {
                 </Typography>
                 <Chip
                   label={item.status}
-                  className="pendingTaskChip"
-                  sx={{ bgcolor: getStatusColor(item.status) }}
+                  className={`pendingTaskChip ${getStatusClass(item.status)}`}
                 />
               </Box>
             ))}
@@ -419,11 +415,11 @@ const Dashboard = () => {
     return found?.name || 'Projects'
   }, [selectedTeam, teams, user?.team?.name, isUserRole])
 
-  const StatCard = ({ title, count, icon: Icon, color, isPercentage = false }) => (
-    <Paper elevation={0} className="statCard" sx={{ bgcolor: '#f3f3f3' }}>
+  const StatCard = ({ title, count, icon: Icon, variant, isPercentage = false }) => (
+    <Paper elevation={0} className="statCard">
       <Box className="statCardContent">
-        <Box className="statCardIcon" sx={{ bgcolor: `${color}15` }}>
-          <Icon sx={{ fontSize: 20, color }} />
+        <Box className={`statCardIcon statCardIcon--${variant}`}>
+          <Icon sx={{ fontSize: 20 }} className="statCardIconSvg" />
         </Box>
         <Box className="statCardValue">
           <Typography variant="h6" className="statCardNumber" sx={{ fontFamily: '"Oswald", sans-serif' }}>
@@ -464,7 +460,7 @@ const Dashboard = () => {
             <IconButton
               onClick={handleRefresh}
               disabled={isRefreshing}
-              sx={{ color: '#03346E', '&:hover': { backgroundColor: 'rgba(3, 52, 110, 0.08)' } }}
+              className="dashboardRefreshButton"
             >
               <CachedIcon sx={{
                 animation: isRefreshing ? 'spin 1s linear infinite' : 'none',
@@ -483,6 +479,9 @@ const Dashboard = () => {
                 onChange={(e) => setSelectedTeam(e.target.value)}
                 displayEmpty
                 className="filterSelectInput"
+                MenuProps={{
+                  PaperProps: { className: 'dashboardTeamSelectMenu' },
+                }}
               >
                 <MenuItem value="">
                   <Typography className="filterMenuItemText" sx={{ fontFamily: '"Oswald", sans-serif' }}>All Teams</Typography>
@@ -509,7 +508,7 @@ const Dashboard = () => {
               InputProps={{
                 startAdornment: <SearchIcon className="searchIcon" />,
                 endAdornment: (systemsSearchQuery !== '' && (systemsLoading || systemsSearchQuery !== debouncedSystemsSearch)) ? (
-                  <CircularProgress size={20} sx={{ color: '#03346E', mr: 1 }} />
+                  <CircularProgress size={20} className="dashboardSearchSpinner" sx={{ mr: 1 }} />
                 ) : null,
               }}
               sx={{ minWidth: 250 }}
@@ -528,7 +527,8 @@ const Dashboard = () => {
                 : stats.pending
             }
             icon={PendingActionsIcon}
-            color="#857fe0"
+            variant="pending"
+            
           />
         </Box>
         <Box className="summaryCardBox">
@@ -540,7 +540,7 @@ const Dashboard = () => {
                 : parseInt(stats.percentage)
             }
             icon={CheckCircleIcon}
-            color="#160d92"
+            variant="progress"
             isPercentage={true}
           />
         </Box>
@@ -560,18 +560,18 @@ const Dashboard = () => {
               <Typography variant="h6" className="emptyStateTitle" sx={{ fontFamily: '"Oswald", sans-serif', m: 0, p: 0 }}>
                 {selectedTeamName}
               </Typography>
-              <Typography variant="body2" className="emptyStateDescription" sx={{ fontFamily: '"Oswald", sans-serif', m: 0, p: 0,color:'#03346E' }}>
+              <Typography variant="body2" className="emptyStateDescription" sx={{ fontFamily: '"Oswald", sans-serif', m: 0, p: 0 }}>
                 Currently no system
               </Typography>
             </Box>
           </Box>
         </Box>
       ) : !Array.isArray(filteredSystems) || filteredSystems.length === 0 ? (
-        <Box className="emptyStateContainer" sx={{color:'#03346E'}}>
+        <Box className="emptyStateContainer">
           <Box className="emptyStateContent">
             <Box component="img" src={nodataImg} alt="No data" className="emptyStateImage"  />
             <Box className="emptyStateText">
-              <Typography variant="h6" className="emptyStateTitle" sx={{ fontFamily: '"Oswald", sans-serif',color:'#03346E' }}>
+              <Typography variant="h6" className="emptyStateTitle" sx={{ fontFamily: '"Oswald", sans-serif' }}>
                 {selectedTeamName}
               </Typography>
               <Typography variant="body2" className="emptyStateDescription">
