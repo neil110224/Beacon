@@ -1,0 +1,119 @@
+@use "../../../styles/colors.scss" as *;
+
+.systemTeamEditDialog {
+	.MuiPaper-root {
+		background-color: $primary-main;
+		color: $primary-text-light;
+	}
+}
+
+.systemTeamEditDialogPaper {
+	border-radius: 8px;
+	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.systemTeamEditDialogTitle {
+	color: $primary-text-light;
+}
+
+.systemTeamEditDialogSubtitle {
+	color: $secondary-text-light;
+}
+
+.systemTeamEditDialogRefreshBtn,
+.systemTeamEditDialogRefreshIcon,
+.systemTeamEditDialogLoading {
+	color: $primary-text-light;
+}
+
+.systemTeamEditDialogSearchField {
+	.MuiOutlinedInput-root {
+		background-color: $primary-box-content;
+		color: $primary-text-light;
+	}
+
+	.MuiOutlinedInput-notchedOutline {
+		border-color: rgba($primary-text-light, 0.3);
+	}
+
+	.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+		border-color: rgba($primary-text-light, 0.6);
+	}
+
+	.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+		border-color: $primary-text-light;
+	}
+}
+
+.systemTeamEditDialogSearchIcon {
+	color: $secondary-text-light;
+}
+
+.systemTeamEditDialogListBox {
+	border: 1px solid rgba($primary-text-light, 0.2);
+	background-color: $primary-box-content;
+}
+
+.systemTeamEditDialogPanelTitle,
+.systemTeamEditDialogEmptyText,
+.systemTeamEditDialogListBox .MuiListItemText-primary,
+.systemTeamEditDialogListBox .MuiListItemText-secondary {
+	color: $primary-text-light;
+}
+
+.systemTeamEditDialogListItem.is-available:hover {
+	background-color: rgba($primary-text-light, 0.08);
+}
+
+.systemTeamEditDialogListItem.is-assigned:hover {
+	background-color: rgba($secondary-text-light, 0.16);
+}
+
+.systemTeamEditDialogActionIcon.is-add {
+	color: $primary-text-light;
+}
+
+.systemTeamEditDialogActionIcon.is-remove {
+	color: #ff8a80;
+}
+
+.systemTeamEditDialogBulkBtn.is-available {
+	color: $primary-text-light;
+}
+
+.systemTeamEditDialogBulkBtn.is-assigned {
+	color: #ff8a80;
+}
+
+.systemTeamEditDialogCountChip.is-available {
+	background-color: $primary-box-content-dark;
+	color: $primary-text-light;
+}
+
+.systemTeamEditDialogCountChip.is-assigned {
+	background-color: $primary-btn-light;
+	color: $primary-text-light;
+}
+
+.systemTeamEditDialogDivider {
+	background-color: rgba($primary-text-light, 0.2);
+}
+
+.systemTeamEditDialogCancelBtn {
+	color: $primary-text-light;
+	border-color: rgba($primary-text-light, 0.5);
+}
+
+.systemTeamEditDialogSaveBtn.MuiButton-contained {
+	background-color: $primary-btn-light;
+	color: $primary-text-light;
+
+	&:hover {
+		background-color: $primary-box-content-dark;
+	}
+
+	&.Mui-disabled {
+		background-color: rgba($primary-btn-light, 0.6);
+		color: rgba($primary-text-light, 0.7);
+	}
+}

@@ -65,7 +65,7 @@ const headerCellSx = (col) => ({
   width: col.width || "auto",
   minWidth: col.minWidth || "unset",
   maxWidth: col.maxWidth || col.width || "120px", // respects col.maxWidth, falls back to col.width, then 120px
-  fontSize: "0.9rem",
+  fontSize: "0.8rem",
   overflow: "hidden",
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
@@ -82,7 +82,7 @@ const bodyCellSx = (col, cellTextColor) => ({
   width: col.width || "auto",
   minWidth: col.minWidth || "unset",
   maxWidth: col.maxWidth || col.width || "120px", // same logic as header
-  fontSize: "0.85rem",
+  fontSize: "0.7rem",
   textAlign: "center",
   overflow: "hidden",
   textOverflow: "ellipsis",

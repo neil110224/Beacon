@@ -33,12 +33,12 @@
 .dataTablePaperEmpty {
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba($secondary-text-light, 0.18);
-  box-shadow: 0 2px 8px rgba($secondary-text-light, 0.12);
+  box-shadow: 0 2px 8px rgba($primary-text-dark, 0.12);
   min-height: 300px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: $primary-box-content; // empty state background panel
 }
 
 // Empty State Box
@@ -63,10 +63,10 @@
 // overflow: hidden is handled via MUI sx on the Paper component
 .dataTablePaper {
   border-radius: 12px;
-  border: 1px solid rgba($secondary-text-light, 0.18);
-  box-shadow: 0 2px 8px rgba($secondary-text-light, 0.12);
+  box-shadow: 0 2px 8px rgba($primary-text-dark, 0.16);
   width: 100%;
   box-sizing: border-box;
+  background-color: $primary-box-content; // table background panel
 }
 
 // Table Container — THE ONLY ELEMENT THAT SCROLLS
@@ -75,7 +75,8 @@
   width: 100%;
   overflow-x: auto;
   overflow-y: auto;
-
+  background-color: $primary-box-content;
+  
   &::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -90,7 +91,7 @@
     border-radius: 4px;
 
     &:hover {
-      background-color: $primary-text-dark;
+      background-color: $primary-text-light;
     }
   }
 }
@@ -101,6 +102,8 @@
   width: 100%;
   table-layout: auto;
   border-collapse: collapse;
+  background-color: $primary-box-content;
+  
 
   & .MuiTableCell-root {
     padding: 8px;
@@ -137,7 +140,7 @@
 
 // Table Head styles
 .dataTableHead {
-  background-color: $primary-dark;
+  background-color: $primary-box-content;
 }
 
 // Table Header Cell
@@ -169,14 +172,18 @@
     max-width: 70px;
     padding: 4px 1px;
   }
+
+  &.MuiTableCell-root {
+    color: $primary-text-light !important;
+  }
 }
 
 // Table Row styles
 .dataTableRow {
-  border-bottom: 1px solid rgba($secondary-text-light, 0.14);
+  background-color: $primary-box-content;
 
   &:hover {
-    background-color: rgba($secondary-text-light, 0.06);
+    background-color: rgba($primary-text-light, 0.16);
     transition: background-color 0.2s ease;
   }
 
@@ -215,6 +222,10 @@
     max-width: 70px;
     padding: 4px 1px;
   }
+
+  &.MuiTableCell-root {
+    color: var(--datatable-cell-text-color, #{$primary-text-light}) !important;
+  }
 }
 
 // Empty Row Cell
@@ -238,6 +249,22 @@
 .dataTablePagination {
   color: $primary-text-light;
   flex-shrink: 0;
+  background-color: $primary-box-content;
+
+  .MuiToolbar-root,
+  .MuiTablePagination-root,
+  .MuiTablePagination-selectLabel,
+  .MuiTablePagination-displayedRows,
+  .MuiTablePagination-actions,
+  .MuiIconButton-root,
+  .MuiSvgIcon-root,
+  .MuiTablePagination-selectIcon,
+  .MuiTablePagination-input,
+  .MuiTablePagination-select,
+  .MuiTypography-root {
+    color: $primary-text-light !important;
+    fill: currentColor;
+  }
 
   @media (max-width: 768px) {
     font-size: 0.875rem;

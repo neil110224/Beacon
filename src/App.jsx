@@ -221,6 +221,16 @@ function App() {
     }
   }, [dispatch, navigate, user, location.pathname]);
 
+  // Apply persisted theme mode on initial app load
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('themeMode') || 'dark';
+    document.body.classList.remove('theme-dark', 'theme-light');
+    document.body.classList.add(savedTheme === 'light' ? 'theme-light' : 'theme-dark');
+    if (!localStorage.getItem('themeMode')) {
+      localStorage.setItem('themeMode', savedTheme);
+    }
+  }, []);
+
   return (
     <div className="app-container">
       <AppRoutes/>

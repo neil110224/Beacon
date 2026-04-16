@@ -1,0 +1,131 @@
+@use "../../../styles/colors.scss" as *;
+
+.roleFormDialog {
+	.MuiPaper-root {
+		border-radius: 12px;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+		background-color: $primary-main;
+	}
+}
+
+.roleFormDialogTitle {
+	color: $primary-text-light;
+}
+
+.roleFormDialogNameField {
+	.MuiInputLabel-root,
+	.MuiInputBase-input,
+	.MuiFormHelperText-root {
+		color: $primary-text-light;
+	}
+
+	.MuiOutlinedInput-root {
+		border-radius: 8px;
+
+		.MuiOutlinedInput-notchedOutline {
+			border-color: $primary-box-content;
+		}
+
+		&:hover fieldset {
+			border-color: $primary-hover-light;
+		}
+
+		&.Mui-focused fieldset {
+			border-color: $primary-hover-light;
+		}
+	}
+
+	.MuiInputLabel-root.Mui-focused {
+		color: $primary-text-light;
+	}
+}
+
+.roleFormDialogPermissionsTitle {
+	color: $primary-text-light;
+}
+
+.roleFormDialogPermissionsError {
+	color: $primary-hover-light;
+}
+
+.roleFormDialogCancelBtn {
+	color: $primary-text-light;
+
+	&:hover {
+		background-color: rgba(0, 0, 0, 0.04);
+	}
+}
+
+.roleFormDialogSaveBtn.MuiButton-contained {
+	text-transform: none;
+	background-color: $primary-btn-light;
+
+	&:hover {
+		background-color: $primary-box-content-dark;
+	}
+
+	&.Mui-disabled {
+		background-color: $primary-box-content;
+	}
+}
+
+.roleFormDialogSection {
+	border: 1px solid $primary-box-content;
+	border-radius: 8px;
+	background-color: $primary-dark;
+	overflow: hidden;
+}
+
+.roleFormDialogSectionHeader {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 8px 12px 8px 4px;
+}
+
+.roleFormDialogSectionDivider {
+	border-color: $primary-box-content;
+}
+
+.roleFormDialogSectionBody {
+	padding: 10px 16px 12px 16px;
+}
+
+.roleFormDialogToggle {
+	width: 28px;
+	height: 28px;
+	background-color: $primary-light;
+	color: $primary-hover-light;
+	border-radius: 4px;
+	flex-shrink: 0;
+
+	&:hover {
+		background-color: $primary-box-content;
+	}
+}
+
+.roleFormDialogChildLabel {
+	.MuiFormControlLabel-label {
+		color: $primary-normal-light;
+	}
+}
+
+.roleFormDialogParentLabel {
+	.MuiFormControlLabel-label {
+		color: $primary-text-light;
+	}
+}
+
+.roleFormDialogCheckbox {
+	color: $primary-normal-light;
+
+	&.Mui-checked,
+	&.MuiCheckbox-indeterminate {
+		color: $primary-active-light;
+	}
+}
+
+.roleFormDialogSubDivider {
+	border-color: $primary-box-content;
+}
+

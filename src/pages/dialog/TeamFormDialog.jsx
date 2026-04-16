@@ -14,6 +14,7 @@ import {
   Snackbar,
   Alert,
 } from '@mui/material';
+import './dialogscss/TeamFormdialog.scss';
 
 const OSWALD = '"Oswald", sans-serif';
 
@@ -117,8 +118,8 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
 
 
   return (
-    <Dialog open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ fontFamily: OSWALD, fontWeight: 600 }}>{isEdit ? 'Edit Team' : 'Add New Team'}</DialogTitle>
+    <Dialog open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth className="teamFormDialog">
+      <DialogTitle sx={{ fontFamily: OSWALD, fontWeight: 600 }} className="teamFormDialogTitle">{isEdit ? 'Edit Team' : 'Add New Team'}</DialogTitle>
 
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
@@ -133,6 +134,7 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
             helperText={isSubmitted ? errors.code?.message : ''}
             disabled={isLoading}
             autoComplete="organization"
+            className="teamFormDialogField"
             sx={{ '& input, & label': { fontFamily: OSWALD } }}
           />
           <TextField
@@ -147,6 +149,7 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
             disabled={isLoading}
             autoFocus
             autoComplete="organization-title"
+            className="teamFormDialogField"
             sx={{ '& input, & label': { fontFamily: OSWALD } }}
           />
 
@@ -154,8 +157,8 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleDialogClose} disabled={isLoading || justSaved} sx={{ fontFamily: OSWALD }}>
+      <DialogActions sx={{ px: 3, pb: 2 }} className="teamFormDialogActions">
+        <Button onClick={handleDialogClose} disabled={isLoading || justSaved} sx={{ fontFamily: OSWALD }} className="teamFormDialogCancelBtn">
           Cancel
         </Button>
         <Button
@@ -163,11 +166,8 @@ export default function TeamFormDialog({ open, onClose, team = null, onSave, isL
           variant="contained"
           disabled={isLoading || justSaved}
           startIcon={(isLoading || justSaved) && <CircularProgress size={20} />}
-          sx={{
-            backgroundColor: '#03346E',
-            fontFamily: OSWALD,
-            '&:hover': { backgroundColor: '#022E5B' },
-          }}
+          sx={{ fontFamily: OSWALD }}
+          className="teamFormDialogSaveBtn"
         >
           {(isLoading || justSaved) ? 'Saving...' : isEdit ? 'Update' : 'Create'}
         </Button>

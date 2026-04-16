@@ -14,6 +14,8 @@ import { Outlet, useLocation } from "react-router-dom";
 import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/LogoutOutlined";
 import PersonIcon from "@mui/icons-material/Person";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
@@ -41,6 +43,7 @@ const OSWALD = '"Oswald", sans-serif';
 
 const Navbar = () => {
     const [changePasswordDialogOpen, setChangePasswordDialogOpen] = useState(false);
+  const [themeMode, setThemeMode] = useState(() => localStorage.getItem('themeMode') || 'dark');
   const user = useSelector(selectCurrentUser);
   const dispatch = useDispatch();
   const firstName = user?.first_name;
@@ -131,6 +134,12 @@ const Navbar = () => {
     sessionStorage.setItem('appRunning', 'true');
   }, []);
 
+  useEffect(() => {
+    document.body.classList.remove('theme-dark', 'theme-light');
+    document.body.classList.add(themeMode === 'light' ? 'theme-light' : 'theme-dark');
+    localStorage.setItem('themeMode', themeMode);
+  }, [themeMode]);
+
   const open = Boolean(anchorEl);
 
   const handleAvatarClick = (event) => setAnchorEl(event.currentTarget);
@@ -154,6 +163,11 @@ const Navbar = () => {
     localStorage.clear();
     sessionStorage.clear();
     setTimeout(() => { window.location.href = "/login"; }, 100);
+  };
+
+  const handleToggleThemeMode = () => {
+    setThemeMode((prev) => (prev === 'dark' ? 'light' : 'dark'));
+    handleClose();
   };
 
   const handleToggleSidebar = () => setIsSidebarCollapsed((prev) => !prev);
@@ -337,6 +351,12 @@ const Navbar = () => {
               <LockOpenIcon className="menuIcon" />
               <Typography className="menuItemText" sx={{ fontFamily: OSWALD }}>
                 Change password
+              </Typography>
+            </MenuItem>
+            <MenuItem onClick={handleToggleThemeMode} className="menuItem">
+              {themeMode === 'dark' ? <DarkModeIcon className="menuIcon" /> : <LightModeIcon className="menuIcon" />}
+              <Typography className="menuItemText" sx={{ fontFamily: OSWALD }}>
+                Dark mode {themeMode === 'dark' ? 'On' : 'Off'}
               </Typography>
             </MenuItem>
             <MenuItem onClick={handleLogoutClick} className="menuItem logoutItem">

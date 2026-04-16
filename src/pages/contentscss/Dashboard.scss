@@ -70,10 +70,10 @@
 
 // Stat Card
 .statCard {
-  background-color: $primary-btn-light;
+  background-color: $primary-content;
 
   &.MuiPaper-root {
-    background-color: $primary-btn-light;
+    background-color: $primary-datatable-color;
   }
 
   padding: 1.5rem;
@@ -115,12 +115,12 @@
 
 .statCardIcon--pending {
   color: $dashboard-accent-strong;
-  background-color: rgba($dashboard-accent-strong, 0.15);
+  background-color: $primary-text-light;
 }
 
 .statCardIcon--progress {
   color: $dashboard-accent-strong;
-  background-color: rgba($dashboard-accent-strong, 0.15);
+  background-color: $primary-text-light;
 }
 
 .statCardValue {
@@ -155,7 +155,7 @@
 .filterSelect {
   min-width: 150px;
   min-height: 32px;
-  color: $primary-text-light;
+  color: $primary-text-white;
   flex-shrink: 0;
 
   & .MuiOutlinedInput-root {
@@ -175,25 +175,25 @@
   font-size: 0.9rem;
 
   & .MuiSelect-icon {
-    color: $primary-text-light;
+    color: $primary-text-white;
   }
 }
 
 .filterMenuItemText {
-  color: $primary-text-light;
+  color: $primary-text-white;
 }
 
 .dashboardTeamSelectMenu.MuiPaper-root {
   background-color: $primary-btn-light !important;
-  color: $primary-text-light !important;
+  color: $primary-text-white !important;
 
   .MuiList-root {
     background-color: $primary-btn-light !important;
-    color: $primary-text-light !important;
+    color: $primary-text-white !important;
   }
 
   .MuiMenuItem-root {
-    color: $primary-text-light !important;
+    color: $primary-text-white !important;
     background-color: transparent !important;
 
     &:hover {
@@ -210,39 +210,51 @@
   }
 }
 
-.systemsSearchField {
+.dashboardSearchField {
   flex: 1;
-  max-width: 350px;
-  color: $primary-text-light;
+  max-width: 400px;
+  color: $primary-text-dark;
+
+  .MuiInputAdornment-root svg {
+    color: $primary-text-dark;
+  }
+
+  .MuiInputBase-input,
+  .MuiInputBase-input::placeholder {
+    color: rgba($primary-text-dark, 0.6);
+    opacity: 1;
+  }
+
+  .MuiInputBase-input {
+    color: $primary-text-dark;
+  }
 
   & .MuiOutlinedInput-root {
-    background-color: $primary-btn-light;
+    background-color: $primary-text-white !important;
     border-radius: 8px;
 
+    .MuiOutlinedInput-notchedOutline {
+      border-color: rgba($primary-text-dark, 0.55);
+    }
+
     &:hover fieldset {
-      border-color: $primary-text-light;
+      border-color: rgba($primary-text-dark, 0.75);
     }
 
     &.Mui-focused fieldset {
-      border-color: $primary-text-light;
+      border-color: $primary-text-dark;
     }
   }
 
   & .MuiOutlinedInput-input {
     padding: 8px 12px;
     font-size: 0.9rem;
-    color: $primary-text-light;
-
-    &::placeholder {
-      color: $secondary-text-light;
-      opacity: 1;
-    }
   }
 }
 
 .searchIcon {
   margin-right: 8px;
-  color: $secondary-text-light;
+  color: $primary-text-dark;
   font-size: 18px;
 }
 
@@ -271,7 +283,7 @@
 
 // System Card - FIXED HEIGHT & SPACING
 .systemCard {
-  background-color: transparent;
+  background-color: $primary-box-content;
   min-height: 380px; // FIXED MINIMUM - prevents overlap
   max-height: none; // Remove height restrictions
   height: auto; // Let content determine height
@@ -309,10 +321,11 @@
   font-size: 1rem;
   color: $primary-text-light;
   flex-shrink: 0;
+  
 }
 
 .systemCardContent {
-  background-color: transparent;
+  background-color: $primary-box-content;
   width: 100%;
   flex: 1; // Fill available space
   padding: 0;
@@ -351,7 +364,7 @@
 }
 
 .progressPercentageCircle {
-  background-color: $primary-normal-light;
+  background-color: $primary-text-light;
   border-radius: 50%;
   width: 44px; // Slightly larger
   height: 44px;
@@ -382,7 +395,7 @@
 .progressCompleted {
   font-size: 0.85rem;
   font-weight: 600;
-  color: $primary-text-dark;
+  color: $primary-text-light;
 }
 
 // Stats Grid - FIXED SIZING
@@ -397,8 +410,8 @@
 .statItem {
   border-radius: 10px;
   padding: 0.8rem 0.5rem; // More padding
-  background-color: $primary-contrast;
-  border-bottom: 3px solid $primary-normal-light;
+  background-color: $primary-datatable-color;
+  border-bottom: 3px solid $primary-text-light;
   box-shadow: 0 -4px 12px rgba($secondary-text-dark, 0.08);
   transition: all 0.3s ease;
   min-height: 48px; // Consistent height
@@ -423,7 +436,7 @@
   .statItemValue {
     font-size: 1rem;
     font-weight: 700;
-    color: $primary-text-dark;
+    color: $primary-text-light;
     line-height: 1;
   }
 }
@@ -439,7 +452,7 @@
 
 .pendingTasksTitle {
   font-size: 0.85rem;
-  color: $primary-text-dark;
+  color: $primary-text-light;
   font-weight: 600;
   margin-bottom: 0.5rem;
 }
@@ -459,7 +472,7 @@
 
 .pendingTaskItem {
   font-size: 0.75rem;
-  color: $primary-text-dark;
+  color: $primary-text-light;
   display: flex;
   gap: 0.5rem;
   align-items: flex-start;
@@ -468,7 +481,7 @@
 
 .pendingTaskDescription {
   font-size: 0.75rem;
-  color: $primary-text-dark;
+  color: $primary-text-light;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -500,14 +513,14 @@
   margin-top: 0.5rem;
   text-transform: none;
   font-size: 0.65rem;
-  color: $primary-normal-light;
+  color: $primary-text-light;
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
-  border: 1px solid $primary-normal-light;
+  border: 1px solid $primary-text-light;
   background: transparent;
 
   &:hover {
-    background: $primary-normal-light;
+    background: $primary-text-light;
     color: $primary-light;
   }
 }

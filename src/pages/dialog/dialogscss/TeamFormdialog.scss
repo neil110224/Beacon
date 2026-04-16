@@ -1,0 +1,51 @@
+@use "../../../styles/colors.scss" as *;
+
+.teamFormDialog {
+	.MuiPaper-root {
+		background-color: $primary-main;
+		color: $primary-text-light;
+	}
+}
+
+.teamFormDialogTitle {
+	color: $primary-text-light;
+}
+
+.teamFormDialogField {
+	.MuiInputLabel-root,
+	.MuiInputBase-input,
+	.MuiFormHelperText-root,
+	.MuiOutlinedInput-root {
+		color: $primary-text-light;
+	}
+
+	.MuiOutlinedInput-notchedOutline {
+		border-color: rgba($primary-text-light, 0.4);
+	}
+
+	.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+		border-color: rgba($primary-text-light, 0.7);
+	}
+
+	.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+		border-color: $primary-text-light;
+	}
+}
+
+.teamFormDialogCancelBtn {
+	color: $primary-text-light;
+}
+
+.teamFormDialogSaveBtn.MuiButton-contained {
+	background-color: $primary-btn-light;
+	color: $primary-text-light;
+
+	&:hover {
+		background-color: $primary-box-content-dark;
+	}
+
+	&.Mui-disabled {
+		background-color: rgba($primary-btn-light, 0.6);
+		color: rgba($primary-text-light, 0.7);
+	}
+}

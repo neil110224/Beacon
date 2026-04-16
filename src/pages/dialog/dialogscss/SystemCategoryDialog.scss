@@ -1,0 +1,68 @@
+@use "../../../styles/colors.scss" as *;
+
+.systemCategoryDialog {
+  .MuiPaper-root {
+    background-color: $primary-main;
+    color: $primary-text-light;
+  }
+}
+
+.systemCategoryDialogTitle {
+  color: $primary-text-light;
+}
+
+.systemCategoryDialogSearchField {
+  .MuiOutlinedInput-root {
+    border-radius: 8px;
+    background-color: $primary-box-content;
+    color: $primary-text-light;
+  }
+
+  .MuiOutlinedInput-notchedOutline {
+    border-color: rgba($primary-text-light, 0.4);
+  }
+
+  .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+    border-color: rgba($primary-text-light, 0.7);
+  }
+
+  .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: $primary-text-light;
+  }
+}
+
+.systemCategoryDialogSearchIcon {
+  color: $secondary-text-light;
+}
+
+.systemCategoryDialogRefreshBtn {
+  color: $primary-text-light;
+
+  &:hover {
+    background-color: rgba($primary-text-light, 0.08);
+  }
+}
+
+.systemCategoryDialogRefreshIcon,
+.systemCategoryDialogLoading {
+  color: $primary-text-light;
+}
+
+.systemCategoryDialogMutedText {
+  color: $secondary-text-light;
+}
+
+.systemCategoryDialogListItem {
+  background-color: $primary-btn-light;
+  color: $primary-text-light;
+
+  &:hover {
+    background-color: $primary-box-content-dark;
+    box-shadow: 0 0 12px rgba($primary-text-dark, 0.5);
+    transform: translateX(4px);
+  }
+}
+
+.systemCategoryDialogCloseBtn {
+  color: $primary-text-light;
+}

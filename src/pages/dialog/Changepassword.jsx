@@ -10,6 +10,7 @@ import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useChangePasswordMutation } from '../../features/api/user/userApi'; // 👈 adjust path if needed
+import './dialogscss/ChangePassword.scss';
 
 const Changepassword = ({ open, onClose, user }) => {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -62,11 +63,11 @@ const Changepassword = ({ open, onClose, user }) => {
 
   return (
     <>
-      <Dialog open={open} onClose={handleDialogClose} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontFamily: '"Oswald", sans-serif' }}>Change Password</DialogTitle>
+      <Dialog open={open} onClose={handleDialogClose} maxWidth="xs" fullWidth className="changePasswordDialog">
+        <DialogTitle className="changePasswordDialogTitle">Change Password</DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
-            <Box display="flex" flexDirection="column" gap={2}>
+            <Box className="changePasswordDialogFormBox" display="flex" flexDirection="column" gap={2}>
               <TextField
                 label="Current Password"
                 type="password"
@@ -75,9 +76,7 @@ const Changepassword = ({ open, onClose, user }) => {
                 fullWidth
                 required
                 autoFocus
-                sx={{ fontFamily: '"Oswald", sans-serif' }}
-                InputLabelProps={{ sx: { fontFamily: '"Oswald", sans-serif' } }}
-                inputProps={{ style: { fontFamily: 'Oswald, sans-serif' } }}
+                className="changePasswordDialogField"
               />
               <TextField
                 label="New Password"
@@ -86,9 +85,7 @@ const Changepassword = ({ open, onClose, user }) => {
                 onChange={e => setNewPassword(e.target.value)}
                 fullWidth
                 required
-                sx={{ fontFamily: '"Oswald", sans-serif' }}
-                InputLabelProps={{ sx: { fontFamily: '"Oswald", sans-serif' } }}
-                inputProps={{ style: { fontFamily: 'Oswald, sans-serif' } }}
+                className="changePasswordDialogField"
               />
               <TextField
                 label="Confirm New Password"
@@ -97,22 +94,20 @@ const Changepassword = ({ open, onClose, user }) => {
                 onChange={e => setConfirmPassword(e.target.value)}
                 fullWidth
                 required
-                sx={{ fontFamily: '"Oswald", sans-serif' }}
-                InputLabelProps={{ sx: { fontFamily: '"Oswald", sans-serif' } }}
-                inputProps={{ style: { fontFamily: 'Oswald, sans-serif' } }}
+                className="changePasswordDialogField"
               />
               {error && (
-                <Box color="error.main" fontSize={14} mt={1} sx={{ fontFamily: '"Oswald", sans-serif' }}>
+                <Box className="changePasswordDialogErrorText" fontSize={14} mt={1}>
                   {error}
                 </Box>
               )}
             </Box>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleDialogClose} color="secondary" disabled={isLoading} sx={{ fontFamily: '"Oswald", sans-serif' }}>
+            <Button onClick={handleDialogClose} color="secondary" disabled={isLoading} className="changePasswordDialogCancelBtn">
               Cancel
             </Button>
-            <Button type="submit" variant="contained" color="primary" disabled={isLoading} sx={{ fontFamily: '"Oswald", sans-serif', bgcolor: '#03346E' }}>
+            <Button type="submit" variant="contained" color="primary" disabled={isLoading} className="changePasswordDialogSubmitBtn">
               {isLoading ? <CircularProgress size={20} color="inherit" /> : 'Change Password'}
             </Button>
           </DialogActions>
@@ -124,7 +119,7 @@ const Changepassword = ({ open, onClose, user }) => {
         onClose={handleSnackbarClose}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <MuiAlert onClose={handleSnackbarClose} severity={snackbar.severity} sx={{ width: '100%', fontFamily: '"Oswald", sans-serif' }} elevation={6} variant="filled">
+        <MuiAlert onClose={handleSnackbarClose} severity={snackbar.severity} className="changePasswordDialogAlert" elevation={6} variant="filled">
           {snackbar.message}
         </MuiAlert>
       </Snackbar>

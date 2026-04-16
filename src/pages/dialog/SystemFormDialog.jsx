@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import Snackbar from '../../component/reuseable/Snackbar';
+import './dialogscss/SystemFormDialog.scss';
 
 const ListItem = styled('li')(({ theme }) => ({
   margin: theme.spacing(0.5),
@@ -129,8 +130,8 @@ export default function SystemFormDialog({
 
   return (
     <>
-      <Dialog open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{isEdit ? 'Edit System' : 'Create New System'}</DialogTitle>
+      <Dialog open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth className="systemFormDialog">
+      <DialogTitle className="systemFormDialogTitle">{isEdit ? 'Edit System' : 'Create New System'}</DialogTitle>
 
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
@@ -143,6 +144,7 @@ export default function SystemFormDialog({
             disabled={busy}
             required
             autoFocus
+            className="systemFormDialogField"
           />
 
           {/* Team Multi-Select */}
@@ -155,6 +157,7 @@ export default function SystemFormDialog({
                 error={isSubmitted && !!errors.team_id}
                 disabled={teamsLoading || busy}
                 required
+                className="systemFormDialogField"
               >
                 <InputLabel>Team</InputLabel>
                 <Select
@@ -165,6 +168,7 @@ export default function SystemFormDialog({
                   onChange={e => field.onChange(e.target.value)}
                   renderValue={selected => (
                     <Paper
+                      className="systemFormDialogChipsWrap"
                       sx={{
                         display: 'flex',
                         flexWrap: 'wrap',
@@ -173,7 +177,6 @@ export default function SystemFormDialog({
                         m: 0,
                         minHeight: 40,
                         boxShadow: 'none',
-                        background: 'transparent',
                       }}
                       component="ul"
                     >
@@ -183,6 +186,7 @@ export default function SystemFormDialog({
                           <ListItem key={id}>
                             <Chip
                               label={team.name}
+                              className="systemFormDialogChip"
                               onMouseDown={e => {
                                 e.stopPropagation()
                                 e.preventDefault()
@@ -196,11 +200,8 @@ export default function SystemFormDialog({
                                 field.onChange(newSelected)
                               }}
                               sx={{
-                                color: '#03346E',
-                                borderColor: '#03346E',
                                 fontWeight: 600,
                                 fontFamily: 'Oswald, sans-serif',
-                                backgroundColor: '#eaf4ff'
                               }}
                               variant="outlined"
                             />
@@ -226,14 +227,14 @@ export default function SystemFormDialog({
             )}
           />
           {isSubmitted && errors.team_id && (
-            <span style={{ color: 'red', fontSize: '0.75rem' }}>{errors.team_id.message}</span>
+            <span className="systemFormDialogErrorText" style={{ fontSize: '0.75rem' }}>{errors.team_id.message}</span>
           )}
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 2 }}>
+      <DialogActions sx={{ px: 3, pb: 2 }} className="systemFormDialogActions">
         {/* ✅ Cancel disabled while saving */}
-        <Button onClick={handleDialogClose} disabled={busy}>
+        <Button onClick={handleDialogClose} disabled={busy} className="systemFormDialogCancelBtn">
           Cancel
         </Button>
         {/* ✅ Save shows spinner while saving */}
@@ -242,12 +243,7 @@ export default function SystemFormDialog({
           variant="contained"
           disabled={busy}
           startIcon={busy ? <CircularProgress size={20} color="inherit" /> : null}
-          sx={{
-            bgcolor: '#03346E',
-            '&:hover': {
-              bgcolor: '#02295a'
-            }
-          }}
+          className="systemFormDialogSaveBtn"
         >
           {busy ? 'Saving...' : isEdit ? 'Update' : 'CREATE'}
         </Button>

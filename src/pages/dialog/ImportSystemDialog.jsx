@@ -4,6 +4,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload'
 import CloseIcon from '@mui/icons-material/Close'
 import { useDispatch } from 'react-redux'
 import { systemApi } from '../../features/api/system/systemApi'
+import './dialogscss/ImportSystemDialog.scss'
 
 const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) => {
   const [selectedFile, setSelectedFile] = React.useState(null)
@@ -224,6 +225,7 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
         onClose={handleCancel}
         maxWidth="sm"
         fullWidth
+        className="importSystemDialog"
         PaperProps={{
           sx: {
             mx: { xs: 2, sm: 'auto' },
@@ -233,6 +235,7 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
         }}
       >
         <DialogTitle
+          className="importSystemDialogTitle"
           sx={{
             fontSize: { xs: '1rem', sm: '1.25rem' },
             px: { xs: 2, sm: 3 },
@@ -247,6 +250,7 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
             {errorMessage && (
               <Alert
                 severity="error"
+                className="importSystemDialogErrorAlert"
                 sx={{
                   mb: 2,
                   fontSize: { xs: '0.75rem', sm: '0.875rem' },
@@ -266,31 +270,25 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
             />
 
             <Box
+              className={`importSystemDialogDropzone ${isDragging ? 'importSystemDialogDropzone--dragging' : ''} ${isUploading ? 'importSystemDialogDropzone--uploading' : ''}`}
               onClick={() => !isUploading && fileInputRef.current?.click()}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               sx={{
-                border: '2px dashed #03346E',
                 borderRadius: '8px',
                 padding: { xs: '16px 12px', sm: '20px' },
                 textAlign: 'center',
                 cursor: isUploading ? 'not-allowed' : 'pointer',
-                backgroundColor: isDragging ? '#e3f2fd' : '#f5f5f5',
                 transition: 'all 0.3s ease',
-                borderColor: isDragging ? '#022553' : '#03346E',
                 opacity: isUploading ? 0.6 : 1,
-                '&:hover': {
-                  backgroundColor: isUploading ? '#f5f5f5' : '#f0f7ff',
-                  borderColor: isUploading ? '#03346E' : '#022553',
-                },
               }}
             >
-              <CloudUploadIcon sx={{ fontSize: { xs: 32, sm: 40 }, color: '#03346E', mb: 1 }} />
+              <CloudUploadIcon className="importSystemDialogUploadIcon" sx={{ fontSize: { xs: 32, sm: 40 }, mb: 1 }} />
               <Typography
                 variant="h6"
+                className="importSystemDialogDropzoneTitle"
                 sx={{
-                  color: '#03346E',
                   mb: 0.5,
                   fontSize: { xs: '0.95rem', sm: '1.125rem' },
                 }}
@@ -299,22 +297,22 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
               </Typography>
               <Typography
                 variant="body2"
-                color="text.secondary"
+                className="importSystemDialogSecondaryText"
                 sx={{ mb: 0.5, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
               >
                 {isDragging ? 'Release to upload' : 'or drag and drop here'}
               </Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
+              <Typography variant="caption" className="importSystemDialogSecondaryText" sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
                 Supported formats: .xls, .xlsx, .csv
               </Typography>
             </Box>
 
             {selectedFile && (
               <Box
+                className="importSystemDialogSelectedFileBox"
                 sx={{
                   mt: 2,
                   p: { xs: 1.5, sm: 2 },
-                  bgcolor: '#f0f7ff',
                   borderRadius: '8px',
                   display: 'flex',
                   alignItems: 'flex-start',
@@ -326,7 +324,8 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
                 <Box sx={{ minWidth: 0, flex: 1 }}>
                   <Typography
                     variant="body2"
-                    sx={{ fontWeight: 500, color: '#03346E', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    className="importSystemDialogSelectedFileLabel"
+                    sx={{ fontWeight: 500, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
                   >
                     Selected File:
                   </Typography>
@@ -342,7 +341,7 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
                   </Typography>
                   <Typography
                     variant="caption"
-                    color="text.secondary"
+                    className="importSystemDialogSecondaryText"
                     sx={{ mt: 0.5, display: 'block', fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
                   >
                     Size: {(selectedFile.size / 1024).toFixed(2)} KB
@@ -352,7 +351,8 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
                   size="small"
                   onClick={handleRemoveFile}
                   disabled={isUploading}
-                  sx={{ color: '#d32f2f', ml: 1, mt: -0.5, flexShrink: 0 }}
+                  className="importSystemDialogRemoveBtn"
+                  sx={{ ml: 1, mt: -0.5, flexShrink: 0 }}
                 >
                   <CloseIcon fontSize="small" />
                 </IconButton>
@@ -360,23 +360,23 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
             )}
 
             <Box
+              className="importSystemDialogFormatBox"
               sx={{
                 mt: 2,
                 p: { xs: 1.5, sm: 2 },
-                bgcolor: '#f9f9f9',
                 borderRadius: '8px',
-                border: '1px solid #e0e0e0',
               }}
             >
               <Typography
                 variant="body2"
+                className="importSystemDialogFormatTitle"
                 sx={{ fontWeight: 500, mb: 0.5, fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
               >
                 Required File Format:
               </Typography>
               <Typography
                 variant="caption"
-                color="text.secondary"
+                className="importSystemDialogSecondaryText"
                 component="div"
                 sx={{ fontSize: { xs: '0.65rem', sm: '0.75rem' } }}
               >
@@ -391,6 +391,7 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
             onClick={handleCancel}
             color="primary"
             disabled={isUploading}
+            className="importSystemDialogCancelBtn"
             sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
           >
             Cancel
@@ -399,8 +400,8 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
             onClick={handleUploadClick}
             color="primary"
             variant="contained"
+            className="importSystemDialogUploadBtn"
             sx={{
-              bgcolor: '#03346E',
               fontSize: { xs: '0.75rem', sm: '0.875rem' },
             }}
             disabled={!selectedFile || isUploading}
@@ -420,11 +421,7 @@ const ImportSystemDialog = ({ open, onClose, selectedTeam, onImportSuccess }) =>
         <MuiAlert
           onClose={() => setSnackbarOpen(false)}
           severity={snackbarSeverity}
-          sx={{
-            backgroundColor: snackbarSeverity === 'success' ? '#4caf50' : '#f44336',
-            color: '#fff',
-            '& .MuiAlert-icon': { color: '#fff' },
-          }}
+          className={`importSystemDialogSnackbar importSystemDialogSnackbar--${snackbarSeverity}`}
         >
           {snackbarMessage}
         </MuiAlert>

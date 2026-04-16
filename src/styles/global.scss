@@ -1,13 +1,59 @@
 body {
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
+    background-color: #121212;
     overflow: hidden;
     font-family: 'Oswald', sans-serif;
+    color: #ebebeb;
 }
 
 #root {
     font-family: 'Oswald', sans-serif;
+}
+
+.app-container {
+    background-color: inherit;
+    color: inherit;
+}
+
+body.theme-dark {
+    background-color: #121212;
+    color: #ebebeb;
+}
+
+body.theme-light {
+    background-color: #f4f4f4;
+    color: #222222;
+}
+
+body.theme-light .mainContentArea,
+body.theme-light .bodyContent,
+body.theme-light .contentWrapper {
+    background-color: #f4f4f4 !important;
+}
+
+body.theme-light .topBar {
+    background-color: #ffffff !important;
+    color: #222222 !important;
+    border-left: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+body.theme-light .activePageLabel,
+body.theme-light .userName,
+body.theme-light .toggleIcon,
+body.theme-light .sidebarToggleButton,
+body.theme-light .mobileMenuButton,
+body.theme-light .mobileMenuButton .MuiSvgIcon-root {
+    color: #222222 !important;
+}
+
+body.theme-light .mobileMenuButton {
+    background-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+body.theme-light .menu .MuiPaper-root {
+    background-color: #ffffff !important;
+    color: #222222 !important;
 }
 
 /* All elements use Oswald */

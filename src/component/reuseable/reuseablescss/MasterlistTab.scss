@@ -73,8 +73,8 @@
     }
 
     &:not(.Mui-selected):hover {
-      background-color: rgba($primary-light, 0.08);
-      color: $primary-hover-light; // or whatever color you want on hover
+      background-color: rgba($primary-text-dark, 0.08);
+      color: $primary-text-dark;
     }
   }
 
@@ -112,10 +112,10 @@
   font-weight: 500;
   white-space: nowrap;
   background-color: $primary-btn-light !important;
-  color: $primary-light !important;
+  color: $primary-text-white !important;
 
   &:hover {
-    background-color: $primary-text-dark;
+    background-color: $primary-text-light;
   }
 
   @include bp.sm {
@@ -135,14 +135,14 @@
 
   & .MuiOutlinedInput-root {
     border-radius: 8px;
-    background-color: $primary-light;
+    background-color: $primary-text-white;
 
     &:hover fieldset {
       border-color: #2c3e50;
     }
 
     &.Mui-focused fieldset {
-      border-color: $primary-text-dark;
+      border-color: $primary-text-light;
     }
   }
 

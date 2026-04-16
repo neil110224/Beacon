@@ -1,45 +1,78 @@
-$primary-main: #454040;
+$primary-main: #f4f4f4;
 $primary-light: #ffffff;
-$primary-dark: #302f2f;
-$primary-content: #8d5f5f;
+$primary-dark: #d8d8d7;
+$primary-content: #b6acac;
 
-// this are the main text
-$primary-text-light: #f4f4f4 ;
-$primary-btn-light: #6d6464;
-$primary-text-dark: rgb(54, 36, 36);
+$primary-text-white: #f4f4f4;
+$primary-text-light: #03346E;
+$primary-text-dark: #01224b;
 
+$primary-datatable-color: #cecece;
+
+$primary-box-content: #eeeeee;
+$primary-box-content-dark: #e4e4e4; 
+
+// this is the button color
+$primary-btn-light: #03346E;
+$primary-btn-dark: #01224b;
+
+$primary-scroll-light: #03346E;
 
 $primary-normal-light: #c7c7c7;
-$primary-hover-light: #fcfcfc;
+$primary-hover-light : #fcfcfc;
 $primary-toggle-light: #c0b6bf;
 $primary-active-light: #fcfcfc;
+
 // -----------------------------------------------------------
 
-$secondary-text-light: #929292;
-$secondary-text-dark: #000000;
-$primary-contrast: #d1d1d1;
+$secondary-text-light: #222222;
+$secondary-text-dark: #222222;
+
 
 // dashboard accents
 $dashboard-accent: $primary-normal-light;
 $dashboard-accent-strong: $primary-normal-light;
 
-// dashboard accents
-$dashboard-accent: #dce5f0;
-$dashboard-accent-strong: #e4e3e3;
+
+$primary-main: #f4f4f4;
+$primary-light: #ffffff;
+$primary-dark: #FFFDF1;
+$primary-content: #8d5f5f;
+
+// -----------------------------------------------------------
+
+$secondary-text-light: #03346E;
+$secondary-text-dark: #0f0f0f;
+$primary-contrast: #f4f4f4;
 
 
 
-// $primary-main: #f4f4f4;
-// $primary-light: #ffffff;
-// $primary-dark: #FFFDF1;
-// $primary-content: #8d5f5f;
 
-// // this are the main text
-// $primary-text-light: #03346E ;
-// $primary-text-dark: #01224b;
+
+// $primary-main: #121212;
+// $primary-light: #3a3636;
+// $primary-dark: #161616;
+
+// $primary-text-light: #ebebeb ; 
+// $primary-text-dark: #313131; 
+
+// $primary-box-content: #242323;
+// $primary-box-content-dark: #292929; 
+
+// // this is the button color
+// $primary-btn-light: #473d3d;
+
+// $primary-normal-light: #c7c7c7;
+// $primary-hover-light : #fcfcfc;
+// $primary-toggle-light: #c0b6bf;
+// $primary-active-light: #fcfcfc;
 
 // // -----------------------------------------------------------
 
-// $secondary-text-light: #03346E;
-// $secondary-text-dark: #0f0f0f;
-// $primary-contrast: #f4f4f4;
+// $secondary-text-light: #222222;
+// $secondary-text-dark: #222222;
+
+
+// // dashboard accents
+// $dashboard-accent: $primary-normal-light;
+// $dashboard-accent-strong: $primary-normal-light;

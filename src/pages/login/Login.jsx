@@ -10,6 +10,7 @@ import { useDispatch } from 'react-redux';
 import { setCredentials } from '../../features/api/slice/authSlice';
 import React, { useState } from 'react';
 import Snackbar from '../../component/reuseable/Snackbar';
+import './login.scss';
 
 function SlideTransition(props) {
   return <Slide {...props} direction="left" />;
@@ -17,32 +18,10 @@ function SlideTransition(props) {
 
 const fieldSx = {
   mb: 1,
-  '& .MuiInputLabel-root': {
-    color: '#03346E',
-  },
-  '& .MuiInputLabel-root.Mui-focused': {
-    color: '#03346E',
-  },
-  // ✅ When label floats up, give it the same bg as the panel so it masks the border cleanly
-  '& .MuiInputLabel-shrink': {
-    backgroundColor: '#f4f4f4',
-    px: 0.5,
-    borderRadius: '4px',
-    left: '-4px',
-    paddingLeft: '4px',
-    paddingRight: '4px',
-  },
-  '& .MuiOutlinedInput-notchedOutline': {
-    borderColor: '#03346E',
-  },
-  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-    borderColor: '#03346E',
-  },
   '& .MuiInputBase-input': {
     fontFamily: 'Oswald, sans-serif',
     fontWeight: 700,
     fontSize: { xs: 9, md: 11 },
-    color: '#03346E',
   },
 }
 
@@ -91,57 +70,24 @@ const Login = () => {
 
   return (
     <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        bgcolor: '#dadada',
-      }}
+      className="login-container"
     >
       <Box
-        sx={{
-          width: '75%',
-          maxWidth: { xs: '100%', md: 750 },
-          height: { xs: 'auto', md: 450 },
-          display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          bgcolor: '#f4f4f4',
-          borderRadius: 2,
-          boxShadow: '0 8px 25px rgba(51, 47, 47, 0.12)',
-          overflow: 'hidden',
-          position: 'relative',
-          color: '#03346E',
-        }}
+        className="login-card"
       >
         {/* LEFT PANEL */}
         <Box
           component="form"
           onSubmit={handleSubmit(onSubmit)}
-          sx={{
-            flex: 1,
-            p: { xs: 3, md: 6 },
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            color: '#03346E',
-          }}
+          className="login-left-panel"
         >
-          <Box sx={{ mb: 5 }}>
+          <Box className="login-header">
             <Box
               component="h2"
-              sx={{
-                m: 2,
-                fontFamily: 'Oswald, sans-serif',
-                fontWeight: 500,
-                letterSpacing: 1,
-                textAlign: 'center',
-                fontSize: { xs: 18, md: 22 },
-                color: '#03346E',
-              }}
+              className="login-title"
             >
               Welcome to{' '}
-              <Box component="span" sx={{ color: '#0387bb', fontWeight: 900, fontFamily: 'Oswald, sans-serif', fontSize: { xs: 25, md: 30 } }}>
+              <Box component="span" className="login-title-highlight">
                 Beacon!
               </Box>
             </Box>
@@ -159,20 +105,8 @@ const Login = () => {
                 error={!!errors.username}
                 helperText={errors.username?.message}
                 disabled={isLoading}
-                sx={{
-                  ...fieldSx,
-                  mb: 2,
-                  color: '#03346E',
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#03346E',
-                  },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#03346E',
-                  },
-                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#03346E',
-                  },
-                }}
+                className="login-textfield"
+                sx={fieldSx}
               />
             )}
           />
@@ -190,20 +124,8 @@ const Login = () => {
                 error={!!errors.password}
                 helperText={errors.password?.message}
                 disabled={isLoading}
-                sx={{
-                  ...fieldSx,
-                  mb: 2,
-                  color: '#03346E',
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#03346E',
-                  },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#03346E',
-                  },
-                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#03346E',
-                  },
-                }}
+                className="login-textfield"
+                sx={fieldSx}
               />
             )}
           />
@@ -212,18 +134,7 @@ const Login = () => {
             type="submit"
             fullWidth
             disabled={isLoading}
-            sx={{
-              py: { xs: 0.6, md: 0.8 },
-              bgcolor: '#0397d1',
-              color: '#03346E',
-              fontFamily: 'Oswald, sans-serif',
-              fontWeight: 500,
-              fontSize: { xs: 12, md: 13 },
-              mb: 2,
-              '&:hover': { bgcolor: '#027baa' },
-              '&:disabled': { bgcolor: '#0397d1', opacity: 0.7 },
-              boxShadow: '0px 4px 4px rgba(0,0,0,0.4)',
-            }}
+            className="login-button"
           >
             {isLoading ? (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -235,12 +146,12 @@ const Login = () => {
             )}
           </Button>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5, mt: 3 }}>
+          <Box className="login-footer">
             <img src={mis} alt="MIS Logo" style={{ width: 50, height: 'auto', objectFit: 'contain' }} />
-            <div style={{ fontFamily: 'Oswald, sans-serif', fontWeight: 200, fontSize: 9 }}>
+            <div className="login-mis-text" style={{ fontFamily: 'Oswald, sans-serif', fontWeight: 200, fontSize: 9 }}>
               Powered By <strong>MIS</strong>
             </div>
-            <div style={{ fontFamily: 'Oswald, sans-serif', fontWeight: 300, fontSize: 9 }}>
+            <div className="login-mis-text" style={{ fontFamily: 'Oswald, sans-serif', fontWeight: 300, fontSize: 9 }}>
               All rights reserved © 2026
             </div>
           </Box>
@@ -248,18 +159,12 @@ const Login = () => {
 
         {/* RIGHT PANEL */}
         <Box
-          sx={{
-            flex: 1,
-            display: { xs: 'none', md: 'flex' },
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-          }}
+          className="login-right-panel"
         >
           <img
             src={reindeer}
             alt="Work Illustration"
-            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
+            className="login-image"
           />
         </Box>
       </Box>

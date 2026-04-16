@@ -1,0 +1,111 @@
+@use "../../../styles/colors" as *;
+
+.importSystemDialog {
+	.MuiPaper-root {
+		background-color: $primary-dark;
+		color: $primary-text-light;
+	}
+
+	.MuiDialogContent-root,
+	.MuiDialogActions-root {
+		color: $primary-text-light;
+	}
+}
+
+.importSystemDialogTitle {
+	color: $primary-text-light;
+}
+
+.importSystemDialogErrorAlert {
+	background-color: rgba($primary-btn-light, 0.22);
+	color: $primary-hover-light;
+	border: 1px solid rgba($primary-active-light, 0.2);
+}
+
+.importSystemDialogDropzone {
+	border: 2px dashed $primary-btn-light;
+	background-color: $primary-box-content-dark;
+
+	&:hover {
+		background-color: $primary-box-content;
+		border-color: $primary-light;
+	}
+}
+
+.importSystemDialogDropzone--dragging {
+	background-color: $primary-box-content;
+	border-color: $primary-light;
+}
+
+.importSystemDialogDropzone--uploading {
+	&:hover {
+		background-color: $primary-box-content-dark;
+		border-color: $primary-btn-light;
+	}
+}
+
+.importSystemDialogUploadIcon {
+	color: $primary-normal-light;
+}
+
+.importSystemDialogDropzoneTitle {
+	color: $primary-text-light;
+}
+
+.importSystemDialogSecondaryText {
+	color: $primary-normal-light;
+}
+
+.importSystemDialogSelectedFileBox {
+	background-color: $primary-box-content;
+}
+
+.importSystemDialogSelectedFileLabel {
+	color: $primary-text-light;
+}
+
+.importSystemDialogRemoveBtn {
+	color: $primary-active-light;
+}
+
+.importSystemDialogFormatBox {
+	background-color: $primary-box-content-dark;
+	border: 1px solid rgba($primary-normal-light, 0.25);
+}
+
+.importSystemDialogFormatTitle {
+	color: $primary-text-light;
+}
+
+.importSystemDialogCancelBtn {
+	color: $primary-normal-light;
+
+	&:hover {
+		background-color: rgba($primary-text-light, 0.08);
+	}
+}
+
+.importSystemDialogUploadBtn {
+	background-color: $primary-btn-light;
+	color: $primary-text-light;
+
+	&:hover {
+		background-color: $primary-light;
+	}
+}
+
+.importSystemDialogSnackbar {
+	color: $primary-text-light;
+
+	.MuiAlert-icon {
+		color: $primary-text-light;
+	}
+}
+
+.importSystemDialogSnackbar--success {
+	background-color: $primary-btn-light;
+}
+
+.importSystemDialogSnackbar--error {
+	background-color: $primary-box-content;
+}

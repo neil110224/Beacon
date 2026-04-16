@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import {Dialog,DialogTitle,DialogContent,DialogActions,Button,TextField,Box,CircularProgress,} from '@mui/material';
+import './dialogscss/CategoryFormDialog.scss';
 const OSWALD = '"Oswald", sans-serif';
 
 // Validation schema
@@ -97,8 +98,8 @@ export default function CategoryFormDialog({ open, onClose, category = null, onS
   };
 
   return (
-    <Dialog open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ fontFamily: OSWALD, fontWeight: 600 }}>
+    <Dialog open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth className="categoryFormDialog">
+      <DialogTitle sx={{ fontFamily: OSWALD, fontWeight: 600 }} className="categoryFormDialogTitle">
         {isEdit ? 'Edit Category' : 'Create Category'}
       </DialogTitle>
 
@@ -113,16 +114,18 @@ export default function CategoryFormDialog({ open, onClose, category = null, onS
             helperText={isSubmitted ? errors.name?.message : ''}
             disabled={isLoading || localLoading}
             autoFocus
+            className="categoryFormDialogField"
             sx={{ '& input, & label': { fontFamily: OSWALD } }}
           />
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 2 }}>
+      <DialogActions sx={{ px: 3, pb: 2 }} className="categoryFormDialogActions">
         <Button
           onClick={handleDialogClose}
           disabled={isLoading || localLoading || justSaved}
           sx={{ fontFamily: OSWALD }}
+          className="categoryFormDialogCancelBtn"
         >
           Cancel
         </Button>
@@ -131,11 +134,8 @@ export default function CategoryFormDialog({ open, onClose, category = null, onS
           variant="contained"
           disabled={isLoading || localLoading || justSaved}
           startIcon={(isLoading || localLoading || justSaved) && <CircularProgress size={20} />}
-          sx={{
-            backgroundColor: '#03346E',
-            fontFamily: OSWALD,
-            '&:hover': { backgroundColor: '#022E5B' },
-          }}
+          sx={{ fontFamily: OSWALD }}
+          className="categoryFormDialogSaveBtn"
         >
           {(isLoading || localLoading || justSaved)
             ? 'Saving...'

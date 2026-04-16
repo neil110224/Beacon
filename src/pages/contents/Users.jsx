@@ -57,7 +57,7 @@ const Users = () => {
   const users = Array.isArray(data?.data?.data) ? data.data.data : Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : []
 
   const handleMenuClick = (event, user) => { setAnchorEl(event.currentTarget); setSelectedUser(user); }
-  const handleMenuClose = () => { setAnchorEl(null); }
+  const handleMenuClose = () => { setAnchorEl(null); setSelectedUser(null); }
   const handleEdit = () => { setUserDialogOpen(true); handleMenuClose(); }
   const handleArchive = () => { if (!selectedUser) return; setConfirmDialogOpen(true); setAnchorEl(null); }
 
@@ -153,6 +153,7 @@ const Users = () => {
             anchorEl={anchorEl}
             open={open && selectedUser?.id === row.id}
             onClose={handleMenuClose}
+            onClick={(e) => e.stopPropagation()}
             className="usersMenu"
             PaperProps={{ elevation: 3 }}
           >

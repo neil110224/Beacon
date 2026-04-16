@@ -56,22 +56,27 @@
 // Icons
 .usersMenuIcon {
   font-size: 1.2rem;
-  color: #5f6368;
+  color: $primary-text-light;
 }
 
 .usersRestoreIcon {
   margin-right: 12px;
-  color: #2e7d32;
+  color: $primary-text-light;
 }
 
 .usersEditIcon {
   margin-right: 12px;
-  color: #1976d2;
+  color: $primary-text-light;
 }
 
 .usersArchiveIcon {
   margin-right: 12px;
-  color: #ed6c02;
+  color: $primary-text-light;
+}
+
+.usersResetPasswordIcon {
+  margin-right: 12px;
+  color: $primary-text-light;
 }
 
 // Menu
@@ -80,12 +85,17 @@
     border-radius: 8px;
     margin-top: 8px;
     min-width: 160px;
+    background-color: $primary-main;
+    border: 1px solid $primary-box-content;
+    color: $primary-text-light;
   }
 }
 
 .usersMenuItem {
+  color: $primary-text-light;
+
   &:hover {
-    background-color: rgba(0, 0, 0, 0.04);
+    background-color: rgba($primary-text-light, 0.08);
   }
 }
 

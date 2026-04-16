@@ -34,7 +34,11 @@ const SystemCategory = () => {
   const user = useSelector(selectCurrentUser)
 
   // ── Permission check ───────────────────────────────────────────────────────
-  const hasSystemCategoryAccess = user?.access_permissions?.includes('SystemCategory.Access')
+  const isAdminRole = user?.role?.name?.toLowerCase() === 'admin'
+  const hasSystemCategoryAccess =
+    isAdminRole ||
+    user?.role?.access_permissions?.includes('SystemCategory.Access') ||
+    user?.access_permissions?.includes('SystemCategory.Access')
 
   const buildQueryParams = () => {
     const isUserRole = user?.role?.name?.toLowerCase() === 'user'
@@ -103,11 +107,6 @@ const SystemCategory = () => {
     if (Array.isArray(categoriesData.categories)) return categoriesData.categories
     return []
   }, [categoriesData])
-
-  const getStatusColor = useCallback((status) => {
-    const statusColors = { pending: '#ff9800', done: '#4caf50', hold: '#2196f3', inprogress: '#9c27b0' }
-    return statusColors[status?.toLowerCase()] || '#9e9e9e'
-  }, [])
 
   const STATUS_OPTIONS = useMemo(() => [
     { value: 'pending', label: 'Pending' },
@@ -533,14 +532,14 @@ const SystemCategory = () => {
               : currentSystem.team?.name}
           </Typography>
           {/* Pending count summary */}
-          <Typography variant="body2" sx={{ fontFamily: OSWALD, color: '#ff9800', fontWeight: 500, mt: 0.3 }}>
+          <Typography variant="body2" className="systemCategoryPendingSummary" sx={{ fontFamily: OSWALD, fontWeight: 500, mt: 0.3 }}>
             {statusCounts.pending} pending {statusCounts.pending === 1 ? 'item' : 'items'} across{' '}
             {pendingCategoriesCount} {pendingCategoriesCount === 1 ? 'category' : 'categories'}
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Tooltip title="Back to System page" arrow>
-            <IconButton onClick={() => navigate('/systems')} sx={{ color: '#03346E' }}>
+            <IconButton onClick={() => navigate('/systems')} className="systemCategoryBackButton">
               <SettingsSystemDaydreamIcon />
             </IconButton>
           </Tooltip>
@@ -549,7 +548,7 @@ const SystemCategory = () => {
             startIcon={<AddIcon />}
             className="systemCategoryAddButton"
             onClick={handleOpenCreateDialog}
-            sx={{ bgcolor: '#03346E', fontFamily: OSWALD }}
+            sx={{ fontFamily: OSWALD }}
           >
             Create
           </Button>
@@ -566,10 +565,9 @@ const SystemCategory = () => {
               setSelectedStatusFilter(newValue)
               setSelectedItems({})
             }}
+            className="systemCategoryTabs"
             sx={{
               '& .MuiTab-root': { fontFamily: OSWALD, textTransform: 'capitalize', fontWeight: 600 },
-              '& .Mui-selected': { color: '#03346E' },
-              '& .MuiTabs-indicator': { backgroundColor: '#03346E' },
             }}
           >
             <Tab label={`Pending (${statusCounts.pending})`} value="pending" />
@@ -594,8 +592,7 @@ const SystemCategory = () => {
               <Accordion
                 key={idx}
                 defaultExpanded={true}
-                className="systemCategoryAccordion"
-                sx={isNewCategory ? { backgroundColor: 'rgba(3, 52, 110, 0.05)', border: '2px solid #03346E' } : {}}
+                className={`systemCategoryAccordion ${isNewCategory ? 'systemCategoryAccordion--new' : ''}`}
               >
                 <AccordionSummary expandIcon={<ExpandMoreIcon className="systemCategoryExpandIcon" />}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%', pr: 2 }}>
@@ -612,7 +609,8 @@ const SystemCategory = () => {
                         <Chip
                           label={`${selectedCount} selected`}
                           size="small"
-                          sx={{ fontFamily: OSWALD, backgroundColor: '#03346E', color: '#fff', fontWeight: 600 }}
+                          className="systemCategorySelectedChip"
+                          sx={{ fontFamily: OSWALD, fontWeight: 600 }}
                         />
                         {selectedStatusFilter === 'hold' ? (
                           <Button
@@ -636,10 +634,11 @@ const SystemCategory = () => {
                                 setBulkLoading(false)
                               }
                             }}
-                            sx={{ backgroundColor: '#ff9800', fontFamily: OSWALD, fontSize: '0.75rem', py: 0.4 }}
+                            className="systemCategoryBulkPendingBtn"
+                            sx={{ fontFamily: OSWALD, fontSize: '0.75rem', py: 0.4 }}
                             disabled={bulkLoading}
                           >
-                            {bulkLoading ? <CircularProgress size={16} sx={{ mr: 1, color: '#fff' }} /> : null}
+                            {bulkLoading ? <CircularProgress size={16} className="systemCategoryInlineWhiteSpinner" sx={{ mr: 1 }} /> : null}
                             Mark as Pending
                           </Button>
                         ) : (
@@ -649,7 +648,8 @@ const SystemCategory = () => {
                               variant="contained"
                               startIcon={<DoneAllIcon />}
                               onClick={() => handleOpenBulkDone(idx)}
-                              sx={{ backgroundColor: '#4caf50', fontFamily: OSWALD, fontSize: '0.75rem', py: 0.4 }}
+                              className="systemCategoryBulkDoneBtn"
+                              sx={{ fontFamily: OSWALD, fontSize: '0.75rem', py: 0.4 }}
                             >
                               Mark as Done
                             </Button>
@@ -674,10 +674,11 @@ const SystemCategory = () => {
                                   setBulkLoading(false)
                                 }
                               }}
-                              sx={{ backgroundColor: '#2196f3', fontFamily: OSWALD, fontSize: '0.75rem', py: 0.4 }}
+                              className="systemCategoryBulkHoldBtn"
+                              sx={{ fontFamily: OSWALD, fontSize: '0.75rem', py: 0.4 }}
                               disabled={bulkLoading}
                             >
-                              {bulkLoading ? <CircularProgress size={16} sx={{ mr: 1, color: '#fff' }} /> : null}
+                              {bulkLoading ? <CircularProgress size={16} className="systemCategoryInlineWhiteSpinner" sx={{ mr: 1 }} /> : null}
                               Mark as On Hold
                             </Button>
                           </>
@@ -686,7 +687,8 @@ const SystemCategory = () => {
                           size="small"
                           variant="text"
                           onClick={() => clearSelection(idx)}
-                          sx={{ fontFamily: OSWALD, fontSize: '0.75rem', color: '#888' }}
+                          className="systemCategoryClearBtn"
+                          sx={{ fontFamily: OSWALD, fontSize: '0.75rem' }}
                           disabled={bulkLoading}
                         >
                           Clear
@@ -711,7 +713,7 @@ const SystemCategory = () => {
                                     indeterminate={someSelected}
                                     checked={allVisibleSelected}
                                     onChange={() => toggleSelectAll(idx, visibleItems)}
-                                    sx={{ color: '#03346E', '&.Mui-checked': { color: '#03346E' }, '&.MuiCheckbox-indeterminate': { color: '#03346E' } }}
+                                    className="systemCategoryCheckbox"
                                   />
                                 </TableCell>
                               )}
@@ -732,7 +734,6 @@ const SystemCategory = () => {
                               return (
                                 <TableRow
                                   key={item.id}
-                                  className="systemCategoryTableRow"
                                   onClick={() => {
                                     // Only users with access can click row to mark as done
                                     if (!hasSystemCategoryAccess) return
@@ -740,15 +741,7 @@ const SystemCategory = () => {
                                       handleOpenDateEditDialog(item)
                                     }
                                   }}
-                                  sx={{
-                                    cursor: (!hasSystemCategoryAccess || item.status?.toLowerCase() === 'done') ? 'default' : 'pointer',
-                                    backgroundColor: isChecked ? 'rgba(3, 52, 110, 0.06)' : 'inherit',
-                                    '&:hover': {
-                                      backgroundColor: (!hasSystemCategoryAccess || item.status?.toLowerCase() === 'done')
-                                        ? 'transparent'
-                                        : 'rgba(3, 52, 110, 0.08)'
-                                    }
-                                  }}
+                                  className={`systemCategoryTableRow ${isChecked ? 'is-selected' : ''} ${(!hasSystemCategoryAccess || item.status?.toLowerCase() === 'done') ? '' : 'is-clickable'}`}
                                 >
                                   {/* Checkbox cell — only for access users on non-done tabs */}
                                   {hasSystemCategoryAccess && !isDoneTab && (
@@ -757,7 +750,7 @@ const SystemCategory = () => {
                                         size="small"
                                         checked={isChecked}
                                         onChange={() => toggleSelectItem(idx, item.id)}
-                                        sx={{ color: '#03346E', '&.Mui-checked': { color: '#03346E' } }}
+                                        className="systemCategoryCheckbox"
                                       />
                                     </TableCell>
                                   )}
@@ -769,6 +762,7 @@ const SystemCategory = () => {
                                     <Typography
                                       variant="body2"
                                       onClick={(e) => { e.stopPropagation(); handleDescriptionDialogOpen(item) }}
+                                      className="systemCategoryDetailLink"
                                       sx={{
                                         fontFamily: OSWALD,
                                         display: '-webkit-box',
@@ -779,7 +773,6 @@ const SystemCategory = () => {
                                         wordBreak: 'break-word',
                                         maxWidth: '100%',
                                         cursor: 'pointer',
-                                        '&:hover': { textDecoration: 'underline', color: '#03346E' }
                                       }}
                                     >
                                       {item.description || '-'}
@@ -800,20 +793,17 @@ const SystemCategory = () => {
                                           maxRows={3}
                                           disabled={loadingStatusId === item.id}
                                           autoFocus
+                                          className="systemCategoryInlineRemarksField"
                                           sx={{
                                             ...oswaldInputSx,
-                                            '& .MuiOutlinedInput-root': {
-                                              backgroundColor: '#fff',
-                                              '&:hover fieldset': { borderColor: '#2c3e50' },
-                                              '&.Mui-focused fieldset': { borderColor: '#03346E' },
-                                            }
                                           }}
                                         />
                                         <IconButton
                                           size="small"
                                           onClick={() => handleRemarksSubmit(item)}
                                           disabled={loadingStatusId === item.id}
-                                          sx={{ color: '#4caf50', mt: 0.5 }}
+                                          className="systemCategoryConfirmIcon"
+                                          sx={{ mt: 0.5 }}
                                         >
                                           <CheckIcon fontSize="small" />
                                         </IconButton>
@@ -822,6 +812,7 @@ const SystemCategory = () => {
                                       <Typography
                                         variant="body2"
                                         onClick={(e) => { e.stopPropagation(); handleRemarksDialogOpen(item) }}
+                                        className="systemCategoryDetailLink"
                                         sx={{
                                           fontFamily: OSWALD,
                                           display: '-webkit-box',
@@ -832,7 +823,6 @@ const SystemCategory = () => {
                                           wordBreak: 'break-word',
                                           maxWidth: '100%',
                                           cursor: 'pointer',
-                                          '&:hover': { textDecoration: 'underline', color: '#03346E' }
                                         }}
                                       >
                                         {item.remarks || '-'}
@@ -845,12 +835,12 @@ const SystemCategory = () => {
                                   <TableCell sx={{ fontFamily: OSWALD, textAlign: 'center' }}>{item.end_date || '-'}</TableCell>
 
                                   {/* Created By — who originally created this progress item */}
-                                  <TableCell sx={{ fontFamily: OSWALD, color: '#555', textAlign: 'center' }}>
+                                  <TableCell className="systemCategoryMetaCell" sx={{ fontFamily: OSWALD, textAlign: 'center' }}>
                                     {getCreatedBy(item)}
                                   </TableCell>
 
                                   {/* Updated By — who last updated this progress item */}
-                                  <TableCell sx={{ fontFamily: OSWALD, color: '#555', textAlign: 'center' }}>
+                                  <TableCell className="systemCategoryMetaCell" sx={{ fontFamily: OSWALD, textAlign: 'center' }}>
                                     {getUpdatedBy(item)}
                                   </TableCell>
 
@@ -859,9 +849,8 @@ const SystemCategory = () => {
                                     <Chip
                                       label={getStatusLabel(item.status)}
                                       size="small"
-                                      sx={{
-                                        backgroundColor: getStatusColor(item.status),
-                                        color: '#fff',
+                                      className={`systemCategoryStatusChip systemCategoryStatusChip--${(item.status || 'unknown').toLowerCase()}`}
+                                        sx={{
                                         fontWeight: 500,
                                         fontFamily: OSWALD,
                                         minWidth: '80px',
@@ -876,7 +865,7 @@ const SystemCategory = () => {
                                       <IconButton
                                         size="small"
                                         onClick={(e) => { e.stopPropagation(); handleActionMenuOpen(e, item) }}
-                                        sx={{ color: '#03346E' }}
+                                        className="systemCategoryActionIcon"
                                       >
                                         <MoreVertIcon fontSize="small" />
                                       </IconButton>
@@ -911,7 +900,8 @@ const SystemCategory = () => {
                             variant="text"
                             endIcon={isExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                             onClick={() => setExpandedCategories(prev => ({ ...prev, [idx]: !prev[idx] }))}
-                            sx={{ fontFamily: OSWALD, color: '#03346E', fontWeight: 600, fontSize: '0.8rem' }}
+                            className="systemCategoryShowMoreBtn"
+                            sx={{ fontFamily: OSWALD, fontWeight: 600, fontSize: '0.8rem' }}
                           >
                             {isExpanded ? 'Show less' : `Show all ${filteredProgress.length} items`}
                           </Button>
@@ -928,7 +918,7 @@ const SystemCategory = () => {
             )
           })
         ) : (
-          <Typography sx={{ fontFamily: OSWALD }}>No categories found for this system</Typography>
+          <Typography className="systemCategoryNoCategoriesText" sx={{ fontFamily: OSWALD }}>No categories found for this system</Typography>
         )}
       </Box>
 
@@ -942,59 +932,54 @@ const SystemCategory = () => {
         <Alert
           onClose={() => setSnackbar({ ...snackbar, open: false })}
           severity={snackbar.severity}
-          className="systemCategorySnackbar"
-          sx={{
-            backgroundColor: snackbar.severity === 'success' ? '#4caf50' : '#f44336',
-            fontFamily: OSWALD,
-            '& .MuiAlert-message': { fontFamily: OSWALD },
-          }}
+          className={`systemCategorySnackbar ${snackbar.severity === 'success' ? 'success' : 'error'}`}
         >
           {snackbar.message}
         </Alert>
       </Snackbar>
 
       {/* Remarks Detail Dialog */}
-      <Dialog open={!!selectedRemarksItem} onClose={handleRemarksDialogClose} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600, color: '#03346E', fontFamily: OSWALD }}>Remarks Details</DialogTitle>
+      <Dialog open={!!selectedRemarksItem} onClose={handleRemarksDialogClose} maxWidth="sm" fullWidth className="systemCategoryDialog">
+        <DialogTitle className="systemCategoryDialogTitle" sx={{ fontWeight: 600, fontFamily: OSWALD }}>Remarks Details</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
-            <Typography variant="body2" sx={{ fontFamily: OSWALD, whiteSpace: 'pre-wrap', wordBreak: 'break-word', backgroundColor: '#f5f5f5', p: 2, borderRadius: '4px' }}>
+            <Typography variant="body2" className="systemCategoryDialogInfoBox" sx={{ fontFamily: OSWALD, whiteSpace: 'pre-wrap', wordBreak: 'break-word', p: 2, borderRadius: '4px' }}>
               {selectedRemarksItem?.remarks || 'No remarks'}
             </Typography>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleRemarksDialogClose} color="primary" sx={{ fontFamily: OSWALD }}>Close</Button>
+          <Button onClick={handleRemarksDialogClose} className="systemCategoryDialogCloseBtn" sx={{ fontFamily: OSWALD }}>Close</Button>
         </DialogActions>
       </Dialog>
 
       {/* Description Detail Dialog */}
-      <Dialog open={!!selectedDescriptionItem} onClose={handleDescriptionDialogClose} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600, color: '#03346E', fontFamily: OSWALD }}>Description Details</DialogTitle>
+      <Dialog open={!!selectedDescriptionItem} onClose={handleDescriptionDialogClose} maxWidth="sm" fullWidth className="systemCategoryDialog">
+        <DialogTitle className="systemCategoryDialogTitle" sx={{ fontWeight: 600, fontFamily: OSWALD }}>Description Details</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
-            <Typography variant="body2" sx={{ fontFamily: OSWALD, whiteSpace: 'pre-wrap', wordBreak: 'break-word', backgroundColor: '#f5f5f5', p: 2, borderRadius: '4px' }}>
+            <Typography variant="body2" className="systemCategoryDialogInfoBox" sx={{ fontFamily: OSWALD, whiteSpace: 'pre-wrap', wordBreak: 'break-word', p: 2, borderRadius: '4px' }}>
               {selectedDescriptionItem?.description || 'No description'}
             </Typography>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDescriptionDialogClose} color="primary" sx={{ fontFamily: OSWALD }}>Close</Button>
+          <Button onClick={handleDescriptionDialogClose} className="systemCategoryDialogCloseBtn" sx={{ fontFamily: OSWALD }}>Close</Button>
         </DialogActions>
       </Dialog>
 
       {/* Date Edit Dialog — only for access users */}
       {hasSystemCategoryAccess && (
-        <Dialog open={dateEditDialog.open} onClose={handleCloseDateEditDialog} maxWidth="sm" fullWidth>
-          <DialogTitle sx={{ fontWeight: 600, color: '#03346E', fontFamily: OSWALD }}>Mark As Done?</DialogTitle>
+        <Dialog open={dateEditDialog.open} onClose={handleCloseDateEditDialog} maxWidth="sm" fullWidth className="systemCategoryDialog">
+          <DialogTitle className="systemCategoryDialogTitle" sx={{ fontWeight: 600, fontFamily: OSWALD }}>Mark As Done?</DialogTitle>
           <DialogContent>
             <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Typography variant="body2" sx={{ color: '#666', fontStyle: 'italic', fontFamily: OSWALD }}>
+              <Typography variant="body2" className="systemCategoryDialogMuted" sx={{ fontStyle: 'italic', fontFamily: OSWALD }}>
                 Fill the end date in order to mark as done
               </Typography>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <Box>
-                  <Typography variant="caption" sx={{ color: '#666', fontWeight: 500, fontFamily: OSWALD }}>End Date</Typography>
+                  <Typography variant="caption" className="systemCategoryDialogCaption" sx={{ fontWeight: 500, fontFamily: OSWALD }}>End Date</Typography>
                   <DatePicker
                     value={dateEditDialog.end_date}
                     onChange={(newDate) => setDateEditDialog(prev => ({ ...prev, end_date: newDate }))}
@@ -1004,13 +989,7 @@ const SystemCategory = () => {
                         fullWidth: true,
                         sx: oswaldInputSx,
                         inputProps: { readOnly: true },
-                        onFocus: (e) => {
-                          e.target.blur()
-                          const btn = e.target.parentElement.querySelector('button[aria-label="Choose date"]')
-                          if (btn) btn.click()
-                        },
                         onClick: (e) => {
-                          e.stopPropagation()
                           const btn = e.currentTarget.parentElement.querySelector('button[aria-label="Choose date"]')
                           if (btn) btn.click()
                         },
@@ -1027,7 +1006,8 @@ const SystemCategory = () => {
             <Button
               onClick={handleConfirmDateEdit}
               variant="contained"
-              sx={{ backgroundColor: '#03346E', fontFamily: OSWALD }}
+              className="systemCategoryPrimaryBtn"
+              sx={{ fontFamily: OSWALD }}
               disabled={!dateEditDialog.end_date || loadingStatusId === dateEditDialog.item?.id}
             >
               {loadingStatusId === dateEditDialog.item?.id ? 'Marking as done...' : 'Mark as Done'}
@@ -1038,22 +1018,33 @@ const SystemCategory = () => {
 
       {/* Bulk Mark As Done Dialog — only for access users */}
       {hasSystemCategoryAccess && (
-        <Dialog open={bulkDoneDialog.open} onClose={handleCloseBulkDone} maxWidth="sm" fullWidth>
-          <DialogTitle sx={{ fontWeight: 600, color: '#03346E', fontFamily: OSWALD }}>
+        <Dialog open={bulkDoneDialog.open} onClose={handleCloseBulkDone} maxWidth="sm" fullWidth className="systemCategoryDialog">
+          <DialogTitle className="systemCategoryDialogTitle" sx={{ fontWeight: 600, fontFamily: OSWALD }}>
             Mark {bulkDoneDialog.categoryIdx !== null ? getSelected(bulkDoneDialog.categoryIdx).size : 0} Item(s) as Done
           </DialogTitle>
           <DialogContent>
             <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Typography variant="body2" sx={{ color: '#666', fontStyle: 'italic', fontFamily: OSWALD }}>
+              <Typography variant="body2" className="systemCategoryDialogMuted" sx={{ fontStyle: 'italic', fontFamily: OSWALD }}>
                 Please provide an end date to mark the selected items as done.
               </Typography>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <Box>
-                  <Typography variant="caption" sx={{ color: '#666', fontWeight: 500, fontFamily: OSWALD }}>End Date *</Typography>
+                  <Typography variant="caption" className="systemCategoryDialogCaption" sx={{ fontWeight: 500, fontFamily: OSWALD }}>End Date *</Typography>
                   <DatePicker
                     value={bulkDoneDialog.end_date}
                     onChange={(newDate) => setBulkDoneDialog(prev => ({ ...prev, end_date: newDate }))}
-                    slotProps={{ textField: { size: 'small', fullWidth: true, sx: oswaldInputSx } }}
+                    slotProps={{
+                      textField: {
+                        size: 'small',
+                        fullWidth: true,
+                        sx: oswaldInputSx,
+                        inputProps: { readOnly: true },
+                        onClick: (e) => {
+                          const btn = e.currentTarget.parentElement.querySelector('button[aria-label="Choose date"]')
+                          if (btn) btn.click()
+                        },
+                      }
+                    }}
                     disabled={bulkLoading}
                     minDate={dayjs().startOf('day')}
                   />
@@ -1066,10 +1057,11 @@ const SystemCategory = () => {
             <Button
               onClick={handleConfirmBulkDone}
               variant="contained"
-              sx={{ backgroundColor: '#4caf50', fontFamily: OSWALD }}
+              className="systemCategorySuccessBtn"
+              sx={{ fontFamily: OSWALD }}
               disabled={!bulkDoneDialog.end_date || bulkLoading}
             >
-              {bulkLoading ? <><CircularProgress size={16} sx={{ mr: 1, color: '#fff' }} />Marking...</> : 'Confirm'}
+              {bulkLoading ? <><CircularProgress size={16} className="systemCategoryInlineWhiteSpinner" sx={{ mr: 1 }} />Marking...</> : 'Confirm'}
             </Button>
           </DialogActions>
         </Dialog>
@@ -1089,19 +1081,19 @@ const SystemCategory = () => {
 
       {/* Edit Progress Item Dialog — only for access users */}
       {hasSystemCategoryAccess && (
-        <Dialog open={editDialog.open} onClose={handleCloseEditDialog} maxWidth="sm" fullWidth>
-          <DialogTitle sx={{ fontWeight: 600, color: '#03346E', fontFamily: OSWALD }}>Edit Progress Item</DialogTitle>
+        <Dialog open={editDialog.open} onClose={handleCloseEditDialog} maxWidth="sm" fullWidth className="systemCategoryDialog">
+          <DialogTitle className="systemCategoryDialogTitle" sx={{ fontWeight: 600, fontFamily: OSWALD }}>Edit Progress Item</DialogTitle>
           <DialogContent>
             <Box sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Box>
-                <Typography variant="caption" sx={{ color: '#666', fontWeight: 500, fontFamily: OSWALD }}>Description</Typography>
-                <Typography variant="body2" sx={{ mt: 0.5, p: 1, backgroundColor: '#f5f5f5', borderRadius: '4px', fontFamily: OSWALD }}>
+                <Typography variant="caption" className="systemCategoryDialogCaption" sx={{ fontWeight: 500, fontFamily: OSWALD }}>Description</Typography>
+                <Typography variant="body2" className="systemCategoryDialogInfoBox" sx={{ mt: 0.5, p: 1, borderRadius: '4px', fontFamily: OSWALD }}>
                   {editDialog.item?.description}
                 </Typography>
               </Box>
               <Box>
-                <Typography variant="caption" sx={{ color: '#666', fontWeight: 500, fontFamily: OSWALD }}>Status</Typography>
-                <Typography variant="body2" sx={{ mt: 0.5, p: 1, backgroundColor: '#f5f5f5', borderRadius: '4px', fontFamily: OSWALD }}>
+                <Typography variant="caption" className="systemCategoryDialogCaption" sx={{ fontWeight: 500, fontFamily: OSWALD }}>Status</Typography>
+                <Typography variant="body2" className="systemCategoryDialogInfoBox" sx={{ mt: 0.5, p: 1, borderRadius: '4px', fontFamily: OSWALD }}>
                   {editDialog.item ? getStatusLabel(editDialog.item.status) : '-'}
                 </Typography>
               </Box>
@@ -1123,7 +1115,8 @@ const SystemCategory = () => {
             <Button
               onClick={handleSaveEditDialog}
               variant="contained"
-              sx={{ backgroundColor: '#03346E', fontFamily: OSWALD }}
+              className="systemCategoryPrimaryBtn"
+              sx={{ fontFamily: OSWALD }}
               disabled={loadingStatusId === editDialog.item?.id}
             >
               {loadingStatusId === editDialog.item?.id ? 'Saving...' : 'Save'}
@@ -1133,8 +1126,8 @@ const SystemCategory = () => {
       )}
 
       {/* Create Progress Item Dialog — open to all users */}
-      <Dialog open={createDialog.open} onClose={handleCloseCreateDialog} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ fontWeight: 600, color: '#03346E', fontFamily: OSWALD }}>
+      <Dialog open={createDialog.open} onClose={handleCloseCreateDialog} maxWidth="sm" fullWidth className="systemCategoryDialog">
+        <DialogTitle className="systemCategoryDialogTitle" sx={{ fontWeight: 600, fontFamily: OSWALD }}>
           Create New Progress Item{createDialog.entries.length > 1 ? ` (${createDialog.entries.length} entries)` : ''}
         </DialogTitle>
         <DialogContent>
@@ -1160,7 +1153,7 @@ const SystemCategory = () => {
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="caption" sx={{ color: '#666', fontWeight: 500, fontFamily: OSWALD }}>Raised Date *</Typography>
+                  <Typography variant="caption" className="systemCategoryDialogCaption" sx={{ fontWeight: 500, fontFamily: OSWALD }}>Raised Date *</Typography>
                   <DatePicker
                     value={createDialog.raisedDate}
                     onChange={(newDate) => setCreateDialog(prev => ({ ...prev, raisedDate: newDate }))}
@@ -1168,15 +1161,17 @@ const SystemCategory = () => {
                       textField: {
                         size: 'small', fullWidth: true, sx: oswaldInputSx,
                         inputProps: { readOnly: true },
-                        onFocus: (e) => { e.target.blur(); const b = e.target.parentElement.querySelector('button[aria-label="Choose date"]'); if (b) b.click() },
-                        onClick: (e) => { e.stopPropagation(); const b = e.currentTarget.parentElement.querySelector('button[aria-label="Choose date"]'); if (b) b.click() },
+                        onClick: (e) => {
+                          const btn = e.currentTarget.parentElement.querySelector('button[aria-label="Choose date"]')
+                          if (btn) btn.click()
+                        },
                       }
                     }}
                     disabled={createLoading}
                   />
                 </Box>
                 <Box sx={{ flex: 1 }}>
-                  <Typography variant="caption" sx={{ color: '#666', fontWeight: 500, fontFamily: OSWALD }}>Target Date</Typography>
+                  <Typography variant="caption" className="systemCategoryDialogCaption" sx={{ fontWeight: 500, fontFamily: OSWALD }}>Target Date</Typography>
                   <DatePicker
                     value={createDialog.targetDate}
                     onChange={(newDate) => setCreateDialog(prev => ({ ...prev, targetDate: newDate }))}
@@ -1184,8 +1179,10 @@ const SystemCategory = () => {
                       textField: {
                         size: 'small', fullWidth: true, sx: oswaldInputSx,
                         inputProps: { readOnly: true },
-                        onFocus: (e) => { e.target.blur(); const b = e.target.parentElement.querySelector('button[aria-label="Choose date"]'); if (b) b.click() },
-                        onClick: (e) => { e.stopPropagation(); const b = e.currentTarget.parentElement.querySelector('button[aria-label="Choose date"]'); if (b) b.click() },
+                        onClick: (e) => {
+                          const btn = e.currentTarget.parentElement.querySelector('button[aria-label="Choose date"]')
+                          if (btn) btn.click()
+                        },
                       }
                     }}
                     disabled={createLoading}
@@ -1205,12 +1202,12 @@ const SystemCategory = () => {
             />
 
             <Box>
-              <Typography variant="caption" sx={{ color: '#666', fontWeight: 500, fontFamily: OSWALD }}>Status</Typography>
+              <Typography variant="caption" className="systemCategoryDialogCaption" sx={{ fontWeight: 500, fontFamily: OSWALD }}>Status</Typography>
               <TextField value="Pending" fullWidth size="small" disabled variant="outlined" sx={oswaldInputSx} />
             </Box>
 
-            <Box sx={{ borderTop: '1px solid #e0e0e0', pt: 1 }}>
-              <Typography variant="caption" sx={{ fontFamily: OSWALD, fontWeight: 600, color: '#03346E', fontSize: '0.8rem' }}>
+            <Box className="systemCategoryDescriptionSection" sx={{ pt: 1 }}>
+              <Typography variant="caption" className="systemCategoryDescriptionHeading" sx={{ fontFamily: OSWALD, fontWeight: 600, fontSize: '0.8rem' }}>
                 Descriptions
               </Typography>
             </Box>
@@ -1226,7 +1223,7 @@ const SystemCategory = () => {
                   sx={oswaldInputSx}
                 />
                 {createDialog.entries.length > 1 && (
-                  <IconButton size="small" onClick={() => handleRemoveEntry(index)} disabled={createLoading} sx={{ color: '#f44336', mt: 0.5 }}>
+                  <IconButton size="small" onClick={() => handleRemoveEntry(index)} disabled={createLoading} className="systemCategoryRemoveDescriptionBtn" sx={{ mt: 0.5 }}>
                     <CloseIcon fontSize="small" />
                   </IconButton>
                 )}
@@ -1238,7 +1235,8 @@ const SystemCategory = () => {
               startIcon={<AddIcon />}
               onClick={handleAddEntry}
               disabled={createLoading}
-              sx={{ fontFamily: OSWALD, borderColor: '#03346E', color: '#03346E', alignSelf: 'flex-start', '&:hover': { backgroundColor: 'rgba(3,52,110,0.05)', borderColor: '#03346E' } }}
+              className="systemCategoryAddDescriptionBtn"
+              sx={{ fontFamily: OSWALD, alignSelf: 'flex-start' }}
             >
               Add Description
             </Button>
@@ -1249,7 +1247,8 @@ const SystemCategory = () => {
           <Button
             onClick={handleCreateSubmit}
             variant="contained"
-            sx={{ backgroundColor: '#03346E', fontFamily: OSWALD }}
+            className="systemCategoryPrimaryBtn"
+            sx={{ fontFamily: OSWALD }}
             disabled={isCreateSubmitDisabled}
           >
             {createLoading

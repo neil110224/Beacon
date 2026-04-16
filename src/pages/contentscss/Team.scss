@@ -49,9 +49,11 @@
   gap: 1rem;
 }
 
-.teamCard {
+.teamCard,
+.teamCard.MuiCard-root {
   border-radius: 0.5rem;
-  border: 1px solid #e0e0e0;
+  border: 1px solid $primary-box-content;
+  background-color: $primary-datatable-color !important;
   box-shadow: none;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -60,6 +62,10 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
   }
+}
+
+.teamCard .MuiCardContent-root {
+  background-color: $primary-datatable-color !important;
 }
 
 .teamCardContent {
@@ -75,54 +81,81 @@
 .teamCardTitle {
   margin-bottom: 0.25rem;
   font-weight: 600; 
-  color: $primary-contrast;
+  color: $primary-text-light;
 }
 
 .teamCardActions {
   margin-left: 0.5rem;
 }
 
+.teamCardMembersCount {
+  color: $primary-text-light;
+}
+
 .teamMenuIcon {
-  color: inherit;
+  color: $primary-text-light;
 }
 
 .teamMenu {
-  &.MuiPopover-root {
-    .MuiMenuItem-root {
-      &:hover {
-        background-color: rgba(0, 0, 0, 0.04);
-      }
-    }
+  & .MuiPaper-root {
+    border-radius: 8px;
+    margin-top: 8px;
+    min-width: 160px;
+    background-color: $primary-main;
+    border: 1px solid $primary-box-content;
+    color: $primary-text-light;
+  }
+}
+
+.teamMenuItem {
+  color: $primary-text-light;
+
+  &:hover {
+    background-color: rgba($primary-text-light, 0.08);
   }
 }
 
 .teamMenuItemEdit {
-  color: #1976d2;
+  color: $primary-text-light;
+  margin-right: 12px;
   font-size: 1.25rem;
 }
 
 .teamMenuItemArchive {
-  color: #ed6c02;
+  color: $primary-text-light;
+  margin-right: 12px;
   font-size: 1.25rem;
 }
 
 .teamMenuItemRestore {
-  color: #2e7d32;
+  color: $primary-text-light;
+  margin-right: 12px;
   font-size: 1.25rem;
 }
 
 .teamMembersDialog {
+  & .MuiPaper-root {
+    background-color: $primary-box-content !important;
+    color: $primary-text-light;
+    border: 1px solid $primary-box-content;
+  }
+
   .MuiDialogTitle-root {
     font-weight: 600;
     padding-bottom: 0.25rem;
+    background-color: $primary-main;
+    color: $primary-text-light;
   }
 
   .MuiDialogContent-root {
     padding-top: 1rem;
+    background-color: $primary-main;
+    color: $primary-text-light;
   }
 
   .MuiDialogActions-root {
     padding: 1rem;
+    background-color: $primary-main;
   }
 }
 
@@ -140,12 +173,16 @@
 
 .teamMemberInfo {
   flex: 1;
-  color: $primary-contrast;
+  color: $primary-btn-light;
 }
 
 .teamMemberName {
   font-weight: 500;
-  color: $primary-contrast;
+  color: $primary-text-light;
+}
+
+.teamMemberRole {
+  color: $primary-text-light;
 }
 
 .teamEmptyMembersText {

@@ -15,11 +15,12 @@
   align-items: center;
   padding: 16px;
   gap: 16px;
+  border: none;
 }
 
 .systemsTitle {
   font-weight: 600;
-  color: #2c3e50;
+  color: $primary-text-light;
 }
 
 .systemsHeaderActions {
@@ -31,35 +32,90 @@
 .systemsSearchField {
   max-width: 400px;
 
+  .MuiInputAdornment-root svg {
+    color: $primary-text-dark;
+  }
+
+  .MuiInputBase-input,
+  .MuiInputBase-input::placeholder {
+    color: rgba($primary-text-dark, 0.6);
+    opacity: 1;
+  }
+
+  .MuiInputBase-input {
+    color: $primary-text-dark;
+  }
+
   .MuiOutlinedInput-root {
     border-radius: 8px;
-    background-color: #fff;
+    background-color: $primary-text-white !important;
+
+    .MuiOutlinedInput-notchedOutline {
+      border-color: rgba($primary-text-dark, 0.55);
+    }
 
     &:hover fieldset {
-      border-color: #2c3e50;
+      border-color: rgba($primary-text-dark, 0.75);
     }
 
     &.Mui-focused fieldset {
-      border-color: #2c3e50;
+      border-color: $primary-text-dark;
     }
   }
 }
 
 .systemsAddButton {
-  background-color: #2c3e50;
-  color: #fff;
+  background-color: $primary-btn-light;
+  color: $primary-text-light;
   text-transform: none;
   border-radius: 8px;
   padding: 6px 20px;
   font-weight: 500;
 
   &:hover {
-    background-color: $primary-text-dark;
+    background-color: $primary-box-content-dark;
+  }
+}
+
+.systemsRefreshButton {
+  color: $primary-text-light;
+
+  &:hover {
+    background-color: rgba($primary-text-light, 0.08);
+  }
+}
+
+.systemsFileButton {
+  &.MuiButton-contained {
+    background-color: $primary-btn-light !important;
+    color: $primary-text-white !important;
+  }
+
+  &.MuiButton-contained:hover {
+    background-color: $primary-btn-dark !important;
+  }
+}
+
+.systemsCreateButton {
+  &.MuiButton-contained {
+    background-color: $primary-btn-light !important;
+    color: $primary-text-white !important;
+  }
+
+  &.MuiButton-contained:hover {
+    background-color: $primary-btn-dark !important;
   }
 }
 
 .systemsMenuIcon {
   margin-right: 8px;
+}
+
+.systemsFileMenuPaper {
+  box-shadow: none;
+  border: 1px solid $primary-box-content;
+  background-color: $primary-main;
+  color: $primary-text-light;
 }
 
 .systemsEmptyStateContainer {
@@ -102,17 +158,25 @@
   overflow-y: auto;
   align-content: start;
   max-height: calc(100vh - 100px); // adjust 80px to match your header height
-min-height: 0;
+  min-height: 0;
   // Default: show 3 columns
   // Override with sx prop for 4 columns when sidebar collapsed
 }
 
 .systemsCard {
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
+  &.MuiCard-root {
+    background-color: $primary-datatable-color !important;
+  }
   box-shadow: none;
   cursor: pointer;
   transition: all 0.3s ease;
+  background-color: $primary-datatable-color !important;
+  overflow: hidden;
+
+  .MuiCardContent-root {
+    background-color: $primary-datatable-color !important;
+    height: 100%;
+  }
 
   &:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -123,15 +187,28 @@ min-height: 0;
 .systemsCardTitle {
   font-weight: 600;
   margin-bottom: 8px;
-  color: #2c3e50;
+  color: $primary-text-light;
 }
 
 .systemsCardCount {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: $primary-text-light;
 
   strong {
     font-weight: 600;
+  }
+}
+
+.systemsCardDescription {
+  color: $primary-hover-light;
+}
+
+.systemsMoreButton {
+  color: $primary-hover-light;
+  align-self: center;
+
+  &:hover {
+    background-color: rgba($primary-hover-light, 0.15);
   }
 }
 

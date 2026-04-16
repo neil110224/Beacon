@@ -26,6 +26,7 @@ import { usePatchTeamMutation } from '../../features/api/team/teamApi'
 import { useGetSystemsListQuery } from '../../features/api/system/systemApi'
 import CachedIcon from '@mui/icons-material/Cached'
 import Snackbar from '../../component/reuseable/Snackbar' // adjust path as needed
+import './dialogscss/SystemteamEditDialog.scss'
 
 export default function SystemteamEditDialog({
   open,
@@ -167,21 +168,21 @@ export default function SystemteamEditDialog({
 
   // ── Reusable panel renderer ──────────────────────────────────────────────
   const renderPanel = ({
-    title, count, chipColor, chipTextColor,
+    title, count, variant,
     items, emptyMsg,
     searchValue, onSearchChange, searchPlaceholder,
-    actionLabel, actionColor, onAction,
-    onBulkLabel, onBulkColor, onBulkAction, bulkDisabled,
-    hoverBg,
+    actionLabel, onAction,
+    onBulkLabel, onBulkAction, bulkDisabled,
   }) => (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-        <Typography variant="subtitle2" sx={{ fontWeight: 600, color: '#555' }}>
+    <Box className={`systemTeamEditDialogPanel ${variant === 'assigned' ? 'is-assigned' : 'is-available'}`}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }} className="systemTeamEditDialogPanelHeader">
+        <Typography variant="subtitle2" className="systemTeamEditDialogPanelTitle" sx={{ fontWeight: 600 }}>
           {title}
           <Chip
             label={count}
             size="small"
-            sx={{ ml: 1, height: 18, fontSize: '0.7rem', bgcolor: chipColor, color: chipTextColor }}
+            className={`systemTeamEditDialogCountChip ${variant === 'assigned' ? 'is-assigned' : 'is-available'}`}
+            sx={{ ml: 1, height: 18, fontSize: '0.7rem' }}
           />
         </Typography>
         <Tooltip title={`${onBulkLabel} all visible`}>
@@ -190,7 +191,8 @@ export default function SystemteamEditDialog({
               size="small"
               disabled={bulkDisabled}
               onClick={onBulkAction}
-              sx={{ fontSize: '0.7rem', color: onBulkColor, minWidth: 'unset', p: '2px 6px' }}
+              className={`systemTeamEditDialogBulkBtn ${variant === 'assigned' ? 'is-assigned' : 'is-available'}`}
+              sx={{ fontSize: '0.7rem', minWidth: 'unset', p: '2px 6px' }}
             >
               {onBulkLabel} All
             </Button>
@@ -208,23 +210,24 @@ export default function SystemteamEditDialog({
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <SearchIcon sx={{ fontSize: 18, color: '#9e9e9e' }} />
+              <SearchIcon className="systemTeamEditDialogSearchIcon" sx={{ fontSize: 18 }} />
             </InputAdornment>
           ),
         }}
+        className="systemTeamEditDialogSearchField"
         sx={{ mb: 1 }}
       />
 
-      <Box sx={{ border: '1px solid #e0e0e0', borderRadius: '6px', height: 340, overflowY: 'auto', bgcolor: '#fafafa' }}>
+      <Box className="systemTeamEditDialogListBox" sx={{ borderRadius: '6px', height: 340, overflowY: 'auto' }}>
         {items.length === 0 ? (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-            <Typography variant="body2" sx={{ color: '#aaa' }}>{emptyMsg}</Typography>
+            <Typography variant="body2" className="systemTeamEditDialogEmptyText">{emptyMsg}</Typography>
           </Box>
         ) : (
           <List dense disablePadding>
             {items.map((system, idx) => (
               <React.Fragment key={system.id}>
-                <ListItem sx={{ px: 1.5, '&:hover': { bgcolor: hoverBg }, transition: 'background 0.15s' }}>
+                <ListItem className={`systemTeamEditDialogListItem ${variant === 'assigned' ? 'is-assigned' : 'is-available'}`} sx={{ px: 1.5, transition: 'background 0.15s' }}>
                   <ListItemText
                     primary={system.systemName}
                     primaryTypographyProps={{ fontSize: '0.85rem', fontWeight: 500 }}
@@ -241,7 +244,7 @@ export default function SystemteamEditDialog({
                         edge="end"
                         size="small"
                         onClick={() => onAction(system.id)}
-                        sx={{ color: actionColor }}
+                        className={`systemTeamEditDialogActionIcon ${variant === 'assigned' ? 'is-remove' : 'is-add'}`}
                       >
                         {actionLabel === 'Add to team'
                           ? <AddCircleOutlineIcon fontSize="small" />
@@ -268,13 +271,14 @@ export default function SystemteamEditDialog({
         onClose={handleClose}
         maxWidth="md"
         fullWidth
-        PaperProps={{ sx: { borderRadius: '8px', boxShadow: '0 5px 15px rgba(0,0,0,0.3)' } }}
+        className="systemTeamEditDialog"
+        PaperProps={{ className: 'systemTeamEditDialogPaper' }}
       >
-        <DialogTitle sx={{ fontFamily: '"Oswald", sans-serif', fontWeight: 600, pb: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <DialogTitle className="systemTeamEditDialogTitle" sx={{ fontFamily: '"Oswald", sans-serif', fontWeight: 600, pb: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
             Manage Systems
             {team && (
-              <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 400, fontFamily: 'inherit', mt: 0.25 }}>
+              <Typography variant="body2" className="systemTeamEditDialogSubtitle" sx={{ fontWeight: 400, fontFamily: 'inherit', mt: 0.25 }}>
                 Team: <strong>{team.name}</strong>
               </Typography>
             )}
@@ -284,10 +288,11 @@ export default function SystemteamEditDialog({
               <IconButton
                 onClick={handleRefresh}
                 disabled={refreshing || systemsLoading}
+                className="systemTeamEditDialogRefreshBtn"
                 sx={{ ml: 1 }}
                 size="small"
               >
-                <CachedIcon sx={{
+                <CachedIcon className="systemTeamEditDialogRefreshIcon" sx={{
                   animation: refreshing ? 'spin 1s linear infinite' : 'none',
                   '@keyframes spin': {
                     '0%': { transform: 'rotate(0deg)' },
@@ -302,68 +307,60 @@ export default function SystemteamEditDialog({
         <DialogContent sx={{ pt: 1.5 }}>
           {systemsLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-              <CircularProgress sx={{ color: '#03346E' }} />
+              <CircularProgress className="systemTeamEditDialogLoading" />
             </Box>
           ) : (
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1px 1fr', gap: 2, alignItems: 'start' }}>
+            <Box className="systemTeamEditDialogGrid" sx={{ display: 'grid', gridTemplateColumns: '1fr 1px 1fr', gap: 2, alignItems: 'start' }}>
 
               {/* LEFT — Available (not in this team) */}
               {renderPanel({
                 title:             'Available Systems',
                 count:             availableSystems.length,
-                chipColor:         '#e0e0e0',
-                chipTextColor:     '#333',
+                variant:           'available',
                 items:             filteredAvailable,
                 emptyMsg:          leftSearch ? 'No results found' : 'All systems are assigned',
                 searchValue:       leftSearch,
                 onSearchChange:    setLeftSearch,
                 searchPlaceholder: 'Search available...',
                 actionLabel:       'Add to team',
-                actionColor:       '#03346E',
                 onAction:          handleAdd,
                 onBulkLabel:       'Add',
-                onBulkColor:       '#03346E',
                 onBulkAction:      handleAddAll,
                 bulkDisabled:      filteredAvailable.length === 0,
-                hoverBg:           '#f0f4fa',
               })}
 
               {/* CENTER DIVIDER */}
-              <Box sx={{ bgcolor: '#e0e0e0', height: 430, mt: 4.5 }} />
+              <Box className="systemTeamEditDialogDivider" sx={{ height: 430, mt: 4.5 }} />
 
               {/* RIGHT — Assigned (in this team) */}
               {renderPanel({
                 title:             'In This Team',
                 count:             assignedSystems.length,
-                chipColor:         '#03346E',
-                chipTextColor:     '#fff',
+                variant:           'assigned',
                 items:             filteredAssigned,
                 emptyMsg:          rightSearch ? 'No results found' : 'No systems in this team yet',
                 searchValue:       rightSearch,
                 onSearchChange:    setRightSearch,
                 searchPlaceholder: 'Search assigned...',
                 actionLabel:       'Remove from team',
-                actionColor:       '#c62828',
                 onAction:          handleRemove,
                 onBulkLabel:       'Remove',
-                onBulkColor:       '#c62828',
                 onBulkAction:      handleRemoveAll,
                 bulkDisabled:      filteredAssigned.length === 0,
-                hoverBg:           '#fff3f3',
               })}
 
             </Box>
           )}
         </DialogContent>
 
-        <DialogActions sx={{ p: 2, gap: 1 }}>
-          <Button onClick={handleClose} variant="outlined" disabled={isUpdating}>
+        <DialogActions className="systemTeamEditDialogActions" sx={{ p: 2, gap: 1 }}>
+          <Button onClick={handleClose} variant="outlined" disabled={isUpdating} className="systemTeamEditDialogCancelBtn">
             Cancel
           </Button>
           <Button
             onClick={handleSave}
             variant="contained"
-            sx={{ bgcolor: '#03346E' }}
+            className="systemTeamEditDialogSaveBtn"
             disabled={isUpdating || systemsLoading || !initialized}
             startIcon={isUpdating && <CircularProgress size={20} color="inherit" />}
           >

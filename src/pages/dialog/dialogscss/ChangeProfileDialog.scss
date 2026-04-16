@@ -1,0 +1,93 @@
+@use "../../../styles/colors" as *;
+
+.changeProfileDialog {
+	.MuiPaper-root {
+		background-color: $primary-dark;
+		color: $primary-text-light;
+	}
+
+	.MuiDialogTitle-root,
+	.MuiDialogContent-root,
+	.MuiDialogActions-root {
+		color: $primary-text-light;
+	}
+
+	.MuiInputBase-input {
+		color: $primary-text-light;
+	}
+
+	.MuiInputLabel-root {
+		color: $primary-normal-light;
+
+		&.Mui-focused {
+			color: $primary-text-light;
+		}
+	}
+
+	.MuiOutlinedInput-root {
+		fieldset {
+			border-color: $primary-btn-light;
+		}
+
+		&:hover fieldset {
+			border-color: $primary-light;
+		}
+
+		&.Mui-focused fieldset {
+			border-color: $primary-normal-light;
+		}
+	}
+
+	.MuiDialogActions-root {
+		.MuiButton-text {
+			color: $primary-normal-light;
+
+			&:hover {
+				background-color: rgba($primary-text-light, 0.08);
+			}
+		}
+
+		.MuiButton-contained {
+			background-color: $primary-btn-light;
+			color: $primary-text-light;
+
+			&:hover {
+				background-color: $primary-light;
+			}
+		}
+	}
+}
+
+.changeProfileDialogField {
+	.MuiInputLabel-root {
+		top: 2px;
+		background: $primary-dark;
+		padding: 0 4px;
+	}
+}
+
+.changeProfileDialogField--suffix {
+	.MuiOutlinedInput-root {
+		fieldset {
+			border-color: $primary-btn-light;
+			border-width: 2px;
+		}
+
+		&:hover fieldset {
+			border-color: $primary-light;
+		}
+
+		&.Mui-focused fieldset {
+			border-color: $primary-normal-light;
+		}
+	}
+}
+
+.changeProfileDialogLoadingIcon {
+	display: flex;
+	align-items: center;
+}
+
+.changeProfileDialogProgress {
+	color: $primary-text-light;
+}

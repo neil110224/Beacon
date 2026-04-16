@@ -48,20 +48,6 @@ const Team = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   
 
-  const getRandomColor = (seed) => {
-    return '#03346E';
-  };
-
-  const teamColorMap = useMemo(() => {
-    const colorMap = {};
-    if (Array.isArray(teams)) {
-      teams.forEach((team, index) => {
-        colorMap[team.id] = getRandomColor(index);
-      });
-    }
-    return colorMap;
-  }, [teams]);
-
   const { data: teamsData, isLoading: teamsLoading, isError: teamsError, error: teamsErrorData, refetch: refetchTeams } = useGetTeamsQuery({
     status: showArchived ? 'inactive' : 'active',
     term: debouncedSearchTerm,
@@ -220,12 +206,12 @@ const Team = () => {
       {!showNoData && !showArchiveNoData && (filteredTeams.length > 0 || isLoading) ? (
         <Box className="teamCardsGrid" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
           {filteredTeams.map(team => (
-            <Card key={team.id} className="teamCard" style={{ backgroundColor: teamColorMap[team.id] }} onClick={() => handleOpenMembersDialog(team)}>
+            <Card key={team.id} className="teamCard" onClick={() => handleOpenMembersDialog(team)}>
               <CardContent>
                 <Box className="teamCardContent">
                   <Box className="teamCardInfo">
                     <Typography variant="subtitle1" className="teamCardTitle" sx={{fontFamily: '"Oswald", sans-serif'}}>{team.name}</Typography>
-                    <Typography variant="body2" sx={{ color: '#f4f4f4', fontFamily: '"Oswald", sans-serif' }}>
+                    <Typography variant="body2" className="teamCardMembersCount" sx={{ fontFamily: '"Oswald", sans-serif' }}>
                       {team.members?.length || 0} {team.members?.length === 1 ? 'member' : 'members'}
                     </Typography>
                   </Box>
@@ -239,19 +225,19 @@ const Team = () => {
         </Box>
       ) : null}
 
-      <Menu className="teamMenu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+      <Menu className="teamMenu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose} onClick={(e) => e.stopPropagation()} PaperProps={{ elevation: 3 }}>
         {selectedTeam?.deleted_at ? (
-          <MenuItem onClick={handleArchiveClick}>
+          <MenuItem onClick={handleArchiveClick} className="teamMenuItem">
             <RestoreIcon fontSize="small" className="teamMenuItemRestore" sx={{ mr: 1.5 }} />
             Restore
           </MenuItem>
         ) : (
           <>
-            <MenuItem onClick={handleEdit}>
+            <MenuItem onClick={handleEdit} className="teamMenuItem">
               <EditIcon fontSize="small" className="teamMenuItemEdit" sx={{ mr: 1.5 }} />
               Edit
             </MenuItem>
-            <MenuItem onClick={handleArchiveClick}>
+            <MenuItem onClick={handleArchiveClick} className="teamMenuItem">
               <ArchiveIcon fontSize="small" className="teamMenuItemArchive" sx={{ mr: 1.5 }} />
               Archive
             </MenuItem>
@@ -260,7 +246,7 @@ const Team = () => {
       </Menu>
 
       <Dialog className="teamMembersDialog" open={memberDialogOpen} onClose={handleCloseMembersDialog} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{fontFamily: '"Oswald", sans-serif'}}>{selectedTeamForMembers?.name} - Members</DialogTitle>
+        <DialogTitle className="teamMembersDialogTitle" sx={{fontFamily: '"Oswald", sans-serif'}}>{selectedTeamForMembers?.name} - Members</DialogTitle>
         <DialogContent>
           {selectedTeamForMembers?.members && selectedTeamForMembers.members.length > 0 ? (
             <Box className="teamMembersContentBox">
@@ -270,8 +256,8 @@ const Team = () => {
                     {!member.avatar && member.name.charAt(0)}
                   </Avatar>
                   <Box className="teamMemberInfo">
-                    <Typography variant="body2" className="teamMemberName" sx={{ color: '#03346E', fontFamily: '"Oswald", sans-serif' }}>{member.name}</Typography>
-                    <Typography variant="caption" sx={{ color: '#03346E', fontFamily: '"Oswald", sans-serif' }}>{member.role}</Typography>
+                    <Typography variant="body2" className="teamMemberName" sx={{ fontFamily: '"Oswald", sans-serif' }}>{member.name}</Typography>
+                    <Typography variant="caption" className="teamMemberRole" sx={{ fontFamily: '"Oswald", sans-serif' }}>{member.role}</Typography>
                   </Box>
                 </Box>
               ))}

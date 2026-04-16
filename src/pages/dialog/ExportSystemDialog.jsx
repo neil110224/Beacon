@@ -26,6 +26,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import dayjs from 'dayjs'
+import './dialogscss/ExportSystemDialog.scss'
 
 const OSWALD = '"Oswald", sans-serif'
 
@@ -40,14 +41,10 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
   const [selectedTeamId, setSelectedTeamId] = React.useState('all')
   const [statusFilter, setStatusFilter] = React.useState('all')
   const [selectedCategories, setSelectedCategories] = React.useState([])
-  const [startDate, setStartDate] = React.useState('')
-  const [endDate, setEndDate] = React.useState('')
+  const [startDate, setStartDate] = React.useState(null)
+  const [endDate, setEndDate] = React.useState(null)
   const [isLoading, setIsLoading] = React.useState(false)
   const [snackbar, setSnackbar] = React.useState({ open: false, message: '', severity: 'success' })
-
-  // ── Controlled open state for each DatePicker ──────────────────────────────
-  const [startPickerOpen, setStartPickerOpen] = React.useState(false)
-  const [endPickerOpen, setEndPickerOpen] = React.useState(false)
 
   const { data: allSystemsData, isLoading: allSystemsLoading } = useGetSystemsListQuery({
     status: 'active',
@@ -82,6 +79,8 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
       setSelectedCategories(categories.map((cat) => cat.id))
     }
   }, [categories])
+
+  const hasOpenedRef = React.useRef(false)
 
   const allTeams = React.useMemo(() => {
     const teamsMap = new Map()
@@ -121,8 +120,8 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
     (raisedDate) => {
       if (!startDate && !endDate) return true
       const d = new Date(raisedDate)
-      if (startDate && d < new Date(startDate)) return false
-      if (endDate && d > new Date(endDate)) return false
+      if (startDate && d < startDate.startOf('day').toDate()) return false
+      if (endDate && d > endDate.endOf('day').toDate()) return false
       return true
     },
     [startDate, endDate]
@@ -206,8 +205,8 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
     }
     params.append('year', new Date().getFullYear().toString())
     if (statusFilter !== 'all') params.append('status', statusFilter)
-    if (startDate) params.append('start_date', startDate)
-    if (endDate) params.append('end_date', endDate)
+    if (startDate) params.append('start_date', startDate.format('YYYY-MM-DD'))
+    if (endDate) params.append('end_date', endDate.format('YYYY-MM-DD'))
     return params
   }
 
@@ -331,7 +330,7 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
         ? 'all-teams'
         : allTeams.find((t) => t.id === parseInt(selectedTeamId))?.name || 'export'
       const statusSuffix = statusFilter === 'all' ? '' : `-${statusFilter}`
-      const dateSuffix = startDate || endDate ? `-${startDate || 'start'}_to_${endDate || 'end'}` : ''
+      const dateSuffix = startDate || endDate ? `-${startDate?.format('YYYY-MM-DD') || 'start'}_to_${endDate?.format('YYYY-MM-DD') || 'end'}` : ''
       const fileName = `systems-export-${teamNameSuffix}${statusSuffix}${dateSuffix}.xlsx`
 
       const finalBlob = blobs.length === 1 ? blobs[0] : await mergeXlsxBlobs(blobs)
@@ -365,16 +364,22 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
     setSelectedTeamId('all')
     setStatusFilter('all')
     setSelectedCategories(categories.map((cat) => cat.id))
-    setStartDate('')
-    setEndDate('')
-    setStartPickerOpen(false)
-    setEndPickerOpen(false)
+    setStartDate(null)
+    setEndDate(null)
     setIsLoading(false)
     setSnackbar({ open: false, message: '', severity: 'success' })
   }, [categories])
 
   React.useEffect(() => {
-    if (open) resetForm()
+    if (open && !hasOpenedRef.current) {
+      resetForm()
+    }
+
+    hasOpenedRef.current = open
+
+    if (!open) {
+      hasOpenedRef.current = false
+    }
   }, [open, resetForm])
 
   const handleClose = () => {
@@ -386,8 +391,8 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ fontFamily: OSWALD, fontWeight: 600, color: '#2c3e50' }}>
+      <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth className="exportSystemDialog">
+        <DialogTitle className="exportSystemDialogTitle" sx={{ fontFamily: OSWALD, fontWeight: 600 }}>
           Export Systems
         </DialogTitle>
 
@@ -456,72 +461,63 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
             {/* Date Range — filters by raised_date */}
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
               <Box sx={{ flex: 1 }}>
-                <Typography variant="caption" sx={{ color: '#666', fontWeight: 500, fontFamily: OSWALD }}>
+                <Typography variant="caption" className="exportSystemDialogDateLabel" sx={{ fontWeight: 500, fontFamily: OSWALD }}>
                   Raised Date From
                 </Typography>
                 <DatePicker
-                  value={startDate ? dayjs(startDate) : null}
+                  format="DD/MM/YY"
+                  value={startDate}
                   onChange={(newValue) => {
-                    setStartDate(newValue ? newValue.format('YYYY-MM-DD') : '')
-                    setStartPickerOpen(false)
+                    setStartDate(newValue)
                   }}
-                  open={startPickerOpen}
-                  onOpen={() => setStartPickerOpen(true)}
-                  onClose={() => setStartPickerOpen(false)}
                   disabled={isLoading}
                   slotProps={{
+                    field: {
+                      readOnly: true,
+                    },
                     textField: {
                       size: 'small',
                       fullWidth: true,
                       sx: oswaldInputSx,
                       inputProps: { readOnly: true },
-                      onClick: () => !isLoading && setStartPickerOpen(true),
+                      onClick: (e) => {
+                        const btn = e.currentTarget.parentElement.querySelector('button[aria-label="Choose date"]')
+                        if (btn) btn.click()
+                      },
                     },
                   }}
                 />
               </Box>
               <Box sx={{ flex: 1 }}>
-                <Typography variant="caption" sx={{ color: '#666', fontWeight: 500, fontFamily: OSWALD }}>
-                  Raised Date To
+                <Typography variant="caption" className="exportSystemDialogDateLabel" sx={{ fontWeight: 500, fontFamily: OSWALD }}>
+                  Target Date
                 </Typography>
                 <DatePicker
-                  value={endDate ? dayjs(endDate) : null}
+                  format="DD/MM/YY"
+                  value={endDate}
                   onChange={(newValue) => {
-                    setEndDate(newValue ? newValue.format('YYYY-MM-DD') : '')
-                    setEndPickerOpen(false)
+                    setEndDate(newValue)
                   }}
-                  open={endPickerOpen}
-                  onOpen={() => setEndPickerOpen(true)}
-                  onClose={() => setEndPickerOpen(false)}
                   disabled={isLoading}
-                  minDate={startDate ? dayjs(startDate) : undefined}
+                  minDate={startDate || undefined}
                   slotProps={{
+                    field: {
+                      readOnly: true,
+                    },
                     textField: {
                       size: 'small',
                       fullWidth: true,
                       sx: oswaldInputSx,
                       inputProps: { readOnly: true },
-                      onClick: () => !isLoading && setEndPickerOpen(true),
+                      onClick: (e) => {
+                        const btn = e.currentTarget.parentElement.querySelector('button[aria-label="Choose date"]')
+                        if (btn) btn.click()
+                      },
                     },
                   }}
                 />
               </Box>
             </Box>
-
-            {(startDate || endDate) && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography sx={{ fontFamily: OSWALD, fontSize: '0.8rem', color: '#666' }}>
-                  Filtering by raised date: {startDate || '...'} → {endDate || '...'}
-                </Typography>
-                <Button
-                  size="small"
-                  onClick={() => { setStartDate(''); setEndDate('') }}
-                  sx={{ fontFamily: OSWALD, fontSize: '0.75rem', minWidth: 'auto', color: '#e74c3c' }}
-                >
-                  Clear
-                </Button>
-              </Box>
-            )}
 
             <Divider />
 
@@ -555,11 +551,8 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
                 filteredSystemsByStatus.map((system) => (
                   <Card
                     key={system.id}
-                    sx={{
-                      mb: 2,
-                      backgroundColor: canExportSystem(system) ? '#f8f9fa' : '#f5f5f5',
-                      opacity: canExportSystem(system) ? 1 : 0.6,
-                    }}
+                    className={`exportSystemDialogCard ${canExportSystem(system) ? 'exportSystemDialogCard--active' : 'exportSystemDialogCard--inactive'}`}
+                    sx={{ mb: 2 }}
                   >
                     <CardContent sx={{ pb: 2 }}>
                       <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
@@ -569,10 +562,13 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
                           disabled={isLoading || !canExportSystem(system)}
                         />
                         <Box sx={{ flex: 1 }}>
-                          <Typography sx={{ fontFamily: OSWALD, fontWeight: 600, fontSize: '1rem', color: !canExportSystem(system) ? '#999' : '#000' }}>
+                          <Typography
+                            className={`exportSystemDialogSystemName ${canExportSystem(system) ? 'exportSystemDialogSystemName--active' : 'exportSystemDialogSystemName--inactive'}`}
+                            sx={{ fontFamily: OSWALD, fontWeight: 600, fontSize: '1rem' }}
+                          >
                             {system.systemName}
                           </Typography>
-                          <Typography sx={{ fontFamily: OSWALD, fontSize: '0.85rem', color: '#666', mt: 0.5 }}>
+                          <Typography className="exportSystemDialogSystemTeams" sx={{ fontFamily: OSWALD, fontSize: '0.85rem', mt: 0.5 }}>
                             Teams: {system.team.map((t) => t.name).join(', ')}
                           </Typography>
                         </Box>
@@ -581,7 +577,7 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
                   </Card>
                 ))
               ) : (
-                <Typography sx={{ fontFamily: OSWALD, textAlign: 'center', color: '#999', py: 3 }}>
+                <Typography className="exportSystemDialogEmptyText" sx={{ fontFamily: OSWALD, textAlign: 'center', py: 3 }}>
                   {systemsForSelectedTeam.length === 0
                     ? 'No systems available for this team'
                     : 'No systems match the selected filters'}
@@ -591,8 +587,8 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
           </Box>
         </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={onClose} disabled={isLoading} sx={{ fontFamily: OSWALD }}>
+        <DialogActions className="exportSystemDialogActions" sx={{ px: 3, pb: 2 }}>
+          <Button onClick={onClose} disabled={isLoading} className="exportSystemDialogCancelBtn" sx={{ fontFamily: OSWALD }}>
             Cancel
           </Button>
           <Button
@@ -600,7 +596,8 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
             variant="contained"
             disabled={selectedCount === 0 || isLoading || selectedCategories.length === 0}
             startIcon={isLoading && <CircularProgress size={20} />}
-            sx={{ backgroundColor: '#2c3e50', fontFamily: OSWALD, '&:hover': { backgroundColor: '#34495e' } }}
+            className="exportSystemDialogExportBtn"
+            sx={{ fontFamily: OSWALD }}
           >
             {isLoading ? 'Exporting...' : `Export (${selectedCount})`}
           </Button>
@@ -612,7 +609,7 @@ const ExportSystemDialog = ({ open, onClose, selectedTeam, filteredTeamSystems }
           onClose={handleCloseSnackbar}
           anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
-          <Alert severity={snackbar.severity} variant="filled" onClose={handleCloseSnackbar} sx={{ fontFamily: OSWALD }}>
+          <Alert severity={snackbar.severity} variant="filled" onClose={handleCloseSnackbar} className="exportSystemDialogAlert" sx={{ fontFamily: OSWALD }}>
             {snackbar.message}
           </Alert>
         </Snackbar>

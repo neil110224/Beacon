@@ -24,47 +24,76 @@
 .systemCategoryTitle {
   font-family: 'Oswald', sans-serif;
   font-weight: 600;
-  color: #2c3e50;
+  color: $primary-text-light;
   margin-bottom: 4px;
 }
 
 .systemCategoryTeam {
   font-family: 'Oswald', sans-serif;
-  color: #6b7280;
+  color: $primary-text-light;
   font-size: 0.875rem;
 }
 
 .systemCategoryAddButton {
   font-family: 'Oswald', sans-serif;
-  background-color: $primary-text-light;
-  color: #fff;
+  background-color: $primary-btn-light;
+  color: $primary-text-light;
   text-transform: none;
   font-weight: 600;
   padding: 8px 16px;
   margin-right: 8px;
 
   &:hover {
-    background-color: $primary-text-dark;
+    background-color: $primary-box-content-dark;
   }
+}
+
+.systemCategoryBackButton {
+  color: $primary-text-light !important;
+}
+
+.systemCategoryPendingSummary {
+  color: $primary-hover-light;
 }
 
 .systemCategoryContent {
   padding: 24px;
   flex: 1;
   overflow: auto;
+  scrollbar-color: #4a4a4a #1f1f1f;
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #1f1f1f;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #4a4a4a;
+    border-radius: 8px;
+    border: 2px solid #1f1f1f;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #5a5a5a;
+  }
 }
 
 .systemCategoryAccordion {
   margin-bottom: 16px;
-  background-color: #f5f5f5;
+  background-color: $primary-box-content;
 
   &:before {
     display: none;
   }
 
   .MuiAccordionSummary-root {
-    background-color: $primary-text-light;
-    color: #f4f4f4;
+    background-color: $primary-box-content-dark;
+    color: $primary-text-light;
     border-radius: 5px 5px 0 0;
     min-height: 16px;
     padding: 8px 16px !important;
@@ -87,13 +116,18 @@
   }
 
   .MuiAccordionDetails-root {
-    background-color: #ffffff;
+    background-color: $primary-main;
     padding: 0;
   }
 }
 
+.systemCategoryAccordion--new {
+  background-color: rgba($primary-text-light, 0.08);
+  border: 2px solid $primary-text-light;
+}
+
 .systemCategoryExpandIcon {
-  color: #f4f4f4;
+  color: $primary-text-light;
 }
 
 .systemCategoryTableContainer {
@@ -110,22 +144,50 @@
 }
 
 .systemCategoryTableHead {
-  background-color: #f0f0f0;
+  background-color: $primary-box-content-dark;
 
   th {
     font-weight: bold;
     font-family: 'Oswald', sans-serif;
+    color: $primary-text-light;
   }
 }
 
 .systemCategoryTableRow {
+  background-color: $primary-main;
+
   td {
     font-family: 'Oswald', sans-serif;
+    color: $primary-text-light;
   }
 
   &:hover {
-    background-color: #fafafa;
+    background-color: $primary-box-content !important;
   }
+
+  &:hover > td {
+    background-color: $primary-box-content !important;
+  }
+}
+
+.systemCategoryTableRow.is-selected {
+  background-color: rgba($primary-text-light, 0.08);
+}
+
+.systemCategoryTableRow.is-clickable:hover {
+  background-color: $primary-box-content !important;
+}
+
+.systemCategoryTableRow.is-clickable:hover > td {
+  background-color: $primary-box-content !important;
+}
+
+.systemCategoryTableRow.is-clickable {
+  cursor: pointer;
+}
+
+.systemCategoryTableRow:not(.is-clickable) {
+  cursor: default;
 }
 
 .systemCategoryDatePicker {
@@ -135,7 +197,7 @@
 .systemCategoryStatusSelect {
   min-width: 120px;
   font-weight: bold;
-  color: #fff;
+  color: $primary-text-light;
   font-family: 'Oswald', sans-serif;
 
   &:disabled {
@@ -152,7 +214,7 @@
   }
 
   .MuiSvgIcon-root {
-    color: #fff;
+    color: $primary-text-light;
   }
 }
 
@@ -181,20 +243,26 @@
 
 .systemCategoryEmptyItems {
   padding: 16px;
+  color: $primary-text-light;
+
+  .MuiTypography-root {
+    color: $primary-text-light;
+  }
 
   p, span {
     font-family: 'Oswald', sans-serif;
+    color: $primary-text-light;
   }
 }
 
 .systemCategorySnackbar {
   width: 100%;
   font-weight: bold;
-  color: #fff;
+  color: $primary-text-light;
   font-family: 'Oswald', sans-serif;
 
   .MuiAlert-icon {
-    color: #fff;
+    color: $primary-text-light;
   }
 
   .MuiAlert-message {
@@ -202,11 +270,11 @@
   }
 
   &.success {
-    background-color: #4caf50;
+    background-color: $primary-btn-light;
   }
 
   &.error {
-    background-color: #f44336;
+    background-color: #b23b3b;
   }
 }
 
@@ -220,10 +288,256 @@
 .systemCategoryErrorContainer {
   padding: 24px;
   text-align: center;
-  color: #6c757d;
+  color: $primary-text-light;
   font-family: 'Oswald', sans-serif;
 
   p, span, h6 {
     font-family: 'Oswald', sans-serif;
+  }
+}
+
+.systemCategoryTabs {
+  .MuiTab-root {
+    color: $primary-text-light !important;
+  }
+
+  .Mui-selected {
+    color: $primary-text-light !important;
+  }
+
+  .MuiTabs-indicator {
+    background-color: $primary-text-light !important;
+  }
+}
+
+.systemCategoryNoCategoriesText {
+  color: $primary-text-light;
+}
+
+.systemCategorySelectedChip {
+  background-color: $primary-box-content-dark !important;
+  color: $primary-text-light !important;
+}
+
+.systemCategoryBulkPendingBtn,
+.systemCategoryBulkDoneBtn,
+.systemCategoryBulkHoldBtn,
+.systemCategoryPrimaryBtn,
+.systemCategorySuccessBtn {
+  color: $primary-text-light !important;
+}
+
+.systemCategoryBulkPendingBtn {
+  background-color: $primary-btn-light !important;
+}
+
+.systemCategoryBulkDoneBtn,
+.systemCategorySuccessBtn {
+  background-color: #3f8f5f !important;
+}
+
+.systemCategoryBulkHoldBtn {
+  background-color: #4b6d99 !important;
+}
+
+.systemCategoryPrimaryBtn {
+  background-color: $primary-btn-light !important;
+}
+
+.systemCategoryInlineWhiteSpinner {
+  color: $primary-text-light !important;
+}
+
+.systemCategoryClearBtn {
+  color: $primary-text-light !important;
+}
+
+.systemCategoryCheckbox {
+  color: $primary-text-light !important;
+
+  &.Mui-checked,
+  &.MuiCheckbox-indeterminate {
+    color: $primary-text-light !important;
+  }
+}
+
+.systemCategoryDetailLink {
+  &:hover {
+    text-decoration: underline;
+    color: $primary-text-light;
+  }
+}
+
+.systemCategoryInlineRemarksField {
+  .MuiOutlinedInput-root {
+    background-color: $primary-box-content;
+
+    &:hover fieldset {
+      border-color: $primary-box-content;
+    }
+
+    &.Mui-focused fieldset {
+      border-color: $primary-box-content;
+    }
+  }
+}
+
+.systemCategoryConfirmIcon {
+  color: #3f8f5f !important;
+}
+
+.systemCategoryMetaCell {
+  color: $primary-text-light;
+}
+
+.systemCategoryStatusChip {
+  color: $primary-text-light !important;
+}
+
+.systemCategoryStatusChip--pending {
+  background-color: $primary-btn-light !important;
+}
+
+.systemCategoryStatusChip--hold {
+  background-color: $primary-box-content !important;
+}
+
+.systemCategoryStatusChip--done {
+  background-color: $primary-light !important;
+}
+
+.systemCategoryStatusChip--inprogress {
+  background-color: $primary-box-content-dark !important;
+}
+
+.systemCategoryStatusChip--unknown {
+  background-color: $secondary-text-light !important;
+}
+
+.systemCategoryActionIcon {
+  color: $primary-text-light !important;
+}
+
+.systemCategoryShowMoreBtn {
+  color: $primary-text-light !important;
+}
+
+.systemCategoryDialog {
+  .MuiPaper-root {
+    background-color: $primary-main;
+    color: $primary-text-light;
+  }
+
+  .MuiInputBase-input,
+  .MuiSelect-select,
+  .MuiInputLabel-root,
+  .MuiFormLabel-root,
+  .MuiFormHelperText-root,
+  .MuiTypography-root,
+  .MuiMenuItem-root {
+    color: $primary-text-light;
+  }
+
+  .MuiInputBase-input::placeholder {
+    color: $primary-text-light;
+    opacity: 1;
+  }
+
+  .MuiInputBase-root,
+  .MuiOutlinedInput-root,
+  .MuiPickersInputBase-root,
+  .MuiPickersSectionList-root,
+  .MuiPickersSectionList-section,
+  .MuiPickersSectionList-sectionContent,
+  .MuiPickersInputBase-sectionsContainer {
+    color: $primary-text-light;
+  }
+
+  .MuiPickersInputBase-root .MuiInputBase-input,
+  .MuiPickersInputBase-root input,
+  input[placeholder="MM/DD/YYYY"],
+  input[placeholder="mm/dd/yyyy"],
+  input[placeholder="MM/DD/YY"],
+  input[placeholder="mm/dd/yy"] {
+    color: $primary-text-light;
+    -webkit-text-fill-color: $primary-text-light;
+  }
+
+  .MuiInputBase-input.Mui-disabled,
+  .MuiInputBase-input.Mui-disabled::placeholder,
+  .MuiInputBase-input:disabled,
+  .MuiInputBase-input:disabled::placeholder {
+    color: $primary-text-light;
+    opacity: 1;
+    -webkit-text-fill-color: $primary-text-light;
+  }
+
+  .MuiInputBase-root.Mui-disabled .MuiInputBase-input {
+    color: $primary-text-light;
+    -webkit-text-fill-color: $primary-text-light;
+  }
+
+  .MuiPickersInputBase-root.Mui-disabled,
+  .MuiPickersInputBase-root.Mui-disabled .MuiInputBase-input,
+  .MuiPickersInputBase-root.Mui-disabled .MuiPickersSectionList-section,
+  .MuiPickersInputBase-root.Mui-disabled .MuiPickersSectionList-sectionContent {
+    color: $primary-text-light;
+    -webkit-text-fill-color: $primary-text-light;
+    opacity: 1;
+  }
+
+  .MuiInputLabel-root.Mui-focused,
+  .MuiFormLabel-root.Mui-focused,
+  .MuiSvgIcon-root,
+  .MuiSelect-icon {
+    color: $primary-box-content;
+  }
+
+  .MuiOutlinedInput-notchedOutline {
+    border-color: rgba($primary-text-light, 0.35);
+  }
+
+  .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+    border-color: rgba($primary-box-content, 0.8);
+  }
+
+  .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: $primary-box-content;
+  }
+}
+
+.systemCategoryDialogTitle {
+  color: $primary-text-light;
+}
+
+.systemCategoryDialogMuted,
+.systemCategoryDialogCaption,
+.systemCategoryDialogCloseBtn {
+  color: $primary-text-light;
+}
+
+.systemCategoryDialogInfoBox {
+  background-color: $primary-box-content;
+}
+
+.systemCategoryDescriptionSection {
+  border-top: 1px solid rgba($primary-text-light, 0.2);
+}
+
+.systemCategoryDescriptionHeading {
+  color: $primary-text-light;
+}
+
+.systemCategoryRemoveDescriptionBtn {
+  color: #b23b3b !important;
+}
+
+.systemCategoryAddDescriptionBtn {
+  border-color: $primary-text-light !important;
+  color: $primary-text-light !important;
+
+  &:hover {
+    background-color: rgba($primary-text-dark, 0.1) !important;
+    border-color: $primary-text-light !important;
   }
 }

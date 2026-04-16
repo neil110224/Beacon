@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { Box, Typography, IconButton, Menu, MenuItem } 
 from '@mui/material';
 import nodataImg from '../../assets/alh.png'
@@ -33,6 +33,7 @@ const Role = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [isTabSwitching, setIsTabSwitching] = useState(false)
+  const suppressRowClickRef = useRef(false);
 
   const { data, isLoading, isError, error, refetch } = useGetRolesQuery({
     status: showArchived ? 'inactive' : 'active',
@@ -48,8 +49,12 @@ const Role = () => {
   };
 
   const handleMenuClose = () => {
+    suppressRowClickRef.current = true;
     setAnchorEl(null);
     setSelectedRole(null);
+    window.setTimeout(() => {
+      suppressRowClickRef.current = false;
+    }, 0);
   };
 
   const handleEdit = (e) => {
@@ -59,6 +64,7 @@ const Role = () => {
   };
 
   const handleRowClick = (row) => {
+    if (suppressRowClickRef.current || open) return;
     setSelectedRole(row);
     setRoleDialogOpen(true);
   };
@@ -169,6 +175,7 @@ const Role = () => {
             anchorEl={anchorEl}
             open={open && selectedRole?.id === row.id}
             onClose={handleMenuClose}
+            onClick={(e) => e.stopPropagation()}
             className="roleMenu"
             PaperProps={{ elevation: 3 }}
           >
@@ -262,25 +269,6 @@ const Role = () => {
           isError={isError}
           error={error}
           onRowClick={handleRowClick}
-          tableSx={{ 
-            minWidth: 800,
-            '& .MuiTableCell-root': {
-              padding: '14px 16px',
-              fontSize: '0.875rem',
-              color: '#2c3e50',
-            },
-          }}
-          headSx={{ 
-            background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
-            '& th': { 
-              fontWeight: 600,
-              color: '#ffffff !important',
-              fontSize: '0.875rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px',
-              padding: '16px',
-            }
-          }}
         />
       )}
 

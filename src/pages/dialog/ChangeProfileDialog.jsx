@@ -3,6 +3,7 @@ import {Dialog,DialogTitle,DialogContent,DialogActions,Button,TextField,Avatar,B
 import { useDispatch } from 'react-redux';
 import { updateUser } from '../../features/api/slice/authSlice'; // Your authSlice action
 import { useUpdateUserMutation } from '../../features/api/user/userApi'; // Import from userApi.js (adjust path if needed)
+import './dialogscss/ChangeProfileDialog.scss';
 
 const ChangeProfileDialog = ({ open, onClose, user }) => {
   const dispatch = useDispatch();
@@ -51,7 +52,7 @@ const handleSave = async () => {
   };
 
   return (
-    <Dialog open={open} onClose={handleCancel} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={handleCancel} maxWidth="sm" fullWidth className="changeProfileDialog">
       <DialogTitle>Change Information</DialogTitle>
       <DialogContent>
         {error && <Typography color="error">Error: {error.data?.message || 'Update failed'}</Typography>}
@@ -63,14 +64,7 @@ const handleSave = async () => {
           fullWidth
           margin="normal"
           disabled={isLoading}
-          sx={{
-    // Optional: add more top padding to prevent label overlap
-    '& .MuiInputLabel-root': {
-      top: '2px',
-      background: '#fff',
-      padding: '0 4px',
-    },
-  }}
+          className="changeProfileDialogField"
         />
         <TextField
           label="Middle Name"
@@ -79,14 +73,7 @@ const handleSave = async () => {
           fullWidth
           margin="normal"
           disabled={isLoading}
-          sx={{
-    // Optional: add more top padding to prevent label overlap
-    '& .MuiInputLabel-root': {
-      top: '2px',
-      background: '#fff',
-      padding: '0 4px',
-    },
-  }}
+          className="changeProfileDialogField"
         />
         <TextField
           label="Last Name"
@@ -95,14 +82,7 @@ const handleSave = async () => {
           fullWidth
           margin="normal"
           disabled={isLoading}
-          sx={{
-    // Optional: add more top padding to prevent label overlap
-    '& .MuiInputLabel-root': {
-      top: '2px',
-      background: '#fff',
-      padding: '0 4px',
-    },
-  }}
+          className="changeProfileDialogField"
         />
         <TextField
           label="Suffix (optional)"
@@ -111,30 +91,12 @@ const handleSave = async () => {
           fullWidth
           margin="normal"
           disabled={isLoading}
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              '& fieldset': {
-                borderColor: '#1976d2', // Custom border color
-                borderWidth: 2,
-              },
-              '&:hover fieldset': {
-                borderColor: '#115293', // Darker on hover
-              },
-              '&.Mui-focused fieldset': {
-                borderColor: '#1565c0', // Even darker when focused
-              },
-            },
-            '& .MuiInputLabel-root': {
-              top: '2px',
-              background: '#fff',
-              padding: '0 4px',
-            },
-          }}
+          className="changeProfileDialogField changeProfileDialogField--suffix"
         />
       </DialogContent>
       <DialogActions>
         <Button onClick={handleCancel} disabled={isLoading}>Cancel</Button>
-        <Button onClick={handleSave} variant="contained" disabled={isLoading} startIcon={isLoading ? <Box sx={{ display: 'flex', alignItems: 'center' }}><CircularProgress size={20} sx={{ color: 'white' }} /></Box> : null}>
+        <Button onClick={handleSave} variant="contained" disabled={isLoading} startIcon={isLoading ? <Box className="changeProfileDialogLoadingIcon"><CircularProgress size={20} className="changeProfileDialogProgress" /></Box> : null}>
           {isLoading ? 'Saving...' : 'Save'}
         </Button>
       </DialogActions>

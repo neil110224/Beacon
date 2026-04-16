@@ -56,22 +56,22 @@
 // Role action icons
 .roleMenuIcon {
   font-size: 1.2rem;
-  color: #5f6368;
+  color: $primary-text-light;
 }
 
 .roleRestoreIcon {
   margin-right: 12px;
-  color: #2e7d32;
+  color: $primary-text-light;
 }
 
 .roleEditIcon {
   margin-right: 12px;
-  color: #1976d2;
+  color: $primary-text-light;
 }
 
 .roleArchiveIcon {
   margin-right: 12px;
-  color: #ed6c02;
+  color: $primary-text-light;
 }
 
 // Role menu
@@ -80,12 +80,17 @@
     border-radius: 8px;
     margin-top: 8px;
     min-width: 160px;
+    background-color: $primary-main;
+    border: 1px solid $primary-box-content;
+    color: $primary-text-light;
   }
 }
 
 .roleMenuItem {
+  color: $primary-text-light;
+
   &:hover {
-    background-color: rgba(0, 0, 0, 0.04);
+    background-color: rgba($primary-text-light, 0.08);
   }
 }
 
@@ -96,7 +101,7 @@
   & .MuiTableCell-root {
     padding: 14px 16px;
     font-size: 0.875rem;
-    color: #2c3e50;
+    color: $secondary-text-light;
   }
 
   & .MuiTableBody-root .MuiTableRow-root {
@@ -105,14 +110,28 @@
 }
 
 .roleTableHeader {
-  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  background: $primary-box-content 100%;
 
   & th {
     font-weight: 600;
-    color: #ffffff !important;
+    color: $primary-hover-light !important;
     font-size: 0.875rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     padding: 16px;
+  }
+}
+
+.roleContainer {
+  .dataTableHead {
+    background:$primary-box-content 100%;
+  }
+
+  .dataTableHeaderCell {
+    color: $primary-hover-light;
+  }
+
+  .dataTableBodyCell {
+    color: $secondary-text-light;
   }
 }

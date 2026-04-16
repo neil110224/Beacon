@@ -171,15 +171,16 @@ const Category = () => {
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
-        PaperProps={{ elevation: 3, sx: { borderRadius: '8px', mt: 1, minWidth: 160 } }}
+        onClick={(e) => e.stopPropagation()}
+        PaperProps={{ elevation: 3 }}
       >
         {selectedCategory?.deleted_at ? (
-          <MenuItem onClick={handleArchive}>
+          <MenuItem onClick={handleArchive} className="categoryMenuItem">
             <RestoreIcon fontSize="small" className="categoryMenuItemRestore" sx={{ mr: 1.5 }} />
             Restore
           </MenuItem>
         ) : (
-          <MenuItem onClick={handleArchive}>
+          <MenuItem onClick={handleArchive} className="categoryMenuItem">
             <ArchiveIcon fontSize="small" className="categoryMenuItemArchive" sx={{ mr: 1.5 }} />
             Archive
           </MenuItem>

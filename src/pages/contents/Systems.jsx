@@ -197,14 +197,6 @@ const Systems = () => {
     return teams.filter(t => t.name?.toLowerCase().includes(debouncedTeamsSearch.toLowerCase()))
   }, [teams, debouncedTeamsSearch])
 
-  const getRandomColor = () => '#03346E'
-
-  const teamColorMap = React.useMemo(() => {
-    const colorMap = {}
-    if (Array.isArray(teams)) teams.forEach((team, index) => { colorMap[team.id] = getRandomColor(index) })
-    return colorMap
-  }, [teams])
-
   const getSystemCountForTeam = (teamId) => {
     return allSystems.filter(system => {
       if (Array.isArray(system.team)) return system.team.some(t => t.id === teamId)
@@ -289,7 +281,7 @@ const Systems = () => {
             <IconButton
               onClick={handleRefresh}
               disabled={isRefreshing}
-              sx={{ color: '#03346E', '&:hover': { backgroundColor: 'rgba(3, 52, 110, 0.08)' } }}
+              className="systemsRefreshButton"
             >
               <CachedIcon sx={{
                 animation: isRefreshing ? 'spin 1s linear infinite' : 'none',
@@ -305,7 +297,7 @@ const Systems = () => {
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             InputProps={{
-              startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: '#9e9e9e' }} /></InputAdornment>,
+              startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment>,
             }}
             className="systemsSearchField"
             sx={{ minWidth: 250 }}
@@ -313,10 +305,10 @@ const Systems = () => {
 
           {canAddSystem && (
             <>
-              <Button variant="contained" startIcon={<ImportExportIcon />} onClick={handleFileMenuOpen} sx={{ bgcolor: '#03346E' }}>
+              <Button variant="contained" startIcon={<ImportExportIcon />} onClick={handleFileMenuOpen} className="systemsFileButton">
                 File
               </Button>
-              <Menu anchorEl={fileMenuAnchor} open={fileMenuOpen} onClose={handleFileMenuClose}>
+              <Menu anchorEl={fileMenuAnchor} open={fileMenuOpen} onClose={handleFileMenuClose} PaperProps={{ className: 'systemsFileMenuPaper' }}>
                 <MenuItem onClick={handleImportSystem}><FileUploadIcon className="systemsMenuIcon" /> Import</MenuItem>
                 <MenuItem onClick={handleExportSystem}><ExitToAppIcon className="systemsMenuIcon" /> Export</MenuItem>
                 <MenuItem onClick={handleDownloadTemplate} disabled={isDownloadingTemplate}>
@@ -329,7 +321,7 @@ const Systems = () => {
                 </MenuItem>
               </Menu>
 
-              <Button variant="contained" startIcon={<AddIcon />} onClick={handleAddSystem} sx={{ bgcolor: '#03346E' }}>
+              <Button variant="contained" startIcon={<AddIcon />} onClick={handleAddSystem} className="systemsCreateButton">
                 Create
               </Button>
             </>
@@ -357,14 +349,13 @@ const Systems = () => {
                 <Card
                   key={`${system.id}-${idx}`}
                   className="systemsCard"
-                  style={{ backgroundColor: getRandomColor(idx) }}
                   onClick={() => navigate(`/SystemCategory/${system.systemName}`)}
                 >
                   <CardContent>
-                    <Typography variant="h6" className="systemsCardTitle" sx={{ color: '#f4f4f4', fontFamily: '"Oswald", sans-serif' }}>
+                    <Typography variant="h6" className="systemsCardTitle" sx={{ fontFamily: '"Oswald", sans-serif' }}>
                       {system.systemName}
                     </Typography>
-                    <Typography variant="body2" className="systemsCardDescription" sx={{ fontFamily: '"Oswald", sans-serif', color: '#f4f4f4' }}>
+                    <Typography variant="body2" className="systemsCardDescription" sx={{ fontFamily: '"Oswald", sans-serif' }}>
                       {system.description || 'No description'}
                     </Typography>
                   </CardContent>
@@ -395,7 +386,6 @@ const Systems = () => {
                   <Card
                     key={team.id}
                     className="systemsCard"
-                    style={{ backgroundColor: teamColorMap[team.id] }}
                     onClick={() => {
                       setSelectedTeam(team)
                       setSystemsDialogOpen(true)
@@ -403,17 +393,17 @@ const Systems = () => {
                   >
                     <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative' }}>
                       <Box sx={{ flex: 1 }}>
-                        <Typography variant="h6" className="systemsCardTitle" sx={{ color: '#f4f4f4', fontFamily: '"Oswald", sans-serif' }}>
+                        <Typography variant="h6" className="systemsCardTitle" sx={{ fontFamily: '"Oswald", sans-serif' }}>
                           {team.name}
                         </Typography>
-                        <Typography variant="body2" className="systemsCardCount" sx={{ color: '#f4f4f4', fontFamily: '"Oswald", sans-serif' }}>
+                        <Typography variant="body2" className="systemsCardCount" sx={{ fontFamily: '"Oswald", sans-serif' }}>
                           <strong>{systemCount}</strong> {systemCount === 1 ? 'system' : 'systems'}
                         </Typography>
                       </Box>
                       <IconButton
                         size="small"
                         onClick={e => handleMoreMenuOpen(e, team)}
-                        sx={{ color: '#f4f4f4', alignSelf: 'center', '&:hover': { backgroundColor: 'rgba(255,255,255,0.15)' } }}
+                        className="systemsMoreButton"
                       >
                         <MoreVertIcon fontSize="small" />
                       </IconButton>
@@ -428,7 +418,7 @@ const Systems = () => {
                 open={Boolean(menuState.anchor)}
                 onClose={handleMoreMenuClose}
                 onClick={e => e.stopPropagation()}
-                PaperProps={{ sx: { boxShadow: 'none', border: '1px solid #e0e0e0' } }}
+                PaperProps={{ className: 'systemsFileMenuPaper' }}
               >
                 <MenuItem onClick={handleEditTeam}>Edit</MenuItem>
               </Menu>

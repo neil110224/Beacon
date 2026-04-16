@@ -17,6 +17,7 @@ import {
   MenuItem,
   Autocomplete,
 } from '@mui/material';
+import './dialogscss/UserFormdialog.scss';
 
 import { useLazyGetTeamsQuery } from '../../features/api/team/teamApi';
 import { useLazyGetChargingQuery } from '../../features/api/charging/chargingApi';
@@ -229,8 +230,8 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
   const isDisabled = apiLoading || isLoading;
 
   return (
-    <Dialog key={user ? `edit-${user.id}` : 'add'} open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth>
-      <DialogTitle sx={{ fontFamily: OSWALD, fontWeight: 600 }}>
+    <Dialog key={user ? `edit-${user.id}` : 'add'} open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth className="userFormDialog">
+      <DialogTitle sx={{ fontFamily: OSWALD, fontWeight: 600 }} className="userFormDialogTitle">
         {isEdit ? 'Edit User' : 'Add New User'}
       </DialogTitle>
 
@@ -243,6 +244,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
             error={!!errors.first_name}
             helperText={errors.first_name?.message}
             disabled={isDisabled}
+            className="userFormDialogField"
             sx={{ '& input, & label': { fontFamily: OSWALD } }}
             onChange={(e) => {
               setValue('first_name', e.target.value);
@@ -257,6 +259,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
             label="Middle Name"
             fullWidth
             disabled={isDisabled}
+            className="userFormDialogField"
             sx={{ '& input, & label': { fontFamily: OSWALD } }}
           />
 
@@ -267,6 +270,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
             error={!!errors.last_name}
             helperText={errors.last_name?.message}
             disabled={isDisabled}
+            className="userFormDialogField"
             sx={{ '& input, & label': { fontFamily: OSWALD } }}
             onChange={(e) => {
               setValue('last_name', e.target.value);
@@ -281,6 +285,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
             label="Suffix (optional)"
             fullWidth
             disabled={isDisabled}
+            className="userFormDialogField"
             sx={{ '& input, & label': { fontFamily: OSWALD } }}
           />
 
@@ -291,6 +296,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
             error={!!errors.username}
             helperText={errors.username?.message}
             disabled={isDisabled}
+            className="userFormDialogField"
             sx={{ '& input, & label': { fontFamily: OSWALD } }}
             InputLabelProps={{ shrink: true }}
           />
@@ -304,6 +310,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
               error={!!errors.password}
               helperText={errors.password?.message}
               disabled={isDisabled}
+              className="userFormDialogField"
               sx={{ '& input, & label': { fontFamily: OSWALD } }}
             />
           )}
@@ -312,7 +319,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
             name="role_id"
             control={control}
             render={({ field }) => (
-              <FormControl fullWidth error={!!errors.role_id} disabled={rolesLoading || isDisabled}>
+              <FormControl fullWidth error={!!errors.role_id} disabled={rolesLoading || isDisabled} className="userFormDialogField">
                 <InputLabel sx={{ fontFamily: OSWALD }}>Role</InputLabel>
                 <Select {...field} label="Role" sx={{ fontFamily: OSWALD }} onOpen={handleRoleFieldOpen}>
                   {rolesLoading ? (
@@ -331,7 +338,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
             )}
           />
           {errors.role_id && (
-            <span style={{ color: 'red', fontSize: '0.75rem', fontFamily: OSWALD }}>
+            <span className="userFormDialogErrorText" style={{ fontSize: '0.75rem', fontFamily: OSWALD }}>
               {errors.role_id.message}
             </span>
           )}
@@ -358,6 +365,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
                     </Box>
                   }
                   fullWidth
+                  className="userFormDialogField"
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -378,7 +386,7 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
             name="team_id"
             control={control}
             render={({ field }) => (
-              <FormControl fullWidth error={!!errors.team_id} disabled={teamsLoading || isDisabled}>
+              <FormControl fullWidth error={!!errors.team_id} disabled={teamsLoading || isDisabled} className="userFormDialogField">
                 <InputLabel sx={{ fontFamily: OSWALD }}>Team</InputLabel>
                 <Select {...field} label="Team" sx={{ fontFamily: OSWALD }} onOpen={handleTeamFieldOpen}>
                   {teamsLoading ? (
@@ -397,15 +405,15 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
             )}
           />
           {errors.team_id && (
-            <span style={{ color: 'red', fontSize: '0.75rem', fontFamily: OSWALD }}>
+            <span className="userFormDialogErrorText" style={{ fontSize: '0.75rem', fontFamily: OSWALD }}>
               {errors.team_id.message}
             </span>
           )}
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleDialogClose} disabled={isDisabled || justSaved} sx={{ fontFamily: OSWALD }}>
+      <DialogActions sx={{ px: 3, pb: 2 }} className="userFormDialogActions">
+        <Button onClick={handleDialogClose} disabled={isDisabled || justSaved} sx={{ fontFamily: OSWALD }} className="userFormDialogCancelBtn">
           Cancel
         </Button>
         <Button
@@ -413,7 +421,8 @@ export default function UserFormDialog({ open, onClose, user = null, onSave, isL
           variant="contained"
           disabled={isDisabled || justSaved}
           startIcon={(isDisabled || justSaved) && <CircularProgress size={20} />}
-          sx={{ fontFamily: OSWALD, bgcolor: '#03346E', ':hover': { bgcolor: '#022E5B' } }}
+          sx={{ fontFamily: OSWALD }}
+          className="userFormDialogSaveBtn"
         >
           {isDisabled || justSaved ? 'Saving...' : isEdit ? 'Update' : 'CREATE'}
         </Button>

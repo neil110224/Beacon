@@ -504,7 +504,7 @@ const Dashboard = () => {
               value={systemsSearchQuery}
               onChange={(e) => setSystemsSearchQuery(e.target.value)}
               size="small"
-              className="systemsSearchField"
+              className="dashboardSearchField"
               InputProps={{
                 startAdornment: <SearchIcon className="searchIcon" />,
                 endAdornment: (systemsSearchQuery !== '' && (systemsLoading || systemsSearchQuery !== debouncedSystemsSearch)) ? (

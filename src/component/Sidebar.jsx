@@ -55,7 +55,7 @@ const MenuItem_ = ({ item, isActive, isCollapsed, onClick }) => {
         {!isCollapsed && (
           <ListItemText
             primary={item.label}
-            sx={{ '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', fontWeight: 300, display: 'flex', justifyContent: 'flex-start' } }}
+            sx={{ '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', fontWeight: 400, display: 'flex', justifyContent: 'flex-start' } }}
             className="listItemText"
           />
         )}
@@ -185,7 +185,12 @@ const Sidebar = ({
             <img src={plogo} alt="Beacon Logo" />
           </Link>
         </Box>
-        {!isCollapsed && <Box component="h4" className="title">Beacon</Box>}
+        {!isCollapsed && (
+          <Box component="h2" className="title">
+            <span className="titleInitial">B</span>
+            <span className="titleRest">eacon</span>
+          </Box>
+        )}
         {isMobile && mobileDrawerOpen && (
           <IconButton
             onClick={onCloseMobileDrawer}
@@ -218,7 +223,7 @@ const Sidebar = ({
               <ListItemButton
                 onClick={isCollapsed ? handleMasterlistMenuClick : handleMasterlistToggle}
                 className={`listItemButton ${openMasterlist && !isCollapsed ? 'listItemButton--active' : ''} ${isCollapsed ? 'listItemButton--collapsed' : ''}`}
-                sx={{ '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', fontWeight: 300 } }}
+                sx={{ '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', fontWeight: 400 } }}
               >
                 <ListItemIcon className="listItemIcon" sx={{ minWidth: '0', margin: '0' }}>
                   <LibraryBooksIcon />
@@ -252,7 +257,7 @@ const Sidebar = ({
                       {({ isActive }) => (
                         <ListItemButton
                           className={`nestedItem ${isActive ? 'nestedItem--active' : ''}`}
-                          sx={{ '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', fontWeight: 300 } }}
+                          sx={{ '& .MuiTypography-root': { fontSize: 'var(--sidebar-btn-font-size)', fontWeight: 400 } }}
                         >
                           <ListItemIcon className="listItemIcon" sx={{ minWidth: '0', margin: '0' }}>
                             <item.icon />

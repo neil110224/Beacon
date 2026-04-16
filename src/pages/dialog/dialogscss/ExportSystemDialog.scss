@@ -1,0 +1,174 @@
+@use "../../../styles/colors" as *;
+
+.exportSystemDialog {
+  .MuiPaper-root {
+    background-color: $primary-dark;
+    color: $primary-text-light;
+  }
+
+  .MuiDialogTitle-root,
+  .MuiDialogContent-root,
+  .MuiDialogActions-root,
+  .MuiTypography-root,
+  .MuiInputLabel-root,
+  .MuiSelect-select,
+  .MuiMenuItem-root {
+    color: $primary-text-light;
+  }
+
+  .MuiInputBase-input {
+    color: $primary-text-light;
+  }
+
+  .MuiInputBase-input,
+  .MuiOutlinedInput-input,
+  .MuiPickersInputBase-input,
+  .MuiPickersInputBase-sectionContent,
+  .MuiPickersSectionList-root,
+  .MuiPickersSectionList-section,
+  .MuiPickersSectionList-sectionContent,
+  .MuiPickersInputBase-sectionsContainer {
+    color: $primary-text-light;
+    -webkit-text-fill-color: $primary-text-light;
+  }
+
+  .MuiPickersInputBase-root .MuiInputBase-input,
+  .MuiPickersInputBase-root input,
+  input[placeholder="MM/DD/YYYY"],
+  input[placeholder="mm/dd/yyyy"],
+  input[placeholder="MM/DD/YY"],
+  input[placeholder="mm/dd/yy"],
+  input[placeholder="DD/MM/YYYY"],
+  input[placeholder="dd/mm/yyyy"],
+  input[placeholder="DD/MM/YY"],
+  input[placeholder="dd/mm/yy"] {
+    color: $primary-text-light;
+    -webkit-text-fill-color: $primary-text-light;
+    opacity: 1;
+  }
+
+  .MuiInputBase-input.Mui-disabled,
+  .MuiInputBase-input.Mui-disabled::placeholder,
+  .MuiInputBase-input:disabled,
+  .MuiInputBase-input:disabled::placeholder {
+    color: $primary-text-light;
+    opacity: 1;
+    -webkit-text-fill-color: $primary-text-light;
+  }
+
+  .MuiInputBase-root.Mui-disabled .MuiInputBase-input {
+    color: $primary-text-light;
+    -webkit-text-fill-color: $primary-text-light;
+  }
+
+  .MuiPickersInputBase-root.Mui-disabled,
+  .MuiPickersInputBase-root.Mui-disabled .MuiInputBase-input,
+  .MuiPickersInputBase-root.Mui-disabled .MuiPickersSectionList-section,
+  .MuiPickersInputBase-root.Mui-disabled .MuiPickersSectionList-sectionContent {
+    color: $primary-text-light;
+    -webkit-text-fill-color: $primary-text-light;
+    opacity: 1;
+  }
+
+  .MuiInputLabel-root,
+  .MuiInputLabel-root.Mui-focused,
+  .MuiInputLabel-root.MuiInputLabel-shrink,
+  .MuiInputLabel-root.MuiFormLabel-filled {
+    color: $primary-text-light !important;
+  }
+
+  .MuiOutlinedInput-root {
+    fieldset {
+      border-color: $primary-btn-light;
+    }
+
+    &:hover fieldset {
+      border-color: $primary-light;
+    }
+
+    &.Mui-focused fieldset {
+      border-color: $primary-normal-light;
+    }
+  }
+
+  .MuiDivider-root {
+    border-color: rgba($primary-text-light, 0.2);
+  }
+}
+
+.exportSystemDialogTitle {
+  color: $primary-text-light;
+}
+
+.exportSystemDialogDateLabel {
+  color: $primary-text-light;
+}
+
+.exportSystemDialogFilterText {
+  color: $primary-normal-light;
+}
+
+.exportSystemDialogClearBtn {
+  color: $primary-active-light;
+}
+
+.exportSystemDialogCard {
+  border: 1px solid transparent;
+}
+
+.exportSystemDialogCard--active {
+  background-color: $primary-box-content;
+}
+
+.exportSystemDialogCard--inactive {
+  background-color: $primary-box-content-dark;
+  opacity: 0.6;
+}
+
+.exportSystemDialogSystemName--active {
+  color: $primary-text-light;
+}
+
+.exportSystemDialogSystemName--inactive {
+  color: $primary-toggle-light;
+}
+
+.exportSystemDialogSystemTeams {
+  color: $primary-normal-light;
+}
+
+.exportSystemDialogEmptyText {
+  color: $primary-toggle-light;
+}
+
+.exportSystemDialogActions {
+  .MuiButton-root {
+    font-family: "Oswald", sans-serif;
+  }
+}
+
+.exportSystemDialogCancelBtn {
+  color: $primary-normal-light;
+
+  &:hover {
+    background-color: rgba($primary-text-light, 0.08);
+  }
+}
+
+.exportSystemDialogExportBtn {
+  background-color: $primary-btn-light;
+  color: $primary-text-light;
+
+  &:hover {
+    background-color: $primary-light;
+  }
+
+  &.Mui-disabled {
+    background-color: rgba($primary-btn-light, 0.45);
+    color: rgba($primary-text-light, 0.65);
+  }
+}
+
+.exportSystemDialogAlert {
+  font-family: "Oswald", sans-serif;
+}

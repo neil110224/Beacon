@@ -20,13 +20,14 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import './dialogscss/RoleFormDialog.scss';
 
 const OSWALD = '"Oswald", sans-serif';
 
 const CHECKBOX_SX = {
-  color: '#9e9e9e',
-  '&.Mui-checked': { color: '#2c3e50' },
-  '&.MuiCheckbox-indeterminate': { color: '#2c3e50' },
+  '& .MuiSvgIcon-root': {
+    fontSize: '1.2rem',
+  },
 };
 
 const PARENT_LABEL_SX = {
@@ -34,7 +35,6 @@ const PARENT_LABEL_SX = {
     fontSize: '0.95rem',
     fontWeight: 600,
     fontFamily: OSWALD,
-    color: '#2c3e50',
   },
 };
 
@@ -42,7 +42,6 @@ const CHILD_LABEL_SX = {
   '& .MuiFormControlLabel-label': {
     fontSize: '0.875rem',
     fontFamily: OSWALD,
-    color: '#444',
   },
 };
 
@@ -51,41 +50,49 @@ const CHILD_LABEL_SX = {
 const DASHBOARD_SUBCHILDREN = ['Dashboard.FilterTeam'];
 const SYSTEMS_SUBCHILDREN = ['Systems.Add', 'Systems.Import'];
 const MASTERLIST_CHILDREN = ['Users', 'Category', 'Team', 'Charging', 'Role'];
-// System Category permission: only 'Access' (if off, view-only)
-const SYSTEM_CATEGORY_CHILDREN = ['SystemCategory.Access'];
+// System Category follows the same parent/child pattern as Dashboard.
+const SYSTEM_CATEGORY_PARENT = 'SystemCategory';
+const SYSTEM_CATEGORY_ACCESS = 'SystemCategory.Access';
+const SYSTEM_CATEGORY_PERMS = [SYSTEM_CATEGORY_PARENT, SYSTEM_CATEGORY_ACCESS];
 
 const ALL_DASHBOARD_PERMS = ['Dashboard', ...DASHBOARD_SUBCHILDREN];
 const ALL_SYSTEMS_PERMS = ['Systems', ...SYSTEMS_SUBCHILDREN];
 const ALL_MASTERLIST_PERMS = ['Masterlist', ...MASTERLIST_CHILDREN];
-const ALL_SYSTEM_CATEGORY_PERMS = ['SystemCategory', ...SYSTEM_CATEGORY_CHILDREN];
+const ALL_SYSTEM_CATEGORY_PERMS = SYSTEM_CATEGORY_PERMS;
 // ─── Section: System Category ────────────────────────────────────────────────
 function SystemCategorySection({ selected, onChange }) {
   const [open, setOpen] = useState(true);
-  const perm = 'SystemCategory.Access';
-  const checked = selected.includes(perm);
+  const checkedAll = allIn(SYSTEM_CATEGORY_PERMS, selected);
+  const indeterminate = !checkedAll && someIn(SYSTEM_CATEGORY_PERMS, selected);
+
+  const toggleSystemCategory = () => {
+    onChange(checkedAll ? removeAll(SYSTEM_CATEGORY_PERMS, selected) : addAll(SYSTEM_CATEGORY_PERMS, selected));
+  };
 
   return (
     <CollapsibleSection
       title="System Category"
       isOpen={open}
       onToggle={() => setOpen((v) => !v)}
-      isChecked={checked}
-      isIndeterminate={false}
-      onParentChange={() => onChange(checked ? selected.filter((p) => p !== perm) : [...selected, perm])}
+      isChecked={checkedAll}
+      isIndeterminate={indeterminate}
+      onParentChange={toggleSystemCategory}
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', ml: 2 }}>
         <FormControlLabel
-          key={perm}
+          key={SYSTEM_CATEGORY_ACCESS}
           label={
-            checked
+            selected.includes(SYSTEM_CATEGORY_ACCESS)
               ? 'Access (can edit, mark as done/on hold/pending, create)'
               : 'Viewing only (cannot edit or mark)'
           }
           sx={CHILD_LABEL_SX}
+          className="roleFormDialogChildLabel"
           control={
             <Checkbox
-              checked={checked}
-              onChange={() => onChange(checked ? selected.filter((p) => p !== perm) : [...selected, perm])}
+              checked={selected.includes(SYSTEM_CATEGORY_ACCESS)}
+              onChange={() => onChange(toggle(SYSTEM_CATEGORY_ACCESS, selected))}
+              className="roleFormDialogCheckbox"
               sx={CHECKBOX_SX}
             />
           }
@@ -115,32 +122,20 @@ const removeAll = (perms, selected) => selected.filter((p) => !perms.includes(p)
 
 function CollapsibleSection({ title, isOpen, onToggle, isChecked, isIndeterminate, onParentChange, children }) {
   return (
-    <Box
-      sx={{
-        border: '1px solid #e0e0e0',
-        borderRadius: '8px',
-        backgroundColor: '#fafafa',
-        overflow: 'hidden',
-      }}
-    >
+    <Box className="roleFormDialogSection">
       {/* Header row */}
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '8px 12px 8px 4px',
-        }}
-      >
+      <Box className="roleFormDialogSectionHeader">
         <FormControlLabel
           label={title}
           sx={{ ...PARENT_LABEL_SX, mb: 0, mr: 0, flexGrow: 1 }}
+          className="roleFormDialogParentLabel"
           onClick={(e) => e.stopPropagation()}
           control={
             <Checkbox
               checked={isChecked}
               indeterminate={isIndeterminate}
               onChange={onParentChange}
+              className="roleFormDialogCheckbox"
               sx={CHECKBOX_SX}
             />
           }
@@ -148,15 +143,7 @@ function CollapsibleSection({ title, isOpen, onToggle, isChecked, isIndeterminat
         <IconButton
           size="small"
           onClick={onToggle}
-          sx={{
-            width: 28,
-            height: 28,
-            backgroundColor: '#2c3e50',
-            color: '#fff',
-            borderRadius: '4px',
-            flexShrink: 0,
-            '&:hover': { backgroundColor: '#34495e' },
-          }}
+          className="roleFormDialogToggle"
         >
           {isOpen
             ? <KeyboardArrowUpIcon sx={{ fontSize: '1.1rem' }} />
@@ -167,8 +154,8 @@ function CollapsibleSection({ title, isOpen, onToggle, isChecked, isIndeterminat
 
       {/* Collapsible content */}
       <Collapse in={isOpen} timeout="auto" unmountOnExit>
-        <Divider sx={{ borderColor: '#e0e0e0' }} />
-        <Box sx={{ padding: '10px 16px 12px 16px' }}>
+        <Divider className="roleFormDialogSectionDivider" />
+        <Box className="roleFormDialogSectionBody">
           {children}
         </Box>
       </Collapse>
@@ -199,10 +186,12 @@ function DashboardSection({ selected, onChange }) {
             key={sub}
             label={sub}
             sx={CHILD_LABEL_SX}
+            className="roleFormDialogChildLabel"
             control={
               <Checkbox
                 checked={selected.includes(sub)}
                 onChange={() => onChange(toggle(sub, selected))}
+                className="roleFormDialogCheckbox"
                 sx={CHECKBOX_SX}
               />
             }
@@ -236,10 +225,12 @@ function SystemsSection({ selected, onChange }) {
             key={sub}
             label={sub}
             sx={CHILD_LABEL_SX}
+            className="roleFormDialogChildLabel"
             control={
               <Checkbox
                 checked={selected.includes(sub)}
                 onChange={() => onChange(toggle(sub, selected))}
+                className="roleFormDialogCheckbox"
                 sx={CHECKBOX_SX}
               />
             }
@@ -270,14 +261,16 @@ function MasterlistSection({ selected, onChange }) {
       <Box sx={{ display: 'flex', flexDirection: 'column', ml: 2 }}>
         {MASTERLIST_CHILDREN.map((child, idx) => (
           <Box key={child}>
-            {idx > 0 && <Divider sx={{ my: 0.5, borderColor: '#eee' }} />}
+            {idx > 0 && <Divider sx={{ my: 0.5 }} className="roleFormDialogSubDivider" />}
             <FormControlLabel
               label={child}
               sx={CHILD_LABEL_SX}
+              className="roleFormDialogChildLabel"
               control={
                 <Checkbox
                   checked={selected.includes(child)}
                   onChange={() => onChange(toggle(child, selected))}
+                  className="roleFormDialogCheckbox"
                   sx={CHECKBOX_SX}
                 />
               }
@@ -355,9 +348,9 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
       onClose={onClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{ sx: { borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.1)' } }}
+      className="roleFormDialog"
     >
-      <DialogTitle sx={{ fontWeight: 600, fontSize: '1.25rem', color: '#2c3e50', fontFamily: OSWALD }}>
+      <DialogTitle sx={{ fontWeight: 600, fontSize: '1.25rem', fontFamily: OSWALD }} className="roleFormDialogTitle">
         {isEdit ? 'Edit Role' : 'Add New Role'}
       </DialogTitle>
 
@@ -372,19 +365,15 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
             error={!!errors.name}
             helperText={errors.name?.message}
             {...register('name')}
+            className="roleFormDialogNameField"
             sx={{
               '& input, & label': { fontFamily: OSWALD },
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '8px',
-                '&:hover fieldset': { borderColor: '#2c3e50' },
-                '&.Mui-focused fieldset': { borderColor: '#2c3e50' },
-              },
             }}
           />
 
           {/* Permissions */}
           <Box>
-            <Typography sx={{ fontWeight: 600, mb: 1.5, color: '#2c3e50', fontFamily: OSWALD }}>
+            <Typography sx={{ fontWeight: 600, mb: 1.5, fontFamily: OSWALD }} className="roleFormDialogPermissionsTitle">
               Permissions
             </Typography>
 
@@ -396,7 +385,7 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
             </Box>
 
             {errors.permissions && (
-              <Typography sx={{ color: '#d32f2f', fontSize: '0.75rem', mt: 1, fontFamily: OSWALD }}>
+              <Typography sx={{ fontSize: '0.75rem', mt: 1, fontFamily: OSWALD }} className="roleFormDialogPermissionsError">
                 {errors.permissions.message}
               </Typography>
             )}
@@ -409,7 +398,8 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
         <Button
           onClick={onClose}
           disabled={isLoading || localLoading || justSaved}
-          sx={{ textTransform: 'none', color: '#5a6ac4', fontFamily: OSWALD, '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' } }}
+          sx={{ textTransform: 'none', fontFamily: OSWALD }}
+          className="roleFormDialogCancelBtn"
         >
           Cancel
         </Button>
@@ -420,11 +410,9 @@ export default function RoleFormDialog({ open, onClose, role = null, onSave, isL
           startIcon={(isLoading || localLoading || justSaved) && <CircularProgress size={20} />}
           sx={{
             textTransform: 'none',
-            backgroundColor: '#03346E',
             fontFamily: OSWALD,
-            '&:hover': { backgroundColor: '#022d61' },
-            '&:disabled': { backgroundColor: '#ccc' },
           }}
+          className="roleFormDialogSaveBtn"
         >
           {localLoading ? 'Saving...' : justSaved ? 'Saved!' : isEdit ? 'Update Role' : 'Create'}
         </Button>
