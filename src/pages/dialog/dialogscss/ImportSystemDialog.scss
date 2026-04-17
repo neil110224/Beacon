@@ -53,7 +53,7 @@
 }
 
 .importSystemDialogSecondaryText {
-	color: $primary-normal-light;
+	color: $primary-text-light;
 }
 
 .importSystemDialogSelectedFileBox {
@@ -87,10 +87,10 @@
 
 .importSystemDialogUploadBtn {
 	background-color: $primary-btn-light;
-	color: $primary-text-light;
+	color: $primary-text-white;
 
 	&:hover {
-		background-color: $primary-light;
+		background-color: $primary-btn-dark !important;
 	}
 }
 

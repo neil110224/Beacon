@@ -62,8 +62,8 @@
   align-items: center;
   padding: 1;
   margin-top: 5px;
-  color: #f4f4f4;
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  color: $primary-text-light;
+  border-left: 1px solid rgba($primary-text-white, 0.08);
   background-color: $primary-main;
 
 
@@ -86,7 +86,7 @@
 }
 
 .sidebarToggleButton {
-  color: #000000;
+  color: $primary-text-light;
   width: 36px;
   height: 36px;
   flex-shrink: 0;
@@ -100,7 +100,7 @@
   }
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: rgba($primary-text-white, 0.15);
   }
 }
 
@@ -114,7 +114,7 @@
 .mobileMenuButton {
   display: none;
   color: $primary-text-light !important;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba($primary-text-white, 0.1);
   width: 40px;
   height: 40px;
   border-radius: 8px;
@@ -129,7 +129,7 @@
   }
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: rgba($primary-text-white, 0.15);
   }
 }
 
@@ -176,7 +176,7 @@
   width: 20px;
   height: 20px;
   margin-right: 1.25rem;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba($primary-text-white, 0.2);
   transition: all 0.2s ease;
 
   @include bp.sm {
@@ -185,7 +185,7 @@
   }
 
   &:hover {
-    border: 2px solid rgba(255, 255, 255, 0.4);
+    border: 2px solid rgba($primary-text-white, 0.4);
     transform: scale(1.05);
   }
 }
@@ -199,7 +199,7 @@
     min-width: 180px;
     border-radius: 0.5rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    background: #ffffff;
+    background: $primary-light;
   }
 
   .MuiMenuItem-root,
@@ -216,7 +216,7 @@
   font-family: 'Oswald', sans-serif;
 
   &:hover {
-    background-color: rgba(22, 33, 62, 0.06);
+    background-color: rgba($primary-text-light, 0.06);
   }
 
   &.logoutItem:hover {
@@ -226,7 +226,7 @@
 
 .menuIcon {
   font-size: 1.25rem;
-  color: #16213e;
+  color: $primary-text-light;
 
   .logoutItem & {
     color: #dc3545;

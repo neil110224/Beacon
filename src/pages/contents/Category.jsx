@@ -83,7 +83,6 @@ const Category = () => {
   // True loading state — don't show nodata until fully settled
   const isSettled = !isLoading && !isFetching && !isTabSwitching && searchTerm === debouncedSearchTerm
   const showNoData = isSettled && (is404 || (!isRealError && filteredCategories.length === 0))
-  const showTable = !isRealError && filteredCategories.length > 0
 
   const columns = [
     { id: 'id', label: 'ID', align: 'center', width: '10%' },
@@ -134,19 +133,7 @@ const Category = () => {
             </Box>
           </Box>
         </Box>
-      ) : isRealError ? (
-        <Box className="categoryEmptyStateWrapper">
-          <Box className="categoryEmptyStateBox">
-            <Nodata />
-            <Box className="categoryEmptyTextBox">
-              <Typography variant="h6" className="categoryEmptyTitle">Something went wrong</Typography>
-              <Typography variant="body2" sx={{ color: '#d32f2f' }}>
-                {error?.data?.errors?.[0]?.detail || 'Failed to load categories.'}
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-      ) : showTable ? (
+      ) : (
         <DataTable
           columns={columns}
           rows={filteredCategories}
@@ -164,7 +151,7 @@ const Category = () => {
             '& th': { fontWeight: 600, color: '#ffffff !important', fontSize: '0.875rem', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '16px' }
           }}
         />
-      ) : null}
+      )}
 
       <Menu
         className="categoryMenu"

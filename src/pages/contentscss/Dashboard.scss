@@ -36,7 +36,7 @@
 }
 
 .dashboardRefreshButton.MuiIconButton-root {
-  color: $dashboard-accent !important;
+  color: $primary-text-light !important;
 
   svg {
     color: inherit;
@@ -544,5 +544,5 @@
 }
 
 .emptyStateDescription {
-  color: $dashboard-accent;
+  color: $primary-text-light;
 }

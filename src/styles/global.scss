@@ -1,10 +1,12 @@
+@use "./colors" as *;
+
 body {
     margin: 0;
     padding: 0;
-    background-color: #121212;
+    background-color: #f4f4f4;
     overflow: hidden;
     font-family: 'Oswald', sans-serif;
-    color: #ebebeb;
+    color: #222222;
 }
 
 #root {
@@ -33,7 +35,7 @@ body.theme-light .contentWrapper {
 }
 
 body.theme-light .topBar {
-    background-color: #ffffff !important;
+    background-color: $primary-main !important;
     color: #222222 !important;
     border-left: 1px solid rgba(0, 0, 0, 0.08) !important;
 }

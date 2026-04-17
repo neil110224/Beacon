@@ -23,15 +23,15 @@
 		border-radius: 8px;
 
 		.MuiOutlinedInput-notchedOutline {
-			border-color: $primary-box-content;
+			border-color: $primary-text-light;
 		}
 
 		&:hover fieldset {
-			border-color: $primary-hover-light;
+			border-color: $primary-text-dark;
 		}
 
 		&.Mui-focused fieldset {
-			border-color: $primary-hover-light;
+			border-color: $primary-text-dark;
 		}
 	}
 
@@ -61,7 +61,7 @@
 	background-color: $primary-btn-light;
 
 	&:hover {
-		background-color: $primary-box-content-dark;
+		background-color: $primary-btn-dark;
 	}
 
 	&.Mui-disabled {
@@ -106,7 +106,7 @@
 
 .roleFormDialogChildLabel {
 	.MuiFormControlLabel-label {
-		color: $primary-normal-light;
+		color: $primary-text-light;
 	}
 }
 

@@ -38,10 +38,10 @@
 
 .teamFormDialogSaveBtn.MuiButton-contained {
 	background-color: $primary-btn-light;
-	color: $primary-text-light;
+	color: $primary-text-white;
 
 	&:hover {
-		background-color: $primary-box-content-dark;
+		background-color: $primary-btn-dark;
 	}
 
 	&.Mui-disabled {

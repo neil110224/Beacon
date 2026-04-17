@@ -182,9 +182,9 @@ const Users = () => {
     },
   ]
 
-  const showNoData = !isLoading && users.length === 0 && searchTerm && !showArchived;
-  const showArchiveNoData = !isLoading && users.length === 0 && searchTerm && showArchived;
-  const showUsersTable = !isError && users.length > 0;
+  const showNoData = !isLoading && !isError && users.length === 0 && searchTerm && !showArchived;
+  const showArchiveNoData = !isLoading && !isError && users.length === 0 && searchTerm && showArchived;
+  const showDefaultNoData = !isLoading && !isError && users.length === 0 && !searchTerm;
 
   // Only show one empty state at a time
   let emptyState = null;
@@ -212,7 +212,7 @@ const Users = () => {
         </Box>
       </Box>
     );
-  } else if ((!isLoading && users.length === 0 && !isError) || (isError && showArchived && !searchTerm)) {
+  } else if (showDefaultNoData) {
     emptyState = (
       <Box className="usersEmptyStateWrapper">
         <Box className="usersEmptyStateBox">
@@ -244,7 +244,7 @@ const Users = () => {
 
         {emptyState}
 
-        {showUsersTable && (
+        {!emptyState && (
           <DataTable
             columns={columns}
             rows={users}

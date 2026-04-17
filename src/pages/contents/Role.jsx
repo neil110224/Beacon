@@ -131,9 +131,10 @@ const Role = () => {
     )
   , [roles, debouncedSearchTerm]);
 
-  // Show Nodata if searching and no roles found (active or archive), regardless of error
-  const showNoData = !isLoading && filteredRoles.length === 0 && searchTerm && !showArchived;
-  const showArchiveNoData = !isLoading && filteredRoles.length === 0 && searchTerm && showArchived;
+  // Show custom Nodata only for settled no-data states (not request errors)
+  const showNoData = !isLoading && !isError && filteredRoles.length === 0 && searchTerm && !showArchived;
+  const showArchiveNoData = !isLoading && !isError && filteredRoles.length === 0 && searchTerm && showArchived;
+  const showDefaultNoData = !isLoading && !isError && filteredRoles.length === 0 && !searchTerm;
 
   // Define columns for DataTable
   const columns = [
@@ -246,7 +247,7 @@ const Role = () => {
         </Box>
       )}
 
-      {!showNoData && !showArchiveNoData && (((!isLoading && filteredRoles.length === 0 && !isError) || (isError && showArchived))) && (
+      {!showNoData && !showArchiveNoData && showDefaultNoData && (
         <Box className="roleEmptyStateWrapper">
           <Box className="roleEmptyStateBox">
             <Box style={{ width: 300, margin: '0 auto' }}>
@@ -260,7 +261,7 @@ const Role = () => {
         </Box>
       )}
 
-      {!isError && filteredRoles.length > 0 && (
+      {!showNoData && !showArchiveNoData && !showDefaultNoData && (
         <DataTable
           columns={columns}
           rows={filteredRoles}
