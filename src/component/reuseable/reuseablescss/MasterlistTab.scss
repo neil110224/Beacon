@@ -163,7 +163,12 @@
 }
 
 .masterlistSearchIcon {
-  color: $primary-text-dark;
+  color: $primary-btn-dark;
+}
+
+body.theme-dark .masterlistSearchField .MuiInputAdornment-root svg,
+body.theme-dark .masterlistSearchIcon {
+  color: $primary-btn-dark !important;
 }
 
 .masterlistRefreshButton {
@@ -181,4 +186,32 @@
 
 .masterlistSyncSpinner {
   color: $primary-text-light;
+}
+
+body.theme-dark .masterlistSyncButton {
+  color: #FFFFFF !important;
+  border-color: #FFFFFF !important;
+}
+
+body.theme-dark .masterlistSyncButton:hover {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+body.theme-dark .masterlistSyncSpinner {
+  color: #FFFFFF !important;
+}
+
+/* Dark mode: Active/Archived tab labels and underline should be white */
+body.theme-dark .masterlistTabsContainer .MuiTab-root {
+  color: #FFFFFF !important;
+}
+
+body.theme-dark .masterlistTabsContainer .MuiTab-root.Mui-selected {
+  color: #FFFFFF !important;
+  border-bottom-color: #FFFFFF !important;
+}
+
+body.theme-dark .masterlistTabsContainer .MuiTab-root:not(.Mui-selected):hover {
+  color: #FFFFFF !important;
+  background-color: rgba(255, 255, 255, 0.12) !important;
 }

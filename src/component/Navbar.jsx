@@ -17,6 +17,8 @@ import PersonIcon from "@mui/icons-material/Person";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { selectCurrentUser, logout } from "../features/api/slice/authSlice";
@@ -104,6 +106,7 @@ const Navbar = () => {
     return savedState ? JSON.parse(savedState) : false;
   });
   const [isSidebarLocked, setIsSidebarLocked] = useState(false);
+  const [themeMode, setThemeMode] = useState(() => localStorage.getItem('themeMode') || 'light');
 
   const isXxs = useMediaQuery('(max-width:500px)');
   const isXs = useMediaQuery('(max-width:575.98px)');
@@ -130,6 +133,13 @@ const Navbar = () => {
   useEffect(() => {
     sessionStorage.setItem('appRunning', 'true');
   }, []);
+
+  useEffect(() => {
+    const body = document.body;
+    body.classList.remove('theme-dark', 'theme-light');
+    body.classList.add(themeMode === 'dark' ? 'theme-dark' : 'theme-light');
+    localStorage.setItem('themeMode', themeMode);
+  }, [themeMode]);
 
   const open = Boolean(anchorEl);
 
@@ -164,6 +174,9 @@ const Navbar = () => {
   };
 
   const handleToggleMobileDrawer = () => setMobileDrawerOpen((prev) => !prev);
+  const handleToggleTheme = () => {
+    setThemeMode((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   const handleAddClick = () => {
     if (activePage === "USERS") setUserDialogOpen(true);
@@ -284,8 +297,10 @@ const Navbar = () => {
             </Typography>
           </Box>
 
-          {/* User Info */}
-          <Box className="userInfoContainer" onClick={handleAvatarClick}>
+          {/* Right controls */}
+          <Box className="topBarRight">
+            {/* User Info */}
+            <Box className="userInfoContainer" onClick={handleAvatarClick}>
             <Typography
               className="userName"
               sx={{ fontFamily: OSWALD, fontSize: '1rem', fontWeight: 500 }}
@@ -309,6 +324,7 @@ const Navbar = () => {
             >
               {!user?.profile_picture && getInitials(firstName, lastName)}
             </Avatar>
+          </Box>
           </Box>
 
           <Menu
@@ -337,6 +353,16 @@ const Navbar = () => {
               <LockOpenIcon className="menuIcon" />
               <Typography className="menuItemText" sx={{ fontFamily: OSWALD }}>
                 Change password
+              </Typography>
+            </MenuItem>
+            <MenuItem onClick={() => { handleToggleTheme(); handleClose(); }} className="menuItem">
+              {themeMode === 'dark' ? (
+                <LightModeIcon className="menuIcon" />
+              ) : (
+                <DarkModeIcon className="menuIcon" />
+              )}
+              <Typography className="menuItemText" sx={{ fontFamily: OSWALD }}>
+                {themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
               </Typography>
             </MenuItem>
             <MenuItem onClick={handleLogoutClick} className="menuItem logoutItem">

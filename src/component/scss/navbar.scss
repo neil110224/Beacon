@@ -75,6 +75,12 @@
   }
 }
 
+body.theme-dark .topBar {
+  background-color: #121212 !important;
+  // opacity: 1 !important;
+  backdrop-filter: none !important;
+}
+
 /* ============================================
    LEFT SIDE - DATE/TIME & SIDEBAR TOGGLE
    ============================================ */
@@ -83,6 +89,29 @@
   align-items: center;
   gap: 1.5rem;
   background-color: transparent;
+}
+
+.topBarRight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.themeToggleButton {
+  color: $primary-text-light !important;
+  background-color: rgba($primary-text-light, 0.08) !important;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: rgba($primary-text-light, 0.16) !important;
+  }
+}
+
+.themeToggleIcon {
+  color: inherit;
 }
 
 .sidebarToggleButton {

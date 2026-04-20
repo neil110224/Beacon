@@ -78,10 +78,18 @@
 }
 
 .systemsRefreshButton {
-  color: $primary-text-light;
+  color: $primary-btn-light !important;
+
+  svg {
+    color: $primary-btn-light !important;
+  }
 
   &:hover {
     background-color: rgba($primary-text-light, 0.08);
+
+    svg {
+      color: $primary-btn-light !important;
+    }
   }
 }
 
@@ -116,6 +124,36 @@
   border: 1px solid $primary-box-content;
   background-color: $primary-main;
   color: $primary-text-light;
+
+  .MuiMenuItem-root {
+    color: $primary-text-light !important;
+
+    &.Mui-disabled {
+      color: rgba($primary-text-light, 0.45) !important;
+    }
+  }
+
+  .systemsMenuIcon {
+    color: $primary-text-light !important;
+  }
+}
+
+body.theme-dark .systemsFileMenuPaper {
+  background-color: #1f1f1f !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: $primary-text-white !important;
+
+  .MuiMenuItem-root {
+    color: $primary-text-white !important;
+
+    &.Mui-disabled {
+      color: rgba(255, 255, 255, 0.45) !important;
+    }
+  }
+
+  .systemsMenuIcon {
+    color: $primary-text-white !important;
+  }
 }
 
 .systemsEmptyStateContainer {
@@ -165,16 +203,16 @@
 
 .systemsCard {
   &.MuiCard-root {
-    background-color: $primary-datatable-color !important;
+    background-color: $primary-btn-dark !important;
   }
   box-shadow: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  background-color: $primary-datatable-color !important;
+  background-color: $primary-btn-dark !important;
   overflow: hidden;
 
   .MuiCardContent-root {
-    background-color: $primary-datatable-color !important;
+    background-color: $primary-btn-dark !important;
     height: 100%;
   }
 
@@ -187,12 +225,12 @@
 .systemsCardTitle {
   font-weight: 600;
   margin-bottom: 8px;
-  color: $primary-text-light;
+  color: $primary-text-white;
 }
 
 .systemsCardCount {
   font-size: 0.875rem;
-  color: $primary-text-light;
+  color: $primary-text-white;
 
   strong {
     font-weight: 600;
@@ -204,12 +242,17 @@
 }
 
 .systemsMoreButton {
-  color: $primary-hover-light;
+  color: $primary-text-white;
   align-self: center;
 
   &:hover {
-    background-color: rgba($primary-hover-light, 0.15);
+    background-color: rgba($primary-text-white, 0.15);
   }
+}
+
+body.theme-light .systemsMoreButton,
+body.theme-light .systemsMoreButton .MuiSvgIcon-root {
+  color: $primary-text-white !important;
 }
 
 .systemsLoadingContainer {

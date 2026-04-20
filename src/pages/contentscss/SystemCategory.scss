@@ -60,7 +60,7 @@
   padding: 24px;
   flex: 1;
   overflow: auto;
-  scrollbar-color: #4a4a4a #1f1f1f;
+  scrollbar-color: rgba($primary-text-dark, 0.45) $primary-box-content-dark;
   scrollbar-width: thin;
 
   &::-webkit-scrollbar {
@@ -69,13 +69,54 @@
   }
 
   &::-webkit-scrollbar-track {
+    background: $primary-box-content-dark;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba($primary-text-dark, 0.45);
+    border-radius: 8px;
+    border: 2px solid $primary-box-content-dark;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba($primary-text-dark, 0.6);
+  }
+}
+
+.systemCategoryTableContainer {
+  scrollbar-color: rgba($primary-text-dark, 0.45) $primary-box-content-dark;
+
+  &::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $primary-box-content-dark;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba($primary-text-dark, 0.45);
+    border-radius: 8px;
+    border: 2px solid $primary-box-content-dark;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba($primary-text-dark, 0.6);
+  }
+}
+
+body.theme-dark .systemCategoryContent,
+body.theme-dark .systemCategoryTableContainer {
+  scrollbar-color: #4a4a4a #1f1f1f;
+
+  &::-webkit-scrollbar-track {
     background: #1f1f1f;
   }
 
   &::-webkit-scrollbar-thumb {
     background: #4a4a4a;
-    border-radius: 8px;
-    border: 2px solid #1f1f1f;
+    border-color: #1f1f1f;
   }
 
   &::-webkit-scrollbar-thumb:hover {
@@ -243,15 +284,15 @@
 
 .systemCategoryEmptyItems {
   padding: 16px;
-  color: $primary-text-light;
+  color: $primary-text-white;
 
   .MuiTypography-root {
-    color: $primary-text-light;
+    color: $primary-text-white;
   }
 
   p, span {
     font-family: 'Oswald', sans-serif;
-    color: $primary-text-light;
+    color: $primary-text-white;
   }
 }
 
@@ -391,7 +432,7 @@
 }
 
 .systemCategoryStatusChip {
-  color: $primary-text-light !important;
+  color: $primary-text-white !important;
 }
 
 .systemCategoryStatusChip--pending {
@@ -416,6 +457,47 @@
 
 .systemCategoryActionIcon {
   color: $primary-text-light !important;
+}
+
+/* Dark mode overrides for System Category page */
+body.theme-dark .systemCategoryTitle,
+body.theme-dark .systemCategoryTeam,
+body.theme-dark .systemCategoryPendingSummary,
+body.theme-dark .systemCategoryNoCategoriesText,
+body.theme-dark .systemCategoryMetaCell,
+body.theme-dark .systemCategoryTableHead th,
+body.theme-dark .systemCategoryTableRow td,
+body.theme-dark .systemCategoryTabs .MuiTab-root,
+body.theme-dark .systemCategoryTabs .Mui-selected,
+body.theme-dark .systemCategoryActionIcon,
+body.theme-dark .systemCategoryExpandIcon,
+body.theme-dark .systemCategoryCheckbox,
+body.theme-dark .systemCategoryStatusSelect,
+body.theme-dark .systemCategoryStatusSelect .MuiSvgIcon-root {
+  color: #FFFFFF !important;
+}
+
+body.theme-dark .systemCategoryAccordion {
+  background-color: #1d1d1d !important;
+}
+
+body.theme-dark .systemCategoryAccordion .MuiAccordionSummary-root {
+  background-color: #262626 !important;
+  color: #FFFFFF !important;
+}
+
+body.theme-dark .systemCategoryAccordion .MuiAccordionDetails-root,
+body.theme-dark .systemCategoryTableHead,
+body.theme-dark .systemCategoryTableRow {
+  background-color: #1b1b1b !important;
+}
+
+/* Keep datatable hover dark in dark mode */
+body.theme-dark .systemCategoryTableRow:hover,
+body.theme-dark .systemCategoryTableRow:hover > td,
+body.theme-dark .systemCategoryTableRow.is-clickable:hover,
+body.theme-dark .systemCategoryTableRow.is-clickable:hover > td {
+  background-color: #2a2a2a !important;
 }
 
 .systemCategoryShowMoreBtn {
@@ -539,5 +621,60 @@
   &:hover {
     background-color: rgba($primary-text-dark, 0.1) !important;
     border-color: $primary-text-light !important;
+  }
+}
+
+/* Dark mode: force Create/Edit dialogs text and disabled fields to white */
+body.theme-dark .systemCategoryDialog {
+  .MuiPaper-root {
+    background-color: #1b1b1b !important;
+    color: #FFFFFF !important;
+  }
+
+  .MuiInputBase-input,
+  .MuiSelect-select,
+  .MuiInputLabel-root,
+  .MuiFormLabel-root,
+  .MuiFormHelperText-root,
+  .MuiTypography-root,
+  .MuiMenuItem-root,
+  .MuiSvgIcon-root,
+  .MuiButton-root,
+  .MuiPickersInputBase-input,
+  .MuiPickersInputBase-sectionContent,
+  .MuiPickersSectionList-root,
+  .MuiPickersSectionList-section,
+  .MuiPickersSectionList-sectionContent,
+  .MuiPickersInputBase-sectionsContainer {
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+  }
+
+  .MuiInputBase-input::placeholder,
+  .MuiInputBase-input.Mui-disabled,
+  .MuiInputBase-input.Mui-disabled::placeholder,
+  .MuiInputBase-input:disabled,
+  .MuiInputBase-input:disabled::placeholder {
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+    opacity: 1;
+  }
+
+  .MuiInputLabel-root.Mui-focused,
+  .MuiFormLabel-root.Mui-focused,
+  .MuiSelect-icon {
+    color: #FFFFFF !important;
+  }
+
+  .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(255, 255, 255, 0.35) !important;
+  }
+
+  .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(255, 255, 255, 0.65) !important;
+  }
+
+  .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: #FFFFFF !important;
   }
 }

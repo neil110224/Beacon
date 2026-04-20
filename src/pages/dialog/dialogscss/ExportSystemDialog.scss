@@ -172,3 +172,51 @@
 .exportSystemDialogAlert {
   font-family: "Oswald", sans-serif;
 }
+
+/* Dark mode: force export dialog text to primary-text-white */
+body.theme-dark .exportSystemDialog {
+  .MuiPaper-root,
+  .MuiDialogTitle-root,
+  .MuiDialogContent-root,
+  .MuiDialogActions-root,
+  .MuiTypography-root,
+  .MuiInputLabel-root,
+  .MuiSelect-select,
+  .MuiMenuItem-root,
+  .MuiInputBase-input,
+  .MuiOutlinedInput-input,
+  .MuiPickersInputBase-input,
+  .MuiPickersInputBase-sectionContent,
+  .MuiPickersSectionList-root,
+  .MuiPickersSectionList-section,
+  .MuiPickersSectionList-sectionContent,
+  .MuiPickersInputBase-sectionsContainer,
+  .MuiSvgIcon-root,
+  .MuiFormControlLabel-label,
+  .MuiButton-root {
+    color: $primary-text-white !important;
+    -webkit-text-fill-color: $primary-text-white !important;
+  }
+
+  .MuiInputBase-input::placeholder,
+  .MuiInputBase-input.Mui-disabled,
+  .MuiInputBase-input.Mui-disabled::placeholder,
+  .MuiInputBase-input:disabled,
+  .MuiInputBase-input:disabled::placeholder {
+    color: $primary-text-white !important;
+    -webkit-text-fill-color: $primary-text-white !important;
+    opacity: 1;
+  }
+}
+
+body.theme-dark .exportSystemDialogTitle,
+body.theme-dark .exportSystemDialogDateLabel,
+body.theme-dark .exportSystemDialogFilterText,
+body.theme-dark .exportSystemDialogSystemName--active,
+body.theme-dark .exportSystemDialogSystemName--inactive,
+body.theme-dark .exportSystemDialogSystemTeams,
+body.theme-dark .exportSystemDialogEmptyText,
+body.theme-dark .exportSystemDialogCancelBtn,
+body.theme-dark .exportSystemDialogExportBtn {
+  color: $primary-text-white !important;
+}

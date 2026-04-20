@@ -20,7 +20,156 @@ body {
 
 body.theme-dark {
     background-color: #121212;
-    color: #ebebeb;
+    color: #FFFFFF;
+}
+
+body.theme-dark .mainContentArea,
+body.theme-dark .bodyContent,
+body.theme-dark .contentWrapper,
+body.theme-dark .navbarContainer {
+    background-color: #121212 !important;
+    color: #FFFFFF !important;
+}
+
+body.theme-dark .topBar {
+    background-color: #121212 !important;
+    color: #FFFFFF !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+body.theme-dark .activePageLabel,
+body.theme-dark .userName,
+body.theme-dark .toggleIcon,
+body.theme-dark .sidebarToggleButton,
+body.theme-dark .mobileMenuButton,
+body.theme-dark .mobileMenuButton .MuiSvgIcon-root,
+body.theme-dark .themeToggleButton,
+body.theme-dark .themeToggleButton .MuiSvgIcon-root {
+    color: #FFFFFF !important;
+}
+
+body.theme-dark .mobileMenuButton,
+body.theme-dark .themeToggleButton {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+body.theme-dark .sidebarWrapper,
+body.theme-dark .sidebar,
+body.theme-dark .mobileDrawer .MuiDrawer-paper {
+    background-color: #0f0f0f !important;
+    color: #FFFFFF !important;
+}
+
+body.theme-dark .title,
+body.theme-dark .titleRest,
+body.theme-dark .list,
+body.theme-dark .listItemButton,
+body.theme-dark .listItemText,
+body.theme-dark .listItemIcon,
+body.theme-dark .masterlistChevron,
+body.theme-dark .mobileCloseButton,
+body.theme-dark .menuItemIcon,
+body.theme-dark .profileMenuIcon,
+body.theme-dark .timeDateBox {
+    color: #FFFFFF !important;
+}
+
+body.theme-dark .listItemButton:hover,
+body.theme-dark .masterlistButton:hover,
+body.theme-dark .nestedItem:hover,
+body.theme-dark .menuItem:hover {
+    background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+body.theme-dark .listItemButton--active,
+body.theme-dark .menuItem--active,
+body.theme-dark .nestedItem--active {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+body.theme-dark .menu .MuiPaper-root {
+    background-color: #1f1f1f !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+body.theme-dark .menu .MuiMenuItem-root:hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Force all Material icons to white in dark mode */
+body.theme-dark .MuiSvgIcon-root,
+body.theme-dark .MuiIconButton-root .MuiSvgIcon-root,
+body.theme-dark .systemsMoreButton,
+body.theme-dark .systemsMoreButton .MuiSvgIcon-root {
+    color: #FFFFFF !important;
+    fill: currentColor !important;
+}
+
+/* Data tables: force dark surfaces + white text */
+body.theme-dark .dataTablePaper,
+body.theme-dark .dataTablePaperEmpty,
+body.theme-dark .dataTableContainer,
+body.theme-dark .MuiTableContainer-root,
+body.theme-dark .MuiTable-root,
+body.theme-dark .MuiTableHead-root,
+body.theme-dark .MuiTableBody-root,
+body.theme-dark .MuiTableRow-root,
+body.theme-dark .MuiTablePagination-root,
+body.theme-dark .MuiTableFooter-root {
+    background-color: #1b1b1b !important;
+    color: #FFFFFF !important;
+}
+
+body.theme-dark .MuiTableCell-root,
+body.theme-dark .MuiTablePagination-root,
+body.theme-dark .MuiTablePagination-root .MuiSelect-select,
+body.theme-dark .MuiTablePagination-root .MuiSvgIcon-root,
+body.theme-dark .MuiTableSortLabel-root,
+body.theme-dark .MuiTableSortLabel-icon,
+body.theme-dark .MuiTablePagination-displayedRows,
+body.theme-dark .MuiTablePagination-selectLabel,
+body.theme-dark .MuiIconButton-root {
+    color: #FFFFFF !important;
+}
+
+body.theme-dark .MuiTableRow-root {
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Dialogs: force dark surfaces + white text and controls */
+body.theme-dark .MuiDialog-root .MuiPaper-root,
+body.theme-dark .MuiPopover-root .MuiPaper-root,
+body.theme-dark .MuiModal-root .MuiPaper-root {
+    background-color: #1b1b1b !important;
+    color: #FFFFFF !important;
+}
+
+body.theme-dark .MuiDialog-root .MuiDialogTitle-root,
+body.theme-dark .MuiDialog-root .MuiDialogContent-root,
+body.theme-dark .MuiDialog-root .MuiDialogActions-root,
+body.theme-dark .MuiDialog-root .MuiTypography-root,
+body.theme-dark .MuiDialog-root .MuiButton-root,
+body.theme-dark .MuiDialog-root .MuiSvgIcon-root,
+body.theme-dark .MuiDialog-root .MuiInputLabel-root,
+body.theme-dark .MuiDialog-root .MuiInputBase-input,
+body.theme-dark .MuiDialog-root .MuiFormHelperText-root,
+body.theme-dark .MuiDialog-root .MuiSelect-icon,
+body.theme-dark .MuiDialog-root .MuiOutlinedInput-root,
+body.theme-dark .MuiDialog-root .MuiAutocomplete-endAdornment {
+    color: #FFFFFF !important;
+}
+
+body.theme-dark .MuiDialog-root .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+body.theme-dark .MuiDialog-root .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+body.theme-dark .MuiDialog-root .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: #FFFFFF !important;
 }
 
 body.theme-light {

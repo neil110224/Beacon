@@ -53,7 +53,7 @@
 .teamCard.MuiCard-root {
   border-radius: 0.5rem;
   border: 1px solid $primary-box-content;
-  background-color: $primary-datatable-color !important;
+  background-color: $primary-btn-dark !important;
   box-shadow: none;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -65,7 +65,7 @@
 }
 
 .teamCard .MuiCardContent-root {
-  background-color: $primary-datatable-color !important;
+  background-color: $primary-btn-dark !important;
 }
 
 .teamCardContent {
@@ -81,7 +81,7 @@
 .teamCardTitle {
   margin-bottom: 0.25rem;
   font-weight: 600; 
-  color: $primary-text-light;
+  color: $primary-text-white;
 }
 
 .teamCardActions {
@@ -89,11 +89,11 @@
 }
 
 .teamCardMembersCount {
-  color: $primary-text-light;
+  color: $primary-text-white;
 }
 
 .teamMenuIcon {
-  color: $primary-text-light;
+  color: $primary-text-white;
 }
 
 .teamMenu {
@@ -195,4 +195,28 @@
   position: fixed;
   bottom: 1rem;
   right: 1rem;
+}
+
+/* Dark mode fix for Team Members dialog */
+body.theme-dark .teamMembersDialog {
+  & .MuiPaper-root {
+    background-color: #1b1b1b !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  }
+
+  .MuiDialogTitle-root,
+  .MuiDialogContent-root,
+  .MuiDialogActions-root {
+    background-color: #1b1b1b !important;
+    color: #FFFFFF !important;
+  }
+}
+
+body.theme-dark .teamMemberInfo,
+body.theme-dark .teamMemberName,
+body.theme-dark .teamMemberRole,
+body.theme-dark .teamEmptyMembersText,
+body.theme-dark .teamMembersDialogTitle {
+  color: #FFFFFF !important;
 }

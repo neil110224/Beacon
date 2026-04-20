@@ -111,3 +111,10 @@
   margin-right: 12px;
   font-size: 1.25rem;
 }
+
+/* Dark mode: category archive empty-state text should be white */
+body.theme-dark .categoryEmptyTextBox,
+body.theme-dark .categoryEmptyTextBox .MuiTypography-root,
+body.theme-dark .categoryEmptyTitle {
+  color: #FFFFFF !important;
+}

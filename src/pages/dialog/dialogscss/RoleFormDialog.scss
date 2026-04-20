@@ -129,3 +129,73 @@
 	border-color: $primary-box-content;
 }
 
+/* Dark mode fixes for Role dialog permission blocks */
+body.theme-dark .roleFormDialog {
+	.MuiPaper-root {
+		background-color: #1b1b1b !important;
+		color: #FFFFFF !important;
+	}
+}
+
+body.theme-dark .roleFormDialogTitle,
+body.theme-dark .roleFormDialogPermissionsTitle,
+body.theme-dark .roleFormDialogCancelBtn,
+body.theme-dark .roleFormDialogChildLabel .MuiFormControlLabel-label,
+body.theme-dark .roleFormDialogParentLabel .MuiFormControlLabel-label {
+	color: #FFFFFF !important;
+}
+
+body.theme-dark .roleFormDialogNameField {
+	.MuiInputLabel-root,
+	.MuiInputBase-input,
+	.MuiFormHelperText-root {
+		color: #FFFFFF !important;
+	}
+
+	.MuiOutlinedInput-root {
+		.MuiOutlinedInput-notchedOutline {
+			border-color: rgba(255, 255, 255, 0.4) !important;
+		}
+
+		&:hover fieldset {
+			border-color: rgba(255, 255, 255, 0.65) !important;
+		}
+
+		&.Mui-focused fieldset {
+			border-color: #FFFFFF !important;
+		}
+	}
+
+	.MuiInputLabel-root.Mui-focused {
+		color: #FFFFFF !important;
+	}
+}
+
+body.theme-dark .roleFormDialogSection {
+	border-color: rgba(255, 255, 255, 0.16) !important;
+	background-color: #242424 !important;
+}
+
+body.theme-dark .roleFormDialogSectionDivider,
+body.theme-dark .roleFormDialogSubDivider {
+	border-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+body.theme-dark .roleFormDialogToggle {
+	background-color: #2f2f2f !important;
+	color: #FFFFFF !important;
+
+	&:hover {
+		background-color: #3a3a3a !important;
+	}
+}
+
+body.theme-dark .roleFormDialogCheckbox {
+	color: #FFFFFF !important;
+
+	&.Mui-checked,
+	&.MuiCheckbox-indeterminate {
+		color: #FFFFFF !important;
+	}
+}
+

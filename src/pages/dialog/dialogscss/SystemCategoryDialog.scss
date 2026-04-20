@@ -54,15 +54,43 @@
 
 .systemCategoryDialogListItem {
   background-color: $primary-btn-light;
-  color: $primary-text-light;
+  color: $primary-text-white;
+
+  .MuiTypography-root {
+    color: $primary-text-white !important;
+  }
 
   &:hover {
-    background-color: $primary-box-content-dark;
+    background-color: $primary-btn-dark;
+    color: $primary-text-white;
     box-shadow: 0 0 12px rgba($primary-text-dark, 0.5);
     transform: translateX(4px);
+
+    .MuiTypography-root {
+      color: $primary-text-white !important;
+    }
   }
 }
 
 .systemCategoryDialogCloseBtn {
   color: $primary-text-light;
+}
+
+.systemCategoryDialog .MuiInputLabel-root.Mui-focused,
+.systemCategoryDialog .MuiFormLabel-root.Mui-focused,
+.systemCategoryDialog .MuiSvgIcon-root,
+.systemCategoryDialog .MuiSelect-icon {
+  color: $primary-btn-light ;
+}
+
+body.theme-light .systemCategoryDialog .systemCategoryDialogSearchField .MuiInputAdornment-root .MuiSvgIcon-root,
+body.theme-light .systemCategoryDialog .systemCategoryDialogSearchIcon {
+  color: $primary-text-dark !important;
+  opacity: 1 !important;
+}
+
+body.theme-dark .systemCategoryDialog .systemCategoryDialogSearchField .MuiInputAdornment-root .MuiSvgIcon-root,
+body.theme-dark .systemCategoryDialog .systemCategoryDialogSearchIcon {
+  color: $primary-text-dark !important;
+  opacity: 1 !important;
 }

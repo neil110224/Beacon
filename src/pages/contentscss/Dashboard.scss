@@ -35,6 +35,10 @@
   font-size: 1.1rem;
 }
 
+body.theme-dark .welcomeTitle {
+  color: #FFFFFF !important;
+}
+
 .dashboardRefreshButton.MuiIconButton-root {
   color: $primary-text-light !important;
 
@@ -44,12 +48,12 @@
   }
 
   &:hover {
-    background-color: rgba($dashboard-accent, 0.08) !important;
+    background-color: rgba($primary-btn-light, 0.08) !important;
   }
 }
 
 .dashboardSearchSpinner {
-  color: $dashboard-accent;
+  color: $primary-btn-light;
 }
 
 // Summary Cards Section
@@ -114,13 +118,18 @@
 }
 
 .statCardIcon--pending {
-  color: $dashboard-accent-strong;
+  color: $primary-btn-light;
   background-color: $primary-text-light;
 }
 
 .statCardIcon--progress {
-  color: $dashboard-accent-strong;
+  color: $primary-btn-light;
   background-color: $primary-text-light;
+}
+
+body.theme-light .statCardIcon--pending,
+body.theme-light .statCardIcon--progress {
+  color: $primary-text-white !important;
 }
 
 .statCardValue {
@@ -216,7 +225,7 @@
   color: $primary-text-dark;
 
   .MuiInputAdornment-root svg {
-    color: $primary-text-dark;
+    color: $primary-btn-dark;
   }
 
   .MuiInputBase-input,
@@ -254,8 +263,13 @@
 
 .searchIcon {
   margin-right: 8px;
-  color: $primary-text-dark;
+  color: $primary-btn-dark;
   font-size: 18px;
+}
+
+body.theme-dark .dashboardSearchField .MuiInputAdornment-root svg,
+body.theme-dark .dashboardSearchField .searchIcon {
+  color: $primary-btn-dark !important;
 }
 
 // Systems Grid - FIXED GAPS & COLLISIONS
@@ -503,6 +517,21 @@
   }
 }
 
+.pendingTaskChip--pending {
+  background-color: $primary-btn-light !important;
+  color: $primary-text-white !important;
+}
+
+.pendingTaskChip--hold {
+  background-color: #4b6d99 !important;
+  color: $primary-text-white !important;
+}
+
+.pendingTaskChip--done {
+  background-color: #3f8f5f !important;
+  color: $primary-text-white !important;
+}
+
 .pendingTasksEllipsis {
   font-size: 0.65rem;
   color: $secondary-text-light;
@@ -545,4 +574,42 @@
 
 .emptyStateDescription {
   color: $primary-text-light;
+}
+
+/* Dark mode: darken dashboard cards/panels */
+body.theme-dark .statCard,
+body.theme-dark .statCard.MuiPaper-root {
+  background-color: #232323 !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+body.theme-dark .systemCard,
+body.theme-dark .systemCardContent {
+  background-color: #232323 !important;
+  color: #FFFFFF !important;
+}
+
+body.theme-dark .progressPercentageBox {
+  background-color: #2b2b2b !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+body.theme-dark .statItem {
+  background-color: #2c2c2c !important;
+  border-bottom-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+body.theme-dark .projectName,
+body.theme-dark .statCardContent,
+body.theme-dark .statCardNumber,
+body.theme-dark .statCardLabel,
+body.theme-dark .progressCompleted,
+body.theme-dark .pendingTasksTitle,
+body.theme-dark .pendingTaskItem,
+body.theme-dark .pendingTaskDescription,
+body.theme-dark .statItem .statItemLabel,
+body.theme-dark .statItem .statItemValue,
+body.theme-dark .emptyStateTitle,
+body.theme-dark .emptyStateDescription {
+  color: #FFFFFF !important;
 }

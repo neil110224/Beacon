@@ -221,11 +221,12 @@ function App() {
     }
   }, [dispatch, navigate, user, location.pathname]);
 
-  // Dark mode removed: always run in light mode.
+  // Initialize theme from localStorage so mode persists across refreshes.
   useEffect(() => {
-    document.body.classList.remove('theme-dark', 'theme-light');
-    document.body.classList.add('theme-light');
-    localStorage.removeItem('themeMode');
+    const savedTheme = localStorage.getItem('themeMode') || 'light';
+    const body = document.body;
+    body.classList.remove('theme-dark', 'theme-light');
+    body.classList.add(savedTheme === 'dark' ? 'theme-dark' : 'theme-light');
   }, []);
 
   return (

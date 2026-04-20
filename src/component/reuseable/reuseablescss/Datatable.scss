@@ -280,3 +280,16 @@
     }
   }
 }
+
+/* Dark mode scrollbar: avoid blue thumb and use neutral light-on-dark colors */
+body.theme-dark .dataTableContainer {
+  scrollbar-color: rgba(255, 255, 255, 0.55) transparent;
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.55) !important;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.75) !important;
+  }
+}

@@ -109,3 +109,50 @@
 .importSystemDialogSnackbar--error {
 	background-color: $primary-box-content;
 }
+
+/* Dark mode: import dialog typography and controls should be white */
+body.theme-dark .importSystemDialog {
+	.MuiPaper-root,
+	.MuiDialogTitle-root,
+	.MuiDialogContent-root,
+	.MuiDialogActions-root,
+	.MuiTypography-root,
+	.MuiButton-root,
+	.MuiSvgIcon-root,
+	.MuiInputLabel-root,
+	.MuiInputBase-input {
+		color: $primary-text-white !important;
+	}
+}
+
+body.theme-dark .importSystemDialogDropzone {
+	background-color: #232323 !important;
+	border-color: rgba(255, 255, 255, 0.45) !important;
+}
+
+body.theme-dark .importSystemDialogDropzone:hover,
+body.theme-dark .importSystemDialogDropzone--dragging {
+	background-color: #2b2b2b !important;
+	border-color: #FFFFFF !important;
+}
+
+body.theme-dark .importSystemDialogSelectedFileBox,
+body.theme-dark .importSystemDialogFormatBox {
+	background-color: #242424 !important;
+	border: 1px solid rgba(255, 255, 255, 0.18) !important;
+}
+
+body.theme-dark .importSystemDialogDropzoneTitle,
+body.theme-dark .importSystemDialogSecondaryText,
+body.theme-dark .importSystemDialogSelectedFileLabel,
+body.theme-dark .importSystemDialogFormatTitle,
+body.theme-dark .importSystemDialogRemoveBtn,
+body.theme-dark .importSystemDialogUploadIcon,
+body.theme-dark .importSystemDialogCancelBtn,
+body.theme-dark .importSystemDialogUploadBtn {
+	color: #FFFFFF !important;
+}
+
+body.theme-dark .importSystemDialogCancelBtn:hover {
+	background-color: rgba(255, 255, 255, 0.1) !important;
+}
