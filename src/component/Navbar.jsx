@@ -161,7 +161,9 @@ const Navbar = () => {
   const handleLogoutClick = () => {
     handleClose();
     dispatch(logout());
+    const savedThemeMode = localStorage.getItem('themeMode') || themeMode;
     localStorage.clear();
+    localStorage.setItem('themeMode', savedThemeMode);
     sessionStorage.clear();
     setTimeout(() => { window.location.href = "/login"; }, 100);
   };

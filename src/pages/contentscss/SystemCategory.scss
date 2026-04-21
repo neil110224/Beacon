@@ -284,16 +284,23 @@ body.theme-dark .systemCategoryTableContainer {
 
 .systemCategoryEmptyItems {
   padding: 16px;
-  color: $primary-text-white;
+  color: $primary-text-light;
 
   .MuiTypography-root {
-    color: $primary-text-white;
+    color: $primary-text-light;
   }
 
   p, span {
     font-family: 'Oswald', sans-serif;
-    color: $primary-text-white;
+    color: $primary-text-light;
   }
+}
+
+body.theme-dark .systemCategoryEmptyItems,
+body.theme-dark .systemCategoryEmptyItems .MuiTypography-root,
+body.theme-dark .systemCategoryEmptyItems p,
+body.theme-dark .systemCategoryEmptyItems span {
+  color: $primary-text-white !important;
 }
 
 .systemCategorySnackbar {

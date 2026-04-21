@@ -199,3 +199,17 @@ body.theme-dark .roleFormDialogCheckbox {
 	}
 }
 
+body.theme-dark .roleFormDialog .roleFormDialogSaveBtn.MuiButton-contained {
+	background-color: #FFFFFF !important;
+	color: #1B1B1B !important;
+
+	&:hover {
+		background-color: #EAEAEA !important;
+	}
+
+	&.Mui-disabled {
+		background-color: #4A4A4A !important;
+		color: #CFCFCF !important;
+	}
+}
+

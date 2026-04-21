@@ -17,7 +17,7 @@
 	}
 
 	.MuiInputLabel-root {
-		color: $primary-normal-light;
+		color: $primary-text-light;
 
 		&.Mui-focused {
 			color: $primary-text-light;
@@ -40,7 +40,7 @@
 
 	.MuiDialogActions-root {
 		.MuiButton-text {
-			color: $primary-normal-light;
+			color: $primary-text-light;
 
 			&:hover {
 				background-color: rgba($primary-text-light, 0.08);
@@ -49,7 +49,7 @@
 
 		.MuiButton-contained {
 			background-color: $primary-btn-light;
-			color: $primary-text-light;
+			color: $primary-text-white;
 
 			&:hover {
 				background-color: $primary-light;
@@ -63,6 +63,24 @@
 		top: 2px;
 		background: $primary-dark;
 		padding: 0 4px;
+	}
+}
+
+body.theme-light .changeProfileDialogField {
+	.MuiInputLabel-root,
+	.MuiInputLabel-root.Mui-focused,
+	.MuiInputLabel-root.MuiInputLabel-shrink {
+		color: $primary-text-light !important;
+		background-color: $primary-dark !important;
+	}
+}
+
+body.theme-dark .changeProfileDialogField {
+	.MuiInputLabel-root,
+	.MuiInputLabel-root.Mui-focused,
+	.MuiInputLabel-root.MuiInputLabel-shrink {
+		color: rgba(255, 255, 255, 0.82) !important;
+		background-color: #1b1b1b !important;
 	}
 }
 
