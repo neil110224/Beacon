@@ -488,7 +488,7 @@ const Dashboard = () => {
                 </MenuItem>
                 {teams.map((team) => (
                   <MenuItem key={team.id} value={team.id}>
-                    <Typography sx={{ fontFamily: '"Oswald", sans-serif' }}>{team.name}</Typography>
+                    <Typography sx={{ fontFamily: '"Oswald", sans-serif', color: '#f4f4f4' }}>{team.name}</Typography>
                   </MenuItem>
                 ))}
               </Select>

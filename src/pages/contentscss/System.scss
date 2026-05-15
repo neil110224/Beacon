@@ -64,6 +64,22 @@
   }
 }
 
+body.theme-dark .systemsSearchField {
+  .MuiInputAdornment-root,
+  .MuiInputAdornment-root svg,
+  .MuiInputAdornment-root .MuiSvgIcon-root {
+    color: rgba($primary-text-dark, 0.9) !important;
+    fill: currentColor !important;
+  }
+}
+
+body.theme-dark .systemsSearchField .systemsSearchAdornment,
+body.theme-dark .systemsSearchField .systemsSearchIcon,
+body.theme-dark .systemsSearchField .systemsSearchIcon.MuiSvgIcon-root {
+  color: rgba($primary-text-dark, 0.9) !important;
+  fill: currentColor !important;
+}
+
 .systemsAddButton {
   background-color: $primary-btn-light;
   color: $primary-text-light;
@@ -175,6 +191,10 @@ body.theme-dark .systemsFileMenuPaper {
   text-align: left;
   color: $primary-text-light;
 
+  .MuiTypography-root {
+    color: inherit;
+  }
+
   h6 {
     margin-bottom: 1px;
     font-weight: 500;
@@ -183,6 +203,23 @@ body.theme-dark .systemsFileMenuPaper {
   p {
     font-size: 0.875rem;
   }
+}
+
+body.theme-dark .systemsEmptyStateContent {
+  color: $primary-text-white !important;
+
+  .MuiTypography-root,
+  h6,
+  p {
+    color: $primary-text-white !important;
+  }
+}
+
+body.theme-dark .systemsEmptyStateTitle,
+body.theme-dark .systemsEmptyStateText,
+body.theme-dark .systemsEmptyStateContent .systemsEmptyStateTitle.MuiTypography-root,
+body.theme-dark .systemsEmptyStateContent .systemsEmptyStateText.MuiTypography-root {
+  color: $primary-text-white !important;
 }
 
 .systemsCardsGrid {

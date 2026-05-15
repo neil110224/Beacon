@@ -92,7 +92,7 @@
 
 .systemTeamEditDialogCountChip.is-assigned {
 	background-color: $primary-btn-light;
-	color: $primary-text-light;
+	color: $primary-text-white;
 }
 
 .systemTeamEditDialogDivider {
@@ -106,7 +106,8 @@
 
 .systemTeamEditDialogSaveBtn.MuiButton-contained {
 	background-color: $primary-btn-light;
-	color: $primary-text-light;
+	color: $primary-text-white;
+	font-weight: 600;
 
 	&:hover {
 		background-color: $primary-box-content-dark;
@@ -114,6 +115,119 @@
 
 	&.Mui-disabled {
 		background-color: rgba($primary-btn-light, 0.6);
-		color: rgba($primary-text-light, 0.7);
+		color: rgba($primary-text-white, 0.75);
+	}
+}
+
+body.theme-dark .systemTeamEditDialog {
+	.MuiPaper-root {
+		background-color: #1b1b1b !important;
+		color: $primary-text-white !important;
+	}
+}
+
+body.theme-dark .systemTeamEditDialogPaper {
+	background-color: #1b1b1b !important;
+	color: $primary-text-white !important;
+	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.45);
+}
+
+body.theme-dark .systemTeamEditDialogTitle,
+body.theme-dark .systemTeamEditDialogSubtitle,
+body.theme-dark .systemTeamEditDialogRefreshBtn,
+body.theme-dark .systemTeamEditDialogRefreshIcon,
+body.theme-dark .systemTeamEditDialogLoading,
+body.theme-dark .systemTeamEditDialogPanelTitle,
+body.theme-dark .systemTeamEditDialogEmptyText,
+body.theme-dark .systemTeamEditDialogListBox .MuiListItemText-primary,
+body.theme-dark .systemTeamEditDialogListBox .MuiListItemText-secondary,
+body.theme-dark .systemTeamEditDialogCancelBtn {
+	color: $primary-text-white !important;
+}
+
+body.theme-dark .systemTeamEditDialogSearchField {
+	.MuiOutlinedInput-root {
+		background-color: #2a2a2a !important;
+		color: $primary-text-white !important;
+	}
+
+	.MuiOutlinedInput-notchedOutline {
+		border-color: rgba(255, 255, 255, 0.35) !important;
+	}
+
+	.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+		border-color: rgba(255, 255, 255, 0.6) !important;
+	}
+
+	.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+		border-color: $primary-text-white !important;
+	}
+}
+
+body.theme-dark .systemTeamEditDialogSearchIcon {
+	color: rgba($primary-text-white, 0.75) !important;
+}
+
+body.theme-dark .systemTeamEditDialogListBox {
+	border-color: rgba(255, 255, 255, 0.16) !important;
+	background-color: #242424 !important;
+}
+
+body.theme-dark .systemTeamEditDialogListItem.is-available:hover {
+	background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+body.theme-dark .systemTeamEditDialogListItem.is-assigned:hover {
+	background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+body.theme-dark .systemTeamEditDialogListItem.is-assigned,
+body.theme-dark .systemTeamEditDialogListItem.is-assigned .MuiListItemText-primary,
+body.theme-dark .systemTeamEditDialogListItem.is-assigned .MuiListItemText-secondary {
+	color: #f4f4f4 !important;
+}
+
+body.theme-dark .systemTeamEditDialogActionIcon.is-add {
+	color: $primary-text-white !important;
+}
+
+body.theme-dark .systemTeamEditDialogActionIcon.is-remove {
+	color: #ff8a80 !important;
+}
+
+body.theme-dark .systemTeamEditDialogBulkBtn.is-available,
+body.theme-dark .systemTeamEditDialogBulkBtn.is-assigned {
+	color: $primary-text-white !important;
+}
+
+body.theme-dark .systemTeamEditDialogCountChip.is-available {
+	background-color: rgba(255, 255, 255, 0.12) !important;
+	color: $primary-text-white !important;
+}
+
+body.theme-dark .systemTeamEditDialogCountChip.is-assigned {
+	background-color: $primary-btn-light !important;
+	color: $primary-text-white !important;
+}
+
+body.theme-dark .systemTeamEditDialogDivider {
+	background-color: rgba(255, 255, 255, 0.16) !important;
+}
+
+body.theme-dark .systemTeamEditDialogCancelBtn {
+	border-color: rgba(255, 255, 255, 0.45) !important;
+}
+
+body.theme-dark .systemTeamEditDialogSaveBtn.MuiButton-contained {
+	background-color: $primary-btn-light !important;
+	color: $primary-text-white !important;
+
+	&:hover {
+		background-color: $primary-btn-dark !important;
+	}
+
+	&.Mui-disabled {
+		background-color: rgba($primary-btn-light, 0.45) !important;
+		color: rgba($primary-text-white, 0.7) !important;
 	}
 }

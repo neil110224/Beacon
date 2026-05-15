@@ -297,7 +297,11 @@ const Systems = () => {
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             InputProps={{
-              startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment>,
+              startAdornment: (
+                <InputAdornment position="start" className="systemsSearchAdornment">
+                  <SearchIcon className="systemsSearchIcon" />
+                </InputAdornment>
+              ),
             }}
             className="systemsSearchField"
             sx={{ minWidth: 250 }}
@@ -337,9 +341,9 @@ const Systems = () => {
               <Box className="systemsEmptyStateBox">
                 <Box><Nodata /></Box>
                 <Box className="systemsEmptyStateContent">
-                  <Typography variant="h6">Systems</Typography>
-                  <Typography variant="body2">No records found</Typography>
-                  <Typography variant="body2">There are no records to display</Typography>
+                  <Typography variant="h6" className="systemsEmptyStateTitle">Systems</Typography>
+                  <Typography variant="body2" className="systemsEmptyStateText">No records found</Typography>
+                  <Typography variant="body2" className="systemsEmptyStateText">There are no records to display</Typography>
                 </Box>
               </Box>
             </Box>
@@ -372,9 +376,9 @@ const Systems = () => {
               <Box className="systemsEmptyStateBox">
                 <Box><Nodata /></Box>
                 <Box className="systemsEmptyStateContent">
-                  <Typography variant="h6">Systems</Typography>
-                  <Typography variant="body2">No records found</Typography>
-                  <Typography variant="body2">There are no records to display</Typography>
+                  <Typography variant="h6" className="systemsEmptyStateTitle">Systems</Typography>
+                  <Typography variant="body2" className="systemsEmptyStateText">No records found</Typography>
+                  <Typography variant="body2" className="systemsEmptyStateText">There are no records to display</Typography>
                 </Box>
               </Box>
             </Box>

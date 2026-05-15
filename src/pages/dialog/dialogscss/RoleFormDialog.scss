@@ -59,13 +59,15 @@
 .roleFormDialogSaveBtn.MuiButton-contained {
 	text-transform: none;
 	background-color: $primary-btn-light;
+	color: $primary-text-white;
 
 	&:hover {
 		background-color: $primary-btn-dark;
 	}
 
 	&.Mui-disabled {
-		background-color: $primary-box-content;
+		background-color: rgba($primary-btn-light, 0.6);
+		color: rgba($primary-text-white, 0.7);
 	}
 }
 
@@ -133,7 +135,7 @@
 body.theme-dark .roleFormDialog {
 	.MuiPaper-root {
 		background-color: #1b1b1b !important;
-		color: #FFFFFF !important;
+		color: $primary-text-white !important;
 	}
 }
 
@@ -142,14 +144,14 @@ body.theme-dark .roleFormDialogPermissionsTitle,
 body.theme-dark .roleFormDialogCancelBtn,
 body.theme-dark .roleFormDialogChildLabel .MuiFormControlLabel-label,
 body.theme-dark .roleFormDialogParentLabel .MuiFormControlLabel-label {
-	color: #FFFFFF !important;
+	color: $primary-text-white !important;
 }
 
 body.theme-dark .roleFormDialogNameField {
 	.MuiInputLabel-root,
 	.MuiInputBase-input,
 	.MuiFormHelperText-root {
-		color: #FFFFFF !important;
+		color: $primary-text-white !important;
 	}
 
 	.MuiOutlinedInput-root {
@@ -162,12 +164,12 @@ body.theme-dark .roleFormDialogNameField {
 		}
 
 		&.Mui-focused fieldset {
-			border-color: #FFFFFF !important;
+			border-color: $primary-text-white !important;
 		}
 	}
 
 	.MuiInputLabel-root.Mui-focused {
-		color: #FFFFFF !important;
+		color: $primary-text-white !important;
 	}
 }
 
@@ -183,7 +185,7 @@ body.theme-dark .roleFormDialogSubDivider {
 
 body.theme-dark .roleFormDialogToggle {
 	background-color: #2f2f2f !important;
-	color: #FFFFFF !important;
+	color: $primary-text-white !important;
 
 	&:hover {
 		background-color: #3a3a3a !important;
@@ -191,25 +193,25 @@ body.theme-dark .roleFormDialogToggle {
 }
 
 body.theme-dark .roleFormDialogCheckbox {
-	color: #FFFFFF !important;
+	color: $primary-text-white !important;
 
 	&.Mui-checked,
 	&.MuiCheckbox-indeterminate {
-		color: #FFFFFF !important;
+		color: $primary-text-white !important;
 	}
 }
 
 body.theme-dark .roleFormDialog .roleFormDialogSaveBtn.MuiButton-contained {
-	background-color: #FFFFFF !important;
-	color: #1B1B1B !important;
+	background-color: $primary-btn-light !important;
+	color: $primary-text-white !important;
 
 	&:hover {
-		background-color: #EAEAEA !important;
+		background-color: $primary-btn-dark !important;
 	}
 
 	&.Mui-disabled {
-		background-color: #4A4A4A !important;
-		color: #CFCFCF !important;
+		background-color: rgba($primary-btn-light, 0.45) !important;
+		color: rgba($primary-text-white, 0.7) !important;
 	}
 }
 
